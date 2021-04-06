@@ -52,7 +52,7 @@ String test = context.apply(message);
 
 ## Benchmarks
 
-For the source code see [benchmarks](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/benchmarks) directory. 
+Charts are representing operations per second for each of the implementations. For the source code see [benchmarks](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/benchmarks) directory.
 - Okaeri Placeholders benchmark is based on cached CompiledMessage as this is intended use of the library. PlaceholderContext is created every iteration.
 - JDK8 String#replace benchmarks are chaining replace calls together, as one may do while implementing this type of system with no additional code.
 - CommonsLang3 StringUtils#replaceEach benchmarks are using standard single call with no additional code.
