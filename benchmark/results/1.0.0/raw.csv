@@ -1,0 +1,16 @@
+Benchmark	jdk8 replace chain	okaeri-placeholders context	commons-lang3 replaceEach
+empty	2131282	19197746	80159772
+
+static (12 chars)	1782514	18702505	32784280
+static (150 chars)	1240261	19128066	12046123
+static (1500 chars)	231854	19347790	1541979
+
+simple (3 fields, 43 chars)	967945	3488034	4265794
+simple (3 fields, 122 chars)	725921	3328327	2264668
+
+long (3 fields, 16043 chars)	10989	163377	21965
+long tricky (1 field, 16042 chars)	15547	159380	24351
+
+repeated (20x43)	114033	293057	209507
+repeated (100x43)	25922	59447	42839
+repeated (1000x43)	2618	7201	4070
