@@ -60,18 +60,22 @@ For the source code see [benchmarks](https://github.com/OkaeriPoland/okaeri-plac
 
 ### Simple
 This group represents average messages with fields.
+
 ![](benchmark/results/1.0.0/simple.png)
 
 ### Repeated
 This group uses multiline string built by repeating string from the simple group to check for repeated fields/stress performance.
+
 ![](benchmark/results/1.0.0/repeated.png)
 
 ### Long
 This group represents the replacement of a few evenly distributed fields inside a long string, e.g. html e-mail template. 
 The long tricky represents long string with one field in the last 20% of the string.
+
 ![](benchmark/results/1.0.0/long.png)
 
 ### Static
 This group shows differences in the performance for static strings that do not require any processing, but nor `String#replace` chain 
-  neither `StringUtils#replaceEach` can know that, causing performance loss when the character count is going up.
+neither `StringUtils#replaceEach` can know that, causing performance loss when the character count is going up.
+
 ![](benchmark/results/1.0.0/static.png)
