@@ -1,5 +1,6 @@
 package eu.okaeri.placeholders.context;
 
+import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.part.MessageElement;
 import eu.okaeri.placeholders.message.part.MessageField;
@@ -13,10 +14,6 @@ import java.util.Map;
 @Data
 public class PlaceholderContext {
 
-    private final Map<String, Placeholder> placeholders = new LinkedHashMap<>();
-    private final CompiledMessage message;
-    private final FailMode failMode;
-
     public static PlaceholderContext create() {
         return create(FailMode.FAIL_SAFE);
     }
@@ -27,14 +24,28 @@ public class PlaceholderContext {
     }
 
     public static PlaceholderContext of(CompiledMessage message) {
-        return of(message, FailMode.FAIL_SAFE);
+        return of(null, message);
     }
 
-    public static PlaceholderContext of(CompiledMessage message, FailMode failMode) {
+    public static PlaceholderContext of(Placeholders placeholders, CompiledMessage message) {
+        return of(placeholders, message, FailMode.FAIL_SAFE);
+    }
+
+    public static PlaceholderContext of(Placeholders placeholders, CompiledMessage message, FailMode failMode) {
+
         if (message == null) throw new IllegalArgumentException("message cannot be null");
         if (failMode == null) throw new IllegalArgumentException("failMode cannot be null");
-        return new PlaceholderContext(message, failMode);
+
+        PlaceholderContext context = new PlaceholderContext(message, failMode);
+        context.setPlaceholders(placeholders);
+
+        return context;
     }
+
+    private final Map<String, Placeholder> fields = new LinkedHashMap<>();
+    private final CompiledMessage message;
+    private final FailMode failMode;
+    private Placeholders placeholders;
 
     public PlaceholderContext with(String field, Object value) {
 
@@ -42,7 +53,7 @@ public class PlaceholderContext {
             return this;
         }
 
-        this.placeholders.put(field, Placeholder.of(value));
+        this.fields.put(field, Placeholder.of(this.placeholders, value));
         return this;
     }
 
@@ -86,18 +97,30 @@ public class PlaceholderContext {
                 continue;
             }
 
-            Placeholder placeholder = this.placeholders.get(name);
-            if (placeholder == null) {
+            Placeholder placeholder = this.fields.get(name);
+            if ((placeholder == null) || (placeholder.getValue() == null)) {
                 if (this.failMode == FailMode.FAIL_FAST) {
                     throw new IllegalArgumentException("missing placeholder '" + name + "' for message '" + state + "'");
                 } else if (this.failMode == FailMode.FAIL_SAFE) {
-                    placeholder = Placeholder.of("<missing:" + name + ">");
+                    placeholder = Placeholder.of("<missing:" + field.getLastSubPath() + ">");
                 } else {
                     throw new RuntimeException("unknown fail mode: " + this.failMode);
                 }
             }
 
             String render = placeholder.render(field);
+            if (render == null) {
+                if (field.getDefaultValue() != null) {
+                    render = field.getDefaultValue();
+                } else if (this.failMode == FailMode.FAIL_FAST) {
+                    throw new IllegalArgumentException("rendered null for placeholder '" + name + "' for message '" + state + "'");
+                } else if (this.failMode == FailMode.FAIL_SAFE) {
+                    render = "<null:" + field.getLastSubPath() + ">";
+                } else {
+                    throw new RuntimeException("unknown fail mode: " + this.failMode);
+                }
+            }
+
             rendered.put(field, render);
             totalRenderLength += render.length();
         }

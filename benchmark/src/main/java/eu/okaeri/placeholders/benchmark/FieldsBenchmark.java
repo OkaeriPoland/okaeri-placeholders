@@ -129,16 +129,27 @@ public class FieldsBenchmark {
 }
 
 @Data
+@Placeholder
 class Item implements PlaceholderSchema {
-    @Placeholder private String type;
-    @Placeholder private int amount;
-    @Placeholder private short damage;
-    @Placeholder private byte data;
-    @Placeholder private Meta meta;
+    private String type;
+    private int amount;
+    private short damage;
+    private byte data;
+    private Meta meta;
 }
 
 @Data
+@Placeholder
 class Meta implements PlaceholderSchema {
-    @Placeholder private String name;
-    @Placeholder private String lore;
+    private String name;
+    private String lore;
+}
+
+@Data
+@Placeholder
+class Inventory implements PlaceholderSchema {
+    private Item helmet;
+    private Item chestplate;
+    private Item leggings;
+    private Item boots;
 }

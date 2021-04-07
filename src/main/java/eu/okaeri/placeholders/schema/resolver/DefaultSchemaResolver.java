@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public class DefaultSchemaResolver implements SchemaResolver {
 
+    public static final SchemaResolver INSTANCE = new DefaultSchemaResolver();
     private static final Set<Class<?>> SUPPORTED_TOSTRING_TYPES = new HashSet<>(Arrays.asList(
             BigDecimal.class,
             BigInteger.class,

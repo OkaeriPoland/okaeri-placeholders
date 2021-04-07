@@ -2,6 +2,7 @@ package eu.okaeri.placeholders.schema.meta;
 
 import eu.okaeri.placeholders.schema.PlaceholderSchema;
 import eu.okaeri.placeholders.schema.annotation.Placeholder;
+import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import eu.okaeri.placeholders.schema.resolver.SchemaResolver;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,6 +52,52 @@ public class SchemaMeta {
         Field[] fields = clazz.getDeclaredFields();
         Method[] methods = clazz.getDeclaredMethods();
 
+        // annotated classes
+        Placeholder clazzAnnotation = clazz.getAnnotation(Placeholder.class);
+        if (clazzAnnotation != null) {
+            for (Method method : methods) {
+
+                if (!Modifier.isPublic(method.getModifiers())) {
+                    continue;
+                }
+
+                if (!clazzAnnotation.name().isEmpty()) {
+                    throw new RuntimeException("@Placeholder for " + clazz + " has name set, names are not supported here");
+                }
+
+                String name = method.getName();
+                if (name.startsWith("get")) {
+                    name = name.substring(3);
+                } else if (name.startsWith("is")) {
+                    name = name.substring(2);
+                } else {
+                    continue;
+                }
+
+                char nameArr[] = name.toCharArray();
+                nameArr[0] = Character.toLowerCase(nameArr[0]);
+                name = new String(nameArr);
+                Class<?> returnType = method.getReturnType();
+
+                // submeta
+                if (PlaceholderSchema.class.isAssignableFrom(returnType)) {
+                    MethodHandle handle = toHandle(method);
+                    placeholders.put(name, from -> handleholder(handle, from, null));
+                    continue;
+                }
+
+                // normal
+                SchemaResolver resolver = resolver(clazzAnnotation.resolver());
+                if (!resolver.supports(returnType)) {
+                    continue;
+                }
+
+                MethodHandle handle = toHandle(method);
+                placeholders.put(name, from -> handleholder(handle, from, resolver));
+            }
+        }
+
+        // annotated fields
         for (Field field : fields) {
 
             Class<?> fieldType = field.getType();
@@ -76,6 +124,7 @@ public class SchemaMeta {
             throw new RuntimeException("cannot convert field with type " + fieldType + " using " + resolver.getClass());
         }
 
+        // annotated methods
         for (Method method : methods) {
 
             Class<?> returnType = method.getReturnType();
