@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SchemaMeta {
 
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
-    private static final Map<Class<?>, SchemaMeta> SCHEMA_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends PlaceholderSchema>, SchemaMeta> SCHEMA_CACHE = new ConcurrentHashMap<>();
     private static final Map<Class<? extends SchemaResolver>, SchemaResolver> RESOLVER_CACHE = new ConcurrentHashMap<>();
 
     @SneakyThrows
