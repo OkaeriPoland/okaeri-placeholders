@@ -2,6 +2,7 @@ package eu.okaeri.placeholders.schema.meta;
 
 import eu.okaeri.placeholders.schema.PlaceholderSchema;
 import eu.okaeri.placeholders.schema.annotation.Placeholder;
+import eu.okaeri.placeholders.schema.resolver.SchemaResolver;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +12,8 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Data
@@ -22,19 +22,20 @@ public class SchemaMeta {
 
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
     private static final Map<Class<?>, SchemaMeta> SCHEMA_CACHE = new ConcurrentHashMap<>();
-    private static final Set<Class<?>> SUPPORTED_TOSTRING_TYPES = new HashSet<>(Arrays.asList(
-            BigDecimal.class,
-            BigInteger.class,
-            Boolean.class, boolean.class,
-            Byte.class, byte.class,
-            Character.class, char.class,
-            Double.class, double.class,
-            Float.class, float.class,
-            Integer.class, int.class,
-            Long.class, long.class,
-            Short.class, short.class,
-            String.class,
-            UUID.class));
+    private static final Map<Class<? extends SchemaResolver>, SchemaResolver> RESOLVER_CACHE = new ConcurrentHashMap<>();
+
+    @SneakyThrows
+    private static SchemaResolver resolver(Class<? extends SchemaResolver> clazz) {
+
+        SchemaResolver resolver = RESOLVER_CACHE.get(clazz);
+        if (resolver != null) {
+            return resolver;
+        }
+
+        SchemaResolver instance = clazz.newInstance();
+        RESOLVER_CACHE.put(clazz, instance);
+        return instance;
+    }
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
@@ -61,18 +62,18 @@ public class SchemaMeta {
             String name = placeholder.name().isEmpty() ? field.getName() : placeholder.name();
             if (PlaceholderSchema.class.isAssignableFrom(fieldType)) {
                 MethodHandle handle = toHandle(field);
-                placeholders.put(name, from -> handleholder(handle, from));
+                placeholders.put(name, from -> handleholder(handle, from, null));
                 continue;
             }
 
-            // FIXME: use resolver
-            if (canConvert(fieldType)) {
+            SchemaResolver resolver = resolver(placeholder.resolver());
+            if (resolver.supports(fieldType)) {
                 MethodHandle handle = toHandle(field);
-                placeholders.put(name, from -> String.valueOf(handleholder(handle, from)));
+                placeholders.put(name, from -> handleholder(handle, from, resolver));
                 continue;
             }
 
-            throw new RuntimeException("cannot convert fields with type " + fieldType + ", use resolver=CustomResolver.class or define local conversion method with @Placeholder");
+            throw new RuntimeException("cannot convert field with type " + fieldType + " using " + resolver.getClass());
         }
 
         for (Method method : methods) {
@@ -87,13 +88,13 @@ public class SchemaMeta {
             String name = placeholder.name().isEmpty() ? method.getName() : placeholder.name();
             if (PlaceholderSchema.class.isAssignableFrom(returnType)) {
                 MethodHandle handle = toHandle(method);
-                placeholders.put(name, from -> handleholder(handle, from));
+                placeholders.put(name, from -> handleholder(handle, from, null));
                 continue;
             }
 
-            // FIXME: use resolver
-            if (!canConvert(returnType)) {
-                throw new RuntimeException("cannot convert using method with return type of " + returnType + ", use resolver=CustomResolver.class or supported type: " + method);
+            SchemaResolver resolver = resolver(placeholder.resolver());
+            if (!resolver.supports(returnType)) {
+                throw new RuntimeException("cannot convert method with return type " + returnType + " using " + resolver.getClass());
             }
 
             // FIXME: support for schema mappers?
@@ -102,7 +103,7 @@ public class SchemaMeta {
             }
 
             MethodHandle handle = toHandle(method);
-            placeholders.put(name, from -> String.valueOf(handleholder(handle, from)));
+            placeholders.put(name, from -> handleholder(handle, from, resolver));
         }
 
         SchemaMeta meta = new SchemaMeta(clazz, placeholders);
@@ -112,8 +113,10 @@ public class SchemaMeta {
     }
 
     @SneakyThrows
-    private static Object handleholder(MethodHandle handle, Object from) {
-        return handle.invoke(from);
+    private static Object handleholder(MethodHandle handle, Object from, SchemaResolver resolver) {
+        Object object = handle.invoke(from);
+        if (resolver == null) return object;
+        return resolver.resolve(object);
     }
 
     @SneakyThrows
@@ -126,10 +129,6 @@ public class SchemaMeta {
     private static MethodHandle toHandle(Field field) {
         field.setAccessible(true);
         return LOOKUP.unreflectGetter(field);
-    }
-
-    private static boolean canConvert(Class<?> type) {
-        return SUPPORTED_TOSTRING_TYPES.contains(type);
     }
 
     private final Class<?> type;
