@@ -12,10 +12,13 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class SchemaMeta {
+
+    private static final Map<Class<?>, SchemaMeta> SCHEMA_CACHE = new ConcurrentHashMap<>();
 
     private static final Set<Class<?>> SUPPORTED_TOSTRING_TYPES = new HashSet<>(Arrays.asList(
             BigDecimal.class,
@@ -33,6 +36,11 @@ public class SchemaMeta {
 
     @SuppressWarnings("unchecked")
     public static SchemaMeta of(Class<? extends PlaceholderSchema> clazz) {
+
+        SchemaMeta cached = SCHEMA_CACHE.get(clazz);
+        if (cached != null) {
+            return cached;
+        }
 
         Map<String, PlaceholderResolver> placeholders = new LinkedHashMap<>();
         Field[] fields = clazz.getDeclaredFields();
@@ -90,7 +98,10 @@ public class SchemaMeta {
             placeholders.put(name, from -> String.valueOf(methodPlaceholder(method, from)));
         }
 
-        return new SchemaMeta(clazz, placeholders);
+        SchemaMeta meta = new SchemaMeta(clazz, placeholders);
+        SCHEMA_CACHE.put(clazz, meta);
+
+        return meta;
     }
 
     @SneakyThrows

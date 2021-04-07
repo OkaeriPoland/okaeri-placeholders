@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompiledMessage {
 
-    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{([^\\s]+)\\}");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{([^\\s}]+)\\}");
 
     public static CompiledMessage of(String source) {
 
