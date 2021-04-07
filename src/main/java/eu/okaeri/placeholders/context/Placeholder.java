@@ -37,11 +37,15 @@ public class Placeholder {
             MessageField fieldSub = field.getSub();
             Map<String, PlaceholderResolver> placeholders = meta.getPlaceholders();
             PlaceholderResolver resolver = placeholders.get(fieldSub.getName());
-            Object resolved = resolver.resolve(this.value);
+            if (resolver == null) {
+                throw new RuntimeException("resolver cannot be null: " + fieldSub.getName());
+            }
 
+            Object resolved = resolver.resolve(this.value);
             return Placeholder.of(resolved).render(fieldSub);
         }
 
+        // FIXME: this fallback should be illegal lol
         return String.valueOf(this.value);
     }
 }
