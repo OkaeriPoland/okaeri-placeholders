@@ -26,6 +26,9 @@ public class PlaceholdersBenchmark {
         public CompiledMessage staticLongMessage = CompiledMessage.of(StringUtils.repeat("Hello World! ", 100));
         public CompiledMessage simpleMessage = CompiledMessage.of("Hello {who}! How are you {when}? I'm {how}.");
         public CompiledMessage simpleLongerMessage = CompiledMessage.of("Hello {who}, it's nice to see you! How are you doing {when}? I'm {how}, but still recovering after writing that benchmark.");
+        public CompiledMessage simpleEssayMessage = CompiledMessage.of("Hello {who}, it's nice to see you! Lorem ipsum dolor sit amet, consectetur adipiscing elit." +
+                " How are you doing {when}? Praesent vitae mauris ligula. Nam dignissim neque quis velit ultrices," +
+                " non ullamcorper orci hendrerit. I'm {how}, but still recovering after writing that benchmark.");
 
         // example long message with just few placeholders
         public CompiledMessage longMessage;
@@ -207,6 +210,33 @@ public class PlaceholdersBenchmark {
     @Benchmark
     public void simple_longer_commonslang3_replaceeach(Blackhole blackhole, Data data) {
         blackhole.consume(StringUtils.replaceEach(data.simpleLongerMessage.getRaw(),
+                new String[]{"{who}", "{when}", "{how}"},
+                new String[]{data.field1, data.field2, data.field3}
+        ));
+    }
+    // endblock
+
+    // block simple_essay
+    @Benchmark
+    public void simple_essay_placeholders_contextwith(Blackhole blackhole, Data data) {
+        blackhole.consume(PlaceholderContext.create()
+                .with("who", data.field1)
+                .with("when", data.field2)
+                .with("how", data.field3)
+                .apply(data.simpleEssayMessage));
+    }
+
+    @Benchmark
+    public void simple_essay_java_replacechained(Blackhole blackhole, Data data) {
+        blackhole.consume(data.simpleEssayMessage.getRaw()
+                .replace("{who}", data.field1)
+                .replace("{when}", data.field2)
+                .replace("{how}", data.field3));
+    }
+
+    @Benchmark
+    public void simple_essay_commonslang3_replaceeach(Blackhole blackhole, Data data) {
+        blackhole.consume(StringUtils.replaceEach(data.simpleEssayMessage.getRaw(),
                 new String[]{"{who}", "{when}", "{how}"},
                 new String[]{data.field1, data.field2, data.field3}
         ));
