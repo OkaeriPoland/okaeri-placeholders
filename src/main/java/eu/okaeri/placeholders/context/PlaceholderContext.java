@@ -13,13 +13,6 @@ import java.util.Map;
 @Data
 public class PlaceholderContext {
 
-//    @Data
-//    class PlaceholderCache {
-//        private PlaceholderContext context;
-//        private CompiledMessage message;
-//    }
-//
-//    private static final Map<PlaceholderContext, CompiledMessage>
     private final Map<String, Placeholder> placeholders = new LinkedHashMap<>();
     private final CompiledMessage message;
     private final FailMode failMode;
@@ -60,7 +53,6 @@ public class PlaceholderContext {
     public String apply(CompiledMessage message) {
 
         // someone is trying to apply message on the specific non-shareable context
-        if (message == null) throw new IllegalArgumentException("message cannot be null");
         if ((message != this.message) && (this.message != null)) {
             throw new IllegalArgumentException("cannot apply another message for context created with prepacked message: " +
                     "if you intended to use this context as shared please use empty context from #create(), " +
