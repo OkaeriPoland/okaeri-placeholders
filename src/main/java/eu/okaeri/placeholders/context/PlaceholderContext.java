@@ -13,7 +13,15 @@ import java.util.Map;
 @Data
 public class PlaceholderContext {
 
+//    @Data
+//    class PlaceholderCache {
+//        private PlaceholderContext context;
+//        private CompiledMessage message;
+//    }
+//
+//    private static final Map<PlaceholderContext, CompiledMessage>
     private final Map<String, Placeholder> placeholders = new LinkedHashMap<>();
+    private final CompiledMessage message;
     private final FailMode failMode;
 
     public static PlaceholderContext create() {
@@ -21,15 +29,43 @@ public class PlaceholderContext {
     }
 
     public static PlaceholderContext create(FailMode failMode) {
-        return new PlaceholderContext(failMode);
+        if (failMode == null) throw new IllegalArgumentException("failMode cannot be null");
+        return new PlaceholderContext(null, failMode);
+    }
+
+    public static PlaceholderContext of(CompiledMessage message) {
+        return of(message, FailMode.FAIL_SAFE);
+    }
+
+    public static PlaceholderContext of(CompiledMessage message, FailMode failMode) {
+        if (message == null) throw new IllegalArgumentException("message cannot be null");
+        if (failMode == null) throw new IllegalArgumentException("failMode cannot be null");
+        return new PlaceholderContext(message, failMode);
     }
 
     public PlaceholderContext with(String field, Object value) {
+
+        if ((this.message != null) && (!this.message.isWithFields() || !this.message.hasField(field))) {
+            return this;
+        }
+
         this.placeholders.put(field, Placeholder.of(value));
         return this;
     }
 
+    public String apply() {
+        return this.apply(this.message);
+    }
+
     public String apply(CompiledMessage message) {
+
+        // someone is trying to apply message on the specific non-shareable context
+        if (message == null) throw new IllegalArgumentException("message cannot be null");
+        if ((message != this.message) && (this.message != null)) {
+            throw new IllegalArgumentException("cannot apply another message for context created with prepacked message: " +
+                    "if you intended to use this context as shared please use empty context from #create(), " +
+                    "if you're just trying to send a message use of(message)");
+        }
 
         // no fields, no need for processing
         if (!message.isWithFields()) {

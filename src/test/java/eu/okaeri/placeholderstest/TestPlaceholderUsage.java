@@ -11,11 +11,11 @@ public class TestPlaceholderUsage {
     @Test
     public void test_simple_message_1() {
 
-        PlaceholderContext context = PlaceholderContext.create()
+        PlaceholderContext context = PlaceholderContext.of(CompiledMessage.of("Hello {who}! How are you {when}? I'm {how}."))
                 .with("who", "World")
                 .with("when", "today")
                 .with("how", "ok");
-        String test = context.apply(CompiledMessage.of("Hello {who}! How are you {when}? I'm {how}."));
+        String test = context.apply();
         assertEquals("Hello World! How are you today? I'm ok.", test);
 
         System.out.println(context);
@@ -25,11 +25,11 @@ public class TestPlaceholderUsage {
     @Test
     public void test_simple_message_2() {
 
-        PlaceholderContext context = PlaceholderContext.create()
+        PlaceholderContext context = PlaceholderContext.of(CompiledMessage.of("Hola {who}! ¿Cómo estás {when}? Estoy {how}."))
                 .with("who", "Mundo")
                 .with("when", "hoy")
                 .with("how", "bien");
-        String test = context.apply(CompiledMessage.of("Hola {who}! ¿Cómo estás {when}? Estoy {how}."));
+        String test = context.apply();
         assertEquals("Hola Mundo! ¿Cómo estás hoy? Estoy bien.", test);
 
         System.out.println(context);

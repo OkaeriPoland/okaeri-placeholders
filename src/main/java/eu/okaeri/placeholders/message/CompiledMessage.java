@@ -7,9 +7,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,18 +24,23 @@ public class CompiledMessage {
         }
 
         if (source.isEmpty()) {
-            return new CompiledMessage(source, 0, 0, 0, false, Collections.emptyList());
+            return new CompiledMessage(source, 0, 0, 0, false, Collections.emptyList(), Collections.emptySet());
         }
 
         Matcher matcher = FIELD_PATTERN.matcher(source);
         List<MessageElement> parts = new ArrayList<>();
+        Set<String> usedFields = new HashSet<>();
+
         int lastIndex = 0;
         int rawLength = source.length();
         int fieldsLength = 0;
 
         while (matcher.find()) {
             parts.add(MessageStatic.of(source.substring(lastIndex, matcher.start())));
-            parts.add(MessageField.of(matcher.group(1)));
+            String fieldName = matcher.group(1);
+            parts.add(MessageField.of(fieldName));
+            usedFields.add(fieldName);
+            usedFields.add(fieldName.split("\\.", 2)[0]);
             lastIndex = matcher.end();
             fieldsLength += matcher.group().length();
         }
@@ -51,7 +54,7 @@ public class CompiledMessage {
             throw new RuntimeException("noticed message without fields with more than one element: " + parts);
         }
 
-        return new CompiledMessage(source, rawLength, fieldsLength, (rawLength - fieldsLength), withFields, Collections.unmodifiableList(parts));
+        return new CompiledMessage(source, rawLength, fieldsLength, (rawLength - fieldsLength), withFields, Collections.unmodifiableList(parts), Collections.unmodifiableSet(usedFields));
     }
 
     private final String raw;
@@ -60,4 +63,9 @@ public class CompiledMessage {
     private final int staticLength;
     private final boolean withFields;
     private final List<MessageElement> parts;
+    private final Set<String> usedFields;
+
+    public boolean hasField(String name) {
+        return this.usedFields.contains(name);
+    }
 }

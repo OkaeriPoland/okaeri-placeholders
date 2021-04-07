@@ -43,9 +43,9 @@ public class FieldsBenchmark {
     // block item_single
     @Benchmark
     public void item_single_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.itemSingleMessage)
                 .with("item", data.item)
-                .apply(data.itemSingleMessage));
+                .apply());
     }
 
     @Benchmark
@@ -72,9 +72,9 @@ public class FieldsBenchmark {
     // block item_three
     @Benchmark
     public void item_three_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.itemThreeMessage)
                 .with("item", data.item)
-                .apply(data.itemThreeMessage));
+                .apply());
     }
 
     @Benchmark
@@ -101,9 +101,9 @@ public class FieldsBenchmark {
     // block item_full
     @Benchmark
     public void item_full_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.itemMessage)
                 .with("item", data.item)
-                .apply(data.itemMessage));
+                .apply());
     }
 
     @Benchmark

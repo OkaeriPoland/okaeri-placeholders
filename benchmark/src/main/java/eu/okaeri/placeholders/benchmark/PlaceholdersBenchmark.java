@@ -57,11 +57,11 @@ public class PlaceholdersBenchmark {
     // block empty
     @Benchmark
     public void empty_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.emptyMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.emptyMessage));
+                .apply());
     }
 
     @Benchmark
@@ -84,11 +84,11 @@ public class PlaceholdersBenchmark {
     // block static
     @Benchmark
     public void static_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.staticMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.staticMessage));
+                .apply());
     }
 
     @Benchmark
@@ -111,11 +111,11 @@ public class PlaceholdersBenchmark {
     // block static_real
     @Benchmark
     public void static_real_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.staticRealMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.staticRealMessage));
+                .apply());
     }
 
     @Benchmark
@@ -138,11 +138,11 @@ public class PlaceholdersBenchmark {
     // block static_long
     @Benchmark
     public void static_long_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.staticLongMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.staticLongMessage));
+                .apply());
     }
 
     @Benchmark
@@ -165,11 +165,11 @@ public class PlaceholdersBenchmark {
     // block simple
     @Benchmark
     public void simple_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.simpleMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.simpleMessage));
+                .apply());
     }
 
     @Benchmark
@@ -192,11 +192,11 @@ public class PlaceholdersBenchmark {
     // block simple_longer
     @Benchmark
     public void simple_longer_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.simpleLongerMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.simpleLongerMessage));
+                .apply());
     }
 
     @Benchmark
@@ -219,11 +219,11 @@ public class PlaceholdersBenchmark {
     // block simple_essay
     @Benchmark
     public void simple_essay_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.simpleEssayMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.simpleEssayMessage));
+                .apply());
     }
 
     @Benchmark
@@ -246,11 +246,11 @@ public class PlaceholdersBenchmark {
     // block long
     @Benchmark
     public void long_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.longMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.longMessage));
+                .apply());
     }
 
     @Benchmark
@@ -273,11 +273,11 @@ public class PlaceholdersBenchmark {
     // block long_tricky
     @Benchmark
     public void long_tricky_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.longTrickyMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.longTrickyMessage));
+                .apply());
     }
 
     @Benchmark
@@ -300,11 +300,11 @@ public class PlaceholdersBenchmark {
     // block repeated
     @Benchmark
     public void repeated_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.repeatedMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.repeatedMessage));
+                .apply());
     }
 
     @Benchmark
@@ -327,11 +327,11 @@ public class PlaceholdersBenchmark {
     // block repeated_large
     @Benchmark
     public void repeated_large_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.repeatedLargeMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.repeatedLargeMessage));
+                .apply());
     }
 
     @Benchmark
@@ -354,11 +354,11 @@ public class PlaceholdersBenchmark {
     // block repeated_giant
     @Benchmark
     public void repeated_giant_placeholders_contextwith(Blackhole blackhole, Data data) {
-        blackhole.consume(PlaceholderContext.create()
+        blackhole.consume(PlaceholderContext.of(data.repeatedGiantMessage)
                 .with("who", data.field1)
                 .with("when", data.field2)
                 .with("how", data.field3)
-                .apply(data.repeatedGiantMessage));
+                .apply());
     }
 
     @Benchmark

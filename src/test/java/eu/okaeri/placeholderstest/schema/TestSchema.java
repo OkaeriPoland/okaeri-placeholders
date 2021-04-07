@@ -22,7 +22,7 @@ public class TestSchema {
         item.setMeta(meta);
 
         CompiledMessage message = CompiledMessage.of("Look at my {item.type} x {item.amount}! I named it '{item.meta.name}' with '{item.meta.lore}' as description!");
-        String test = PlaceholderContext.create().with("item", item).apply(message);
+        String test = PlaceholderContext.of(message).with("item", item).apply();
         assertEquals("Look at my Stone x 123! I named it 'Red stone' with 'Really nice stone. I like it.' as description!", test);
 
         System.out.println(test);

@@ -26,4 +26,10 @@ public class MessageField implements MessageElement {
     public boolean hasSub() {
         return this.sub != null;
     }
+
+    public MessageField lastSub() {
+        MessageField last = this.sub;
+        while (last.hasSub()) last = last.getSub();
+        return last;
+    }
 }
