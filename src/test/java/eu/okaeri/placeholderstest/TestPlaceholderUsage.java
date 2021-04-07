@@ -1,6 +1,6 @@
 package eu.okaeri.placeholderstest;
 
-import eu.okaeri.placeholders.PlaceholderContext;
+import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import org.junit.jupiter.api.Test;
 
