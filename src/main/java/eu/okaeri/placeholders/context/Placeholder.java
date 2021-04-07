@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -19,12 +20,20 @@ public class Placeholder {
     }
 
     private final Object value;
+    private final Map<MessageField, String> savedResults = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public String render(MessageField field) {
 
+        String savedResult = this.savedResults.get(field);
+        if (savedResult != null) {
+            return savedResult;
+        }
+
         if (this.value instanceof String) {
-            return (String) this.value;
+            String result = (String) this.value;
+            this.savedResults.put(field, result);
+            return result;
         }
 
         if (this.value instanceof PlaceholderSchema) {
@@ -42,10 +51,16 @@ public class Placeholder {
             }
 
             Object resolved = resolver.resolve(this.value);
-            return Placeholder.of(resolved).render(fieldSub);
+            Placeholder placeholder = Placeholder.of(resolved);
+            String result = placeholder.render(fieldSub);
+            this.savedResults.put(field, result);
+
+            return result;
         }
 
         // FIXME: this fallback should be illegal lol
-        return String.valueOf(this.value);
+        String result = String.valueOf(this.value);
+        this.savedResults.put(field, result);
+        return result;
     }
 }
