@@ -35,7 +35,6 @@ public class SchemaMeta {
     public static SchemaMeta of(Class<? extends PlaceholderSchema> clazz) {
 
         Map<String, PlaceholderResolver> placeholders = new LinkedHashMap<>();
-        Map<String, SchemaMetaResolver> subschemas = new LinkedHashMap<>();
         Field[] fields = clazz.getDeclaredFields();
         Method[] methods = clazz.getDeclaredMethods();
 
@@ -50,8 +49,7 @@ public class SchemaMeta {
             // submeta
             String name = placeholder.name().isEmpty() ? field.getName() : placeholder.name();
             if (PlaceholderSchema.class.isAssignableFrom(fieldType)) {
-                SchemaMeta submeta = SchemaMeta.of((Class<? extends PlaceholderSchema>) fieldType);
-                subschemas.put(name, from -> new SchemaObjectPair(submeta, fieldPlaceholder(field, from)));;
+                placeholders.put(name, from -> fieldPlaceholder(field, from));
                 continue;
             }
 
@@ -75,8 +73,7 @@ public class SchemaMeta {
             // submeta
             String name = placeholder.name().isEmpty() ? method.getName() : placeholder.name();
             if (PlaceholderSchema.class.isAssignableFrom(returnType)) {
-                SchemaMeta submeta = SchemaMeta.of((Class<? extends PlaceholderSchema>) returnType);
-                subschemas.put(name, from -> new SchemaObjectPair(submeta, methodPlaceholder(method, from)));
+                placeholders.put(name, from -> methodPlaceholder(method, from));
                 continue;
             }
 
@@ -93,7 +90,7 @@ public class SchemaMeta {
             placeholders.put(name, from -> String.valueOf(methodPlaceholder(method, from)));
         }
 
-        return new SchemaMeta(clazz, placeholders, subschemas);
+        return new SchemaMeta(clazz, placeholders);
     }
 
     @SneakyThrows
@@ -114,5 +111,4 @@ public class SchemaMeta {
 
     private final Class<?> type;
     private final Map<String, PlaceholderResolver> placeholders;
-    private final Map<String, SchemaMetaResolver> subschemas;
 }

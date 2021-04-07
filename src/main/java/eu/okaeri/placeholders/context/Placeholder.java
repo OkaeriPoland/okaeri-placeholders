@@ -4,8 +4,6 @@ import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.schema.PlaceholderSchema;
 import eu.okaeri.placeholders.schema.meta.PlaceholderResolver;
 import eu.okaeri.placeholders.schema.meta.SchemaMeta;
-import eu.okaeri.placeholders.schema.meta.SchemaMetaResolver;
-import eu.okaeri.placeholders.schema.meta.SchemaObjectPair;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -37,18 +35,11 @@ public class Placeholder {
             }
 
             MessageField fieldSub = field.getSub();
-            Map<String, SchemaMetaResolver> subschemas = meta.getSubschemas();
             Map<String, PlaceholderResolver> placeholders = meta.getPlaceholders();
+            PlaceholderResolver resolver = placeholders.get(fieldSub.getName());
+            Object resolved = resolver.resolve(this.value);
 
-            SchemaMetaResolver schemaMetaResolver = subschemas.get(fieldSub.getName());
-            if (schemaMetaResolver != null) {
-                SchemaObjectPair resolved = schemaMetaResolver.resolve(this.value);
-                Object object = resolved.getObject();
-                return Placeholder.of(object).render(fieldSub);
-            }
-
-            PlaceholderResolver placeholderResolver = placeholders.get(fieldSub.getName());
-            return placeholderResolver.resolve(this.value);
+            return Placeholder.of(resolved).render(fieldSub);
         }
 
         return String.valueOf(this.value);
