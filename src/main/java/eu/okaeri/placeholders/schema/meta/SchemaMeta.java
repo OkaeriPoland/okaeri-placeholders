@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -18,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class SchemaMeta {
 
+    private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
     private static final Map<Class<?>, SchemaMeta> SCHEMA_CACHE = new ConcurrentHashMap<>();
-
     private static final Set<Class<?>> SUPPORTED_TOSTRING_TYPES = new HashSet<>(Arrays.asList(
             BigDecimal.class,
             BigInteger.class,
@@ -34,6 +36,7 @@ public class SchemaMeta {
             String.class,
             UUID.class));
 
+    @SneakyThrows
     @SuppressWarnings("unchecked")
     public static SchemaMeta of(Class<? extends PlaceholderSchema> clazz) {
 
@@ -57,13 +60,15 @@ public class SchemaMeta {
             // submeta
             String name = placeholder.name().isEmpty() ? field.getName() : placeholder.name();
             if (PlaceholderSchema.class.isAssignableFrom(fieldType)) {
-                placeholders.put(name, from -> fieldPlaceholder(field, from));
+                MethodHandle handle = toHandle(field);
+                placeholders.put(name, from -> handleholder(handle, from));
                 continue;
             }
 
             // FIXME: use resolver
             if (canConvert(fieldType)) {
-                placeholders.put(name, from -> String.valueOf(fieldPlaceholder(field, from)));
+                MethodHandle handle = toHandle(field);
+                placeholders.put(name, from -> String.valueOf(handleholder(handle, from)));
                 continue;
             }
 
@@ -81,7 +86,8 @@ public class SchemaMeta {
             // submeta
             String name = placeholder.name().isEmpty() ? method.getName() : placeholder.name();
             if (PlaceholderSchema.class.isAssignableFrom(returnType)) {
-                placeholders.put(name, from -> methodPlaceholder(method, from));
+                MethodHandle handle = toHandle(method);
+                placeholders.put(name, from -> handleholder(handle, from));
                 continue;
             }
 
@@ -95,7 +101,8 @@ public class SchemaMeta {
                 throw new RuntimeException("cannot convert using method with arguments: " + method);
             }
 
-            placeholders.put(name, from -> String.valueOf(methodPlaceholder(method, from)));
+            MethodHandle handle = toHandle(method);
+            placeholders.put(name, from -> String.valueOf(handleholder(handle, from)));
         }
 
         SchemaMeta meta = new SchemaMeta(clazz, placeholders);
@@ -105,15 +112,20 @@ public class SchemaMeta {
     }
 
     @SneakyThrows
-    private static Object fieldPlaceholder(Field field, Object from) {
-        field.setAccessible(true);
-        return field.get(from);
+    private static Object handleholder(MethodHandle handle, Object from) {
+        return handle.invoke(from);
     }
 
     @SneakyThrows
-    private static Object methodPlaceholder(Method method, Object from) {
+    private static MethodHandle toHandle(Method method) {
         method.setAccessible(true);
-        return method.invoke(from);
+        return LOOKUP.unreflect(method);
+    }
+
+    @SneakyThrows
+    private static MethodHandle toHandle(Field field) {
+        field.setAccessible(true);
+        return LOOKUP.unreflectGetter(field);
     }
 
     private static boolean canConvert(Class<?> type) {

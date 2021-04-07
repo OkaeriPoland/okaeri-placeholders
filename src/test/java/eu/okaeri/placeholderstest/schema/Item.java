@@ -8,5 +8,7 @@ import lombok.Data;
 public class Item implements PlaceholderSchema {
     @Placeholder private String type;
     @Placeholder private int amount;
+    @Placeholder private short damage;
+    @Placeholder private byte data;
     @Placeholder private Meta meta;
 }
