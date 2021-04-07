@@ -1,4 +1,4 @@
-package eu.okaeri.placeholders;
+package eu.okaeri.placeholders.context;
 
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.part.MessageElement;
@@ -14,12 +14,17 @@ import java.util.Map;
 public class PlaceholderContext {
 
     private final Map<String, Placeholder> placeholders = new LinkedHashMap<>();
+    private final FailMode failMode;
 
     public static PlaceholderContext create() {
-        return new PlaceholderContext();
+        return create(FailMode.FAIL_SAFE);
     }
 
-    public PlaceholderContext with(String field, String value) {
+    public static PlaceholderContext create(FailMode failMode) {
+        return new PlaceholderContext(failMode);
+    }
+
+    public PlaceholderContext with(String field, Object value) {
         this.placeholders.put(field, Placeholder.of(value));
         return this;
     }
@@ -55,10 +60,16 @@ public class PlaceholderContext {
 
             Placeholder placeholder = this.placeholders.get(name);
             if (placeholder == null) {
-                throw new IllegalArgumentException("missing placeholder " + name + " for message " + state);
+                if (this.failMode == FailMode.FAIL_FAST) {
+                    throw new IllegalArgumentException("missing placeholder '" + name + "' for message '" + state + "'");
+                } else if (this.failMode == FailMode.FAIL_SAFE) {
+                    placeholder = Placeholder.of("<missing:" + name + ">");
+                } else {
+                    throw new RuntimeException("unknown fail mode: " + this.failMode);
+                }
             }
 
-            String render = placeholder.render();
+            String render = placeholder.render(field);
             rendered.put(field, render);
             totalRenderLength += render.length();
         }
