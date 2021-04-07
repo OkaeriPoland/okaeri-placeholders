@@ -22,7 +22,7 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 ### Gradle
@@ -32,10 +32,31 @@ maven { url "https://storehouse.okaeri.eu/repository/maven-public/" }
 ```
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders:1.0.0'
+implementation 'eu.okaeri:okaeri-placeholders:1.1.0'
+```
+
+## Format
+```console
+# basic message
+Hello World!
+# with simple placeholder
+Hello {who}!
+# with simple placeholder and fallback value
+Hello {who|unknown}!
+# with subfields
+Hello {who.name}!
+# with subfields and fallback value
+Hello {who.name|unknown}!
 ```
 
 ## Example
+
+Basic example representing standard usage for simple placeholders. For more examples and advanced usage cases 
+see [tests](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/src/test/java/eu/okaeri/placeholderstest).
+
+For subfield support (e.g. {player.name}) see [TestSchema.java](https://github.com/OkaeriPoland/okaeri-placeholders/blob/master/src/test/java/eu/okaeri/placeholderstest/schema/TestSchema.java)
+in the same directory.
+
 ```java
 // this is intended to be loaded from the configuration on the startup/cached and stored compiled
 CompiledMessage message = CompiledMessage.of("Hola {who}! ¿Cómo estás {when}? Estoy {how}.");
@@ -52,11 +73,11 @@ String test = context.apply(message);
 
 ## Benchmarks
 
-Charts are representing operations per second for each of the implementations. For the source code see [benchmark](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/benchmark) directory.
+Charts are representing operations per second for each of the implementations. For the current source code of test see [benchmark](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/benchmark) directory.
 - Okaeri Placeholders benchmark is based on cached CompiledMessage as this is intended use of the library. PlaceholderContext is created every iteration.
 - JDK8 String#replace benchmarks are chaining replace calls together, as one may do while implementing this type of system with no additional code.
 - CommonsLang3 StringUtils#replaceEach benchmarks are using standard single call with no additional code.
-- System spec: (AdoptOpenJDK)(build 1.8.0_282-b08), OS: Ubuntu 20.04.2 LTS x86_64, CPU: AMD Ryzen 5 3600 (12) @ 3.600GHz
+- Spec: (AdoptOpenJDK)(build 1.8.0_282-b08), OS: Ubuntu 20.04.2 LTS x86_64, CPU: AMD Ryzen 5 3600 (12) @ 3.600GHz, okaeri-placeholders: 1.0.0
 
 ### Simple
 This group represents average messages with fields.

@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompiledMessage {
 
-    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{([^\\s}]+)\\}");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{([^}|]+)(?:\\|([^}]+))?\\}");
 
     public static CompiledMessage of(String source) {
 
@@ -36,11 +36,17 @@ public class CompiledMessage {
         int fieldsLength = 0;
 
         while (matcher.find()) {
+
             parts.add(MessageStatic.of(source.substring(lastIndex, matcher.start())));
             String fieldName = matcher.group(1);
-            parts.add(MessageField.of(fieldName));
+
+            MessageField messageField = MessageField.of(fieldName);
+            if (matcher.groupCount() == 2) messageField.setDefaultValue(matcher.group(2));
+
+            parts.add(messageField);
             usedFields.add(fieldName);
             usedFields.add(fieldName.split("\\.", 2)[0]);
+
             lastIndex = matcher.end();
             fieldsLength += matcher.group().length();
         }
