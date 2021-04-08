@@ -2,11 +2,10 @@ package eu.okaeri.placeholders.bukkit;
 
 import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.Placeholders;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldBorder;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Damageable;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -53,6 +52,28 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(Player.class, "sneaking", Player::isSneaking);
         placeholders.registerPlaceholder(Player.class, "sprinting", Player::isSprinting);
         placeholders.registerPlaceholder(Player.class, Player::getName);
+
+        // Entity
+        placeholders.registerPlaceholder(Entity.class, "entityId", Entity::getEntityId);
+        placeholders.registerPlaceholder(Entity.class, "fallDistance", Entity::getFallDistance);
+        placeholders.registerPlaceholder(Entity.class, "fireTicks", Entity::getFireTicks);
+        placeholders.registerPlaceholder(Entity.class, "lastDamageCause", Entity::getFireTicks); // EntityDamageEvent
+        placeholders.registerPlaceholder(Entity.class, "location", Entity::getLocation); // Location
+        placeholders.registerPlaceholder(Entity.class, "maxFireTicks", Entity::getMaxFireTicks);
+        placeholders.registerPlaceholder(Entity.class, "passenger", Entity::getPassenger); // Entity
+        placeholders.registerPlaceholder(Entity.class, "ticksLived", Entity::getTicksLived);
+        placeholders.registerPlaceholder(Entity.class, "type", Entity::getType); // EntityType (enum)
+        placeholders.registerPlaceholder(Entity.class, "uniqueId", Entity::getUniqueId);
+        placeholders.registerPlaceholder(Entity.class, "vehicle", Entity::getVehicle); // Entity
+        placeholders.registerPlaceholder(Entity.class, "velocity", Entity::getVelocity); // Vector
+        placeholders.registerPlaceholder(Entity.class, "world", Entity::getWorld); // World
+        placeholders.registerPlaceholder(Entity.class, "customNameVisible", Entity::isCustomNameVisible);
+        placeholders.registerPlaceholder(Entity.class, "dead", Entity::isDead);
+        placeholders.registerPlaceholder(Entity.class, "empty", Entity::isEmpty);
+        placeholders.registerPlaceholder(Entity.class, "insideVehicle", Entity::isInsideVehicle);
+        placeholders.registerPlaceholder(Entity.class, "onGround", Entity::isOnGround);
+        placeholders.registerPlaceholder(Entity.class, "valid", Entity::isValid);
+        placeholders.registerPlaceholder(Entity.class, entity -> entity.getType().name());
 
         // Location
         placeholders.registerPlaceholder(Location.class, "block", Location::getBlock); // Block
@@ -160,11 +181,47 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(ItemMeta.class, "hasEnchants", ItemMeta::hasEnchants);
         placeholders.registerPlaceholder(ItemMeta.class, "hasLore", ItemMeta::hasLore);
         placeholders.registerPlaceholder(ItemMeta.class, itemMeta -> "(name=" + itemMeta.getDisplayName() + ", lore=" + String.join(", ", itemMeta.getLore()) + ")");
+
+        // -able
+        placeholders.registerPlaceholder(Nameable.class, "customName", Nameable::getCustomName);
+        placeholders.registerPlaceholder(Damageable.class, "health", Damageable::getHealth);
+        placeholders.registerPlaceholder(Damageable.class, "maxHealth", Damageable::getMaxHealth);
+        placeholders.registerPlaceholder(Damageable.class, "healthBar", damageable -> renderHealthBar((int) (damageable.getHealth() / 2), (int) (damageable.getMaxHealth() / 2)));
     }
 
-    private static String enumList(Collection<? extends Enum> enums) {
+    public static String enumList(Collection<? extends Enum> enums) {
         return enums.stream()
                 .map(Enum::name)
                 .collect(Collectors.joining(", "));
+    }
+
+    public static String renderHealthBar(int value, int max) {
+
+        StringBuilder buf = new StringBuilder();
+
+        // empty
+        if (value == 0) {
+            buf.append(ChatColor.COLOR_CHAR).append("7");
+            for (int i = 0; i < max; i++) buf.append("❤");
+            return buf.toString();
+        }
+
+        // full
+        if (value == max) {
+            buf.append(ChatColor.COLOR_CHAR).append("c");
+            for (int i = 0; i < max; i++) buf.append("❤");
+            return buf.toString();
+        }
+
+        // partial
+        buf.append(ChatColor.COLOR_CHAR).append("c");
+        for (int i = 0; i < max; i++) {
+            if (i == value) {
+                buf.append(ChatColor.COLOR_CHAR).append("7");
+            }
+            buf.append("❤");
+        }
+
+        return buf.toString();
     }
 }
