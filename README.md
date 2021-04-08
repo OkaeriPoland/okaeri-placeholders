@@ -69,7 +69,7 @@ CompiledMessage message = CompiledMessage.of("Hola {who}! ¿Cómo estás {when}?
 // context can be reused (use #create() and #apply(message)) 
 // or created on demand (use #of(message) and #apply())
 // second version can't be reused but is faster in on-demand scenario
-// especially when resulting message does not use any of the placeholders
+// especially when resulting message is using only part of the placeholders
 PlaceholderContext context = PlaceholderContext.of(message)
     .with("who", "Mundo") // in real life scenario these would be your variables
     .with("when", "hoy")
