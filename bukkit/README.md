@@ -33,9 +33,9 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `bedSpawnLocation` | [Location](#Location) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null`/`*Location*` |
 | `compassTarget` | [Location](#Location) | Get the previously set compass target. | `*Location*` |
 | `displayName` | String | Gets the "friendly" name to display of this player. | `SomePlayer` |
-| `exhaustion` | float | Gets the players current exhaustion level. | `2.6910067` |
-| `exp` | float | Gets the players current experience points towards the next level. | `0.2857143` |
-| `flySpeed` | float | Gets the current allowed speed that a client can fly. | `0.1` |
+| `exhaustion` | float | Gets the players current exhaustion level. | `2.69` |
+| `exp` | float | Gets the players current experience points towards the next level. | `0.28` |
+| `flySpeed` | float | Gets the current allowed speed that a client can fly. | `0.10` |
 | `foodLevel` | int | Gets the players current food level. | `14` |
 | `healthScale` | double | Gets the number that health is scaled to for the client. | `20.00` |
 | `level` | int | Gets the players current experience level | `0` |
@@ -43,10 +43,10 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `playerTime` | long | Returns the player's current timestamp. | `6148941` |
 | `playerTimeOffset` | long | Returns the player's current time offset relative to server time, or the current player's fixed time if the player's time is absolute. | `0` |
 | `weatherType` | WeatherType | Returns the type of weather the player is currently experiencing. | `CLEAR`/`DOWNFALL` |
-| `saturation` | float | Gets the players current saturation level. | `0.0` |
+| `saturation` | float | Gets the players current saturation level. | `0.00` |
 | `spectatorTarget` | [Entity](#Entity) | Gets the entity which is followed by the camera when in GameMode.SPECTATOR. | `null`/`*Entity*`  |
 | `totalExperience` | int | Gets the players total experience points | `2` |
-| `walkSpeed` | float | Gets the current allowed speed that a client can walk. | `0.2` |
+| `walkSpeed` | float | Gets the current allowed speed that a client can walk. | `0.20` |
 | `flying` | boolean | Checks to see if this player is currently flying or not. | `true`/`false` |
 | `healthScaled` | boolean | Gets if the client is displayed a 'scaled' health, that is, health on a scale from 0-getHealthScale(). | `true`/`false` |
 | `playerTimeRelative` | boolean | Returns true if the player's time is relative to the server time, otherwise the player's time is absolute and will not change its current time unless done so with setPlayerTime(). | `true`/`false` |

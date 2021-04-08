@@ -55,7 +55,6 @@ public class Placeholder {
             return String.format(field.getMetadataRaw(), new BigDecimal(String.valueOf(object)).doubleValue());
         }
 
-        // FIXME: allow to override with placeholders: e.g. booleans, floating point format can be rendered localized
         if (DefaultSchemaResolver.INSTANCE.supports(object.getClass())) {
             return DefaultSchemaResolver.INSTANCE.resolve(object);
         }

@@ -1,5 +1,6 @@
 package eu.okaeri.placeholders.bukkit;
 
+import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.Placeholders;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -14,13 +15,14 @@ import org.bukkit.util.Vector;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public final class BukkitPlaceholders {
+public final class BukkitPlaceholders implements PlaceholderPack {
 
     public static Placeholders create() {
-        return register(Placeholders.create());
+        return Placeholders.create().registerPlaceholders(new BukkitPlaceholders());
     }
 
-    public static Placeholders register(Placeholders placeholders) {
+    @Override
+    public void register(Placeholders placeholders) {
 
         // Player
         placeholders.registerPlaceholder(Player.class, "address", player -> player.getAddress().getAddress().getHostAddress());
@@ -158,8 +160,6 @@ public final class BukkitPlaceholders {
         placeholders.registerPlaceholder(ItemMeta.class, "hasEnchants", ItemMeta::hasEnchants);
         placeholders.registerPlaceholder(ItemMeta.class, "hasLore", ItemMeta::hasLore);
         placeholders.registerPlaceholder(ItemMeta.class, itemMeta -> "(name=" + itemMeta.getDisplayName() + ", lore=" + String.join(", ", itemMeta.getLore()) + ")");
-
-        return placeholders;
     }
 
     private static String enumList(Collection<? extends Enum> enums) {
