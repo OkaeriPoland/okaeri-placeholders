@@ -15,9 +15,13 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompiledMessage {
 
-    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{([^}|]+)(?:\\|([^}]+))?\\}");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{(?:(?<metadata>[^}#]+)#(?<name1>[^}|]+)|(?<name2>[^}|]+))(?:\\|(?<default>[^}]+))?\\}");
 
     public static CompiledMessage of(String source) {
+        return of(Locale.ENGLISH, source);
+    }
+
+    public static CompiledMessage of(Locale locale, String source) {
 
         if (source == null) {
             throw new IllegalArgumentException("source cannot be null");
@@ -38,10 +42,12 @@ public class CompiledMessage {
         while (matcher.find()) {
 
             parts.add(MessageStatic.of(source.substring(lastIndex, matcher.start())));
-            String fieldName = matcher.group(1);
+            String fieldName = matcher.group("name1");
+            if (fieldName == null) fieldName = matcher.group("name2");
 
-            MessageField messageField = MessageField.of(fieldName);
-            if (matcher.groupCount() == 2) messageField.setDefaultValue(matcher.group(2));
+            MessageField messageField = MessageField.of(locale, fieldName);
+            messageField.setDefaultValue(matcher.group("default"));
+            messageField.setMetadataRaw(matcher.group("metadata"));
 
             parts.add(messageField);
             usedFields.add(fieldName);

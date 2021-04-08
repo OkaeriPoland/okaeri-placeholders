@@ -6,10 +6,12 @@ import eu.okaeri.placeholders.schema.PlaceholderSchema;
 import eu.okaeri.placeholders.schema.meta.SchemaMeta;
 import eu.okaeri.placeholders.schema.resolver.DefaultSchemaResolver;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+import eu.okaeri.pluralize.Pluralize;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @Data
@@ -39,6 +41,18 @@ public class Placeholder {
 
         if (object == null) {
             return null;
+        }
+
+        if ((field.getMetadataOptions() != null) && (object instanceof Integer) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
+            return Pluralize.pluralize(field.getLocale(), ((Integer) object), field.getMetadataOptions());
+        }
+
+        if ((field.getMetadataOptions() != null) && (object instanceof Boolean) && (field.getMetadataOptions().length == 2)) {
+            return ((Boolean) object) ? field.getMetadataOptions()[0] : field.getMetadataOptions()[1];
+        }
+
+        if ((field.getMetadataRaw() != null) && (object instanceof Number) && (field.getMetadataRaw().length() > 1) && (field.getMetadataRaw().charAt(0) == '%')) {
+            return String.format(field.getMetadataRaw(), new BigDecimal(String.valueOf(object)).doubleValue());
         }
 
         // FIXME: allow to override with placeholders: e.g. booleans, floating point format can be rendered localized
