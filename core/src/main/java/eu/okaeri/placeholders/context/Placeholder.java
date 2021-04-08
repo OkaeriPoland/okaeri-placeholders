@@ -81,6 +81,6 @@ public class Placeholder {
             return this.render(resolved, fieldSub);
         }
 
-        throw new RuntimeException("cannot render " + object.getClass() + ": " + object);
+        return "<norenderer:" + field.getLastSubPath() + "(" + object.getClass().getSimpleName() + ")>";
     }
 }

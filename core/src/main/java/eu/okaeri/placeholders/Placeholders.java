@@ -2,11 +2,11 @@ package eu.okaeri.placeholders;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
-import eu.okaeri.placeholders.schema.meta.ParameterMeta;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,7 +29,8 @@ public class Placeholders {
     public <T> Placeholders registerPlaceholder(Class<T> type, PlaceholderResolver<T> resolver) {
         if (type == null) throw new IllegalArgumentException("type cannot be null");
         if (resolver == null) throw new IllegalArgumentException("resolver cannot be null");
-        this.resolvers.put(ParameterMeta.of(type, null), resolver);
+        Map<String, PlaceholderResolver> resolverMap = this.resolvers.computeIfAbsent(type, kk -> new HashMap<>());
+        resolverMap.put(null, resolver);
         return this;
     }
 
@@ -37,7 +38,8 @@ public class Placeholders {
         if (type == null) throw new IllegalArgumentException("type cannot be null");
         if (name == null) throw new IllegalArgumentException("name cannot be null");
         if (resolver == null) throw new IllegalArgumentException("resolver cannot be null");
-        this.resolvers.put(ParameterMeta.of(type, name), resolver);
+        Map<String, PlaceholderResolver> resolverMap = this.resolvers.computeIfAbsent(type, kk -> new HashMap<>());
+        resolverMap.put(name, resolver);
         return this;
     }
 
@@ -60,9 +62,27 @@ public class Placeholders {
     }
 
     public PlaceholderResolver getResolver(Object from, String param) {
-        ParameterMeta parameter = ParameterMeta.of(from.getClass(), param);
-        return this.resolvers.get(parameter);
+
+        Class<?> fromClass = from.getClass();
+        Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(fromClass);
+
+        if (resolverMap == null) {
+            for (Class<?> potentialType : this.resolvers.keySet()) {
+                if (potentialType.isAssignableFrom(fromClass)) {
+
+                    resolverMap = this.resolvers.get(potentialType);
+                    PlaceholderResolver resolver = resolverMap.get(param);
+
+                    if (resolver != null) {
+                        return resolver;
+                    }
+                }
+            }
+            return null;
+        }
+
+        return resolverMap.get(param);
     }
 
-    private Map<ParameterMeta, PlaceholderResolver> resolvers = new ConcurrentHashMap<>();
+    private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new ConcurrentHashMap<>();
 }

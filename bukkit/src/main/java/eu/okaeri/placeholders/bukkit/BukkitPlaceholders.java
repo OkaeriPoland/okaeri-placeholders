@@ -6,9 +6,11 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.permissions.ServerOperator;
 import org.bukkit.util.Vector;
 
 import java.util.Collection;
@@ -22,6 +24,30 @@ public final class BukkitPlaceholders implements PlaceholderPack {
 
     @Override
     public void register(Placeholders placeholders) {
+
+        // HumanEntity
+        placeholders.registerPlaceholder(HumanEntity.class, "enderChest", HumanEntity::getEnderChest); // Inventory
+        placeholders.registerPlaceholder(HumanEntity.class, "expToLevel", HumanEntity::getExpToLevel);
+        placeholders.registerPlaceholder(HumanEntity.class, "gameMode", HumanEntity::getGameMode);
+        placeholders.registerPlaceholder(HumanEntity.class, "inventory", HumanEntity::getInventory); // PlayerInventory
+        placeholders.registerPlaceholder(HumanEntity.class, "itemInHand", HumanEntity::getItemInHand); // ItemStack
+        placeholders.registerPlaceholder(HumanEntity.class, "itemOnCursor", HumanEntity::getItemOnCursor); // ItemStack
+        placeholders.registerPlaceholder(HumanEntity.class, "name", HumanEntity::getName);
+        placeholders.registerPlaceholder(HumanEntity.class, "openInventory", HumanEntity::getOpenInventory); // InventoryView
+        placeholders.registerPlaceholder(HumanEntity.class, "sleepTicks", HumanEntity::getSleepTicks);
+        placeholders.registerPlaceholder(HumanEntity.class, "blocking", HumanEntity::isBlocking);
+        placeholders.registerPlaceholder(HumanEntity.class, "sleeping", HumanEntity::isSleeping);
+
+        // OfflinePlayer
+        placeholders.registerPlaceholder(OfflinePlayer.class, "bedSpawnLocation", OfflinePlayer::getBedSpawnLocation); // Location
+        placeholders.registerPlaceholder(OfflinePlayer.class, "firstPlayed", OfflinePlayer::getFirstPlayed);
+        placeholders.registerPlaceholder(OfflinePlayer.class, "lastPlayed", OfflinePlayer::getFirstPlayed);
+        placeholders.registerPlaceholder(OfflinePlayer.class, "name", OfflinePlayer::getName);
+        placeholders.registerPlaceholder(OfflinePlayer.class, "uniqueId", OfflinePlayer::getUniqueId);
+        placeholders.registerPlaceholder(OfflinePlayer.class, "playedBefore", OfflinePlayer::hasPlayedBefore);
+        placeholders.registerPlaceholder(OfflinePlayer.class, "banned", OfflinePlayer::isBanned);
+        placeholders.registerPlaceholder(OfflinePlayer.class, "online", OfflinePlayer::isOnline);
+        placeholders.registerPlaceholder(OfflinePlayer.class, "whitelisted", OfflinePlayer::isWhitelisted);
 
         // Player
         placeholders.registerPlaceholder(Player.class, "address", player -> player.getAddress().getAddress().getHostAddress());
@@ -182,11 +208,21 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(ItemMeta.class, "hasLore", ItemMeta::hasLore);
         placeholders.registerPlaceholder(ItemMeta.class, itemMeta -> "(name=" + itemMeta.getDisplayName() + ", lore=" + String.join(", ", itemMeta.getLore()) + ")");
 
-        // -able
+        // Nameable
         placeholders.registerPlaceholder(Nameable.class, "customName", Nameable::getCustomName);
+
+        // ServerOperator
+        placeholders.registerPlaceholder(ServerOperator.class, "op", ServerOperator::isOp);
+
+        // Damageable
         placeholders.registerPlaceholder(Damageable.class, "health", Damageable::getHealth);
         placeholders.registerPlaceholder(Damageable.class, "maxHealth", Damageable::getMaxHealth);
-        placeholders.registerPlaceholder(Damageable.class, "healthBar", damageable -> renderHealthBar((int) (damageable.getHealth() / 2), (int) (damageable.getMaxHealth() / 2)));
+        placeholders.registerPlaceholder(Damageable.class, "healthBarHearts", damageable -> renderHealthBar(damageable, (int) (damageable.getMaxHealth() / 2), '❤'));
+        placeholders.registerPlaceholder(Damageable.class, "healthBar10", damageable -> renderHealthBar(damageable, 10, '|'));
+        placeholders.registerPlaceholder(Damageable.class, "healthBar20", damageable -> renderHealthBar(damageable, 20, '|'));
+        placeholders.registerPlaceholder(Damageable.class, "healthBar30", damageable -> renderHealthBar(damageable, 30, '|'));
+        placeholders.registerPlaceholder(Damageable.class, "healthBar40", damageable -> renderHealthBar(damageable, 40, '|'));
+        placeholders.registerPlaceholder(Damageable.class, "healthBar50", damageable -> renderHealthBar(damageable, 50, '|'));
     }
 
     public static String enumList(Collection<? extends Enum> enums) {
@@ -195,21 +231,27 @@ public final class BukkitPlaceholders implements PlaceholderPack {
                 .collect(Collectors.joining(", "));
     }
 
-    public static String renderHealthBar(int value, int max) {
+    public static String renderHealthBar(Damageable damageable, int limit, char pointChar) {
+        double result = (damageable.getHealth() / damageable.getMaxHealth()) * limit;
+        if ((result < 1) && (result > 0)) result = 1;
+        return renderHealthBarWith((int) result, limit, pointChar);
+    }
+
+    public static String renderHealthBarWith(int value, int max, char pointChar) {
 
         StringBuilder buf = new StringBuilder();
 
         // empty
         if (value == 0) {
             buf.append(ChatColor.COLOR_CHAR).append("7");
-            for (int i = 0; i < max; i++) buf.append("❤");
+            for (int i = 0; i < max; i++) buf.append(pointChar);
             return buf.toString();
         }
 
         // full
         if (value == max) {
             buf.append(ChatColor.COLOR_CHAR).append("c");
-            for (int i = 0; i < max; i++) buf.append("❤");
+            for (int i = 0; i < max; i++) buf.append(pointChar);
             return buf.toString();
         }
 
@@ -219,7 +261,7 @@ public final class BukkitPlaceholders implements PlaceholderPack {
             if (i == value) {
                 buf.append(ChatColor.COLOR_CHAR).append("7");
             }
-            buf.append("❤");
+            buf.append(pointChar);
         }
 
         return buf.toString();
