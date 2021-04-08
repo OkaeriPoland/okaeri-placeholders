@@ -30,7 +30,13 @@ public class DefaultSchemaResolver implements SchemaResolver {
     }
 
     @Override
+    @SuppressWarnings("MalformedFormatString")
     public String resolve(Object object) {
+
+        if ((object instanceof Float) || (object instanceof Double)) {
+            return String.format("%.2f", object);
+        }
+
         return object.toString();
     }
 }

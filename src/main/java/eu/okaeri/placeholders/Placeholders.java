@@ -21,6 +21,11 @@ public class Placeholders {
         return PlaceholderContext.of(this, message);
     }
 
+    public Placeholders registerPlaceholders(PlaceholderPack pack) {
+        pack.register(this);
+        return this;
+    }
+
     public <T> Placeholders registerPlaceholder(Class<T> type, PlaceholderResolver<T> resolver) {
         if (type == null) throw new IllegalArgumentException("type cannot be null");
         if (resolver == null) throw new IllegalArgumentException("resolver cannot be null");
