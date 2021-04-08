@@ -30,7 +30,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `addressFull` | String | The socket address of the player. | `/127.0.0.1:35288` |
 | `addressPort` | int | The socket port of the player. | `35288` |
 | `allowFlight` | boolean | Determines if the Player is allowed to fly via jump key double-tap like in creative mode. | `true`/`false` |
-| `bedSpawnLocation` | [Location](#Location) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null` / `*Location*` |
+| `bedSpawnLocation` | [Location](#Location) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null`/`*Location*` |
 | `compassTarget` | [Location](#Location) | Get the previously set compass target. | - |
 | `displayName` | String | Gets the "friendly" name to display of this player. | `SomePlayer` |
 | `exhaustion` | float | Gets the players current exhaustion level. | `2.6910067` |
@@ -44,9 +44,9 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `playerTimeOffset` | long | Returns the player's current time offset relative to server time, or the current player's fixed time if the player's time is absolute. | `0` |
 | `weatherType` | WeatherType | Returns the type of weather the player is currently experiencing. | `CLEAR`, `DOWNFALL` |
 | `saturation` | float | Gets the players current saturation level. | `0.0` |
-| `spectatorTarget` | [Entity](#Entity) | Gets the entity which is followed by the camera when in GameMode.SPECTATOR. | `null` / `*Entity*`  |
-| `totalExperience` | int | Gets the players total experience points | - |
-| `walkSpeed` | float | Gets the current allowed speed that a client can walk. | - |
+| `spectatorTarget` | [Entity](#Entity) | Gets the entity which is followed by the camera when in GameMode.SPECTATOR. | `null`/`*Entity*`  |
+| `totalExperience` | int | Gets the players total experience points | `2` |
+| `walkSpeed` | float | Gets the current allowed speed that a client can walk. | `0.2` |
 | `flying` | boolean | Checks to see if this player is currently flying or not. | `true`/`false` |
 | `healthScaled` | boolean | Gets if the client is displayed a 'scaled' health, that is, health on a scale from 0-getHealthScale(). | `true`/`false` |
 | `playerTimeRelative` | boolean | Returns true if the player's time is relative to the server time, otherwise the player's time is absolute and will not change its current time unless done so with setPlayerTime(). | `true`/`false` |
