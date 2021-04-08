@@ -66,7 +66,7 @@ for pluralization and other metadata see [TestMetadataUsage.java](https://github
 // this is intended to be loaded from the configuration on the startup/cached and stored compiled
 CompiledMessage message = CompiledMessage.of("Hola {who}! ¿Cómo estás {when}? Estoy {how}.");
 
-// context can be cached (use #create() and #apply(message)) 
+// context can be reused (use #create() and #apply(message)) 
 // or created on demand (use #of(message) and #apply())
 // second version can't be reused but is faster in on-demand scenario
 PlaceholderContext context = PlaceholderContext.of(message)
