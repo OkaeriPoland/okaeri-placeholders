@@ -21,9 +21,28 @@ public class Placeholders {
         return PlaceholderContext.of(this, message);
     }
 
+    public <T> Placeholders registerPlaceholder(Class<T> type, PlaceholderResolver<T> resolver) {
+        if (type == null) throw new IllegalArgumentException("type cannot be null");
+        if (resolver == null) throw new IllegalArgumentException("resolver cannot be null");
+        this.resolvers.put(ParameterMeta.of(type, null), resolver);
+        return this;
+    }
+
     public <T> Placeholders registerPlaceholder(Class<T> type, String name, PlaceholderResolver<T> resolver) {
+        if (type == null) throw new IllegalArgumentException("type cannot be null");
+        if (name == null) throw new IllegalArgumentException("name cannot be null");
+        if (resolver == null) throw new IllegalArgumentException("resolver cannot be null");
         this.resolvers.put(ParameterMeta.of(type, name), resolver);
         return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Object readValue(Object from) {
+        PlaceholderResolver placeholderResolver = this.getResolver(from, null);
+        if (placeholderResolver != null) {
+            return placeholderResolver.resolve(from);
+        }
+        throw new IllegalArgumentException("cannot find resolver for " + from.getClass());
     }
 
     @SuppressWarnings("unchecked")

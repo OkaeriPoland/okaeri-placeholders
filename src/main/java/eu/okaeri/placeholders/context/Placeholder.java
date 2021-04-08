@@ -63,7 +63,11 @@ public class Placeholder {
         if (this.placeholders != null) {
 
             if (!field.hasSub()) {
-                throw new RuntimeException("rendering itself not supported at the moment: " + field + " [" + object.getClass().getSimpleName() + "]");
+                PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
+                if (resolver != null) {
+                    Object value = resolver.resolve(object);
+                    return this.render(value, field);
+                }
             }
 
             MessageField fieldSub = field.getSub();
