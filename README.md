@@ -1,4 +1,4 @@
-# Okaeri Placeholders (okaeri-placeholders) [WIP]
+# Okaeri Placeholders (okaeri-placeholders)
 
 ![License](https://img.shields.io/github/license/OkaeriPoland/okaeri-placeholders)
 ![Total lines](https://img.shields.io/tokei/lines/github/OkaeriPoland/okaeri-placeholders)
