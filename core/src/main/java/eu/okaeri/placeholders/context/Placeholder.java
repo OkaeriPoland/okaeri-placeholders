@@ -6,12 +6,10 @@ import eu.okaeri.placeholders.schema.PlaceholderSchema;
 import eu.okaeri.placeholders.schema.meta.SchemaMeta;
 import eu.okaeri.placeholders.schema.resolver.DefaultSchemaResolver;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
-import eu.okaeri.pluralize.Pluralize;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.Map;
 
 @Data
@@ -43,39 +41,25 @@ public class Placeholder {
             return null;
         }
 
-        if ((field.getMetadataOptions() != null) && (object instanceof Integer) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
-            return Pluralize.pluralize(field.getLocale(), ((Integer) object), field.getMetadataOptions());
-        }
-
-        if ((field.getMetadataOptions() != null) && (object instanceof Boolean) && (field.getMetadataOptions().length == 2)) {
-            return ((Boolean) object) ? field.getMetadataOptions()[0] : field.getMetadataOptions()[1];
-        }
-
-        if ((field.getMetadataRaw() != null) && (object instanceof Number) && (field.getMetadataRaw().length() > 1) && (field.getMetadataRaw().charAt(0) == '%')) {
-            return String.format(field.getMetadataRaw(), new BigDecimal(String.valueOf(object)).doubleValue());
-        }
-
-        if (DefaultSchemaResolver.INSTANCE.supports(object.getClass())) {
-            return DefaultSchemaResolver.INSTANCE.resolve(object);
-        }
-
         if (this.placeholders != null) {
-
-            if (!field.hasSub()) {
+            if (field.hasSub()) {
+                MessageField fieldSub = field.getSub();
+                PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
+                if (resolver != null) {
+                    Object value = resolver.resolve(object);
+                    return this.render(value, fieldSub);
+                }
+            } else {
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
                 if (resolver != null) {
                     Object value = resolver.resolve(object);
                     return this.render(value, field);
                 }
             }
+        }
 
-            MessageField fieldSub = field.getSub();
-            PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
-
-            if (resolver != null) {
-                Object value = resolver.resolve(object);
-                return this.render(value, fieldSub);
-            }
+        if (DefaultSchemaResolver.INSTANCE.supports(object.getClass())) {
+            return DefaultSchemaResolver.INSTANCE.resolve(object, field);
         }
 
         if (object instanceof PlaceholderSchema) {

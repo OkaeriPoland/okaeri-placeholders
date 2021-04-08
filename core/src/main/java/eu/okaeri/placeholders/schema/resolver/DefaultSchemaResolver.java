@@ -1,5 +1,8 @@
 package eu.okaeri.placeholders.schema.resolver;
 
+import eu.okaeri.placeholders.message.part.MessageField;
+import eu.okaeri.pluralize.Pluralize;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -27,6 +30,24 @@ public class DefaultSchemaResolver implements SchemaResolver {
     @Override
     public boolean supports(Class<?> type) {
         return SUPPORTED_TOSTRING_TYPES.contains(type);
+    }
+
+    @Override
+    public String resolve(Object object, MessageField field) {
+
+        if ((field.getMetadataOptions() != null) && (object instanceof Integer) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
+            return Pluralize.pluralize(field.getLocale(), ((Integer) object), field.getMetadataOptions());
+        }
+
+        if ((field.getMetadataOptions() != null) && (object instanceof Boolean) && (field.getMetadataOptions().length == 2)) {
+            return ((Boolean) object) ? field.getMetadataOptions()[0] : field.getMetadataOptions()[1];
+        }
+
+        if ((field.getMetadataRaw() != null) && (object instanceof Number) && (field.getMetadataRaw().length() > 1) && (field.getMetadataRaw().charAt(0) == '%')) {
+            return String.format(field.getMetadataRaw(), new BigDecimal(String.valueOf(object)).doubleValue());
+        }
+
+        return this.resolve(object);
     }
 
     @Override
