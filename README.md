@@ -58,8 +58,7 @@ Value: {%.2f#value}
 ## Example
 
 Basic example representing standard usage for simple placeholders. For more examples and advanced usage cases 
-see [tests](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/src/test/java/eu/okaeri/placeholderstest).
-
+see [tests](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/src/test/java/eu/okaeri/placeholderstest). 
 For subfield support (e.g. {player.name}) see [TestSchema.java](https://github.com/OkaeriPoland/okaeri-placeholders/blob/master/src/test/java/eu/okaeri/placeholderstest/schema/TestSchema.java)
 in the same directory.
 
