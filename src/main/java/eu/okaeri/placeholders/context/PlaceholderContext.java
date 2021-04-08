@@ -99,7 +99,9 @@ public class PlaceholderContext {
 
             Placeholder placeholder = this.fields.get(name);
             if ((placeholder == null) || (placeholder.getValue() == null)) {
-                if (this.failMode == FailMode.FAIL_FAST) {
+                if (field.getDefaultValue() != null) {
+                    placeholder = Placeholder.of(field.getDefaultValue());
+                } else if (this.failMode == FailMode.FAIL_FAST) {
                     throw new IllegalArgumentException("missing placeholder '" + name + "' for message '" + state + "'");
                 } else if (this.failMode == FailMode.FAIL_SAFE) {
                     placeholder = Placeholder.of("<missing:" + field.getLastSubPath() + ">");
