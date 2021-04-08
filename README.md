@@ -47,7 +47,7 @@ Hello {who|unknown}!
 Hello {who.name}!
 # with subfields and fallback value
 Hello {who.name|unknown}!
-# with pluralization for 143 locales
+# with pluralization for 143 locales (okaeri-pluralize)
 I would like {amount} {apple,apples#amount}.
 # with boolean translation
 Active: {yes,no#status}
