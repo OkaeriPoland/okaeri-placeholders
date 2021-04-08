@@ -47,6 +47,12 @@ Hello {who|unknown}!
 Hello {who.name}!
 # with subfields and fallback value
 Hello {who.name|unknown}!
+# with pluralization
+I would like {amount} {apple,apples#amount}.
+# with boolean translation
+Active: {yes,no#status}
+# with number formatting
+Value: {%.2f#value}
 ```
 
 ## Example
