@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompiledMessage {
 
-    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{(?:(?<metadata>[^}#]+)#(?<name1>[^}|]+)|(?<name2>[^}|]+))(?:\\|(?<default>[^}]+))?\\}");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{(?<content>[^}]+)\\}");
 
     public static CompiledMessage of(String source) {
         return of(Locale.ENGLISH, source);
@@ -42,12 +42,15 @@ public class CompiledMessage {
         while (matcher.find()) {
 
             parts.add(MessageStatic.of(source.substring(lastIndex, matcher.start())));
-            String fieldName = matcher.group("name1");
-            if (fieldName == null) fieldName = matcher.group("name2");
+            String content = matcher.group("content");
+            String[] fieldElements = parseFieldToArray(content);
+            String metaElement = fieldElements[0];
+            String fieldName = fieldElements[1];
+            String defaultValue = fieldElements[2];
 
             MessageField messageField = MessageField.of(locale, fieldName);
-            messageField.setDefaultValue(matcher.group("default"));
-            messageField.setMetadataRaw(matcher.group("metadata"));
+            messageField.setDefaultValue(defaultValue);
+            messageField.setMetadataRaw(metaElement);
 
             parts.add(messageField);
             usedFields.add(fieldName);
@@ -79,5 +82,26 @@ public class CompiledMessage {
 
     public boolean hasField(String name) {
         return this.usedFields.contains(name);
+    }
+
+    private static String[] parseFieldToArray(String raw) {
+
+        String[] arr = new String[3];
+
+        int commentIndex = raw.indexOf("#");
+        if (commentIndex != -1) {
+            arr[0] = raw.substring(0, commentIndex);
+            raw = raw.substring(commentIndex + 1);
+        }
+
+        int fallbackIndex = raw.lastIndexOf("|");
+        int argumentsEndIndex = raw.lastIndexOf(")");
+        if ((fallbackIndex != -1) && (fallbackIndex > argumentsEndIndex)) {
+            arr[2] = raw.substring(fallbackIndex + 1);
+            raw = raw.substring(0, fallbackIndex);
+        }
+
+        arr[1] = raw;
+        return arr;
     }
 }
