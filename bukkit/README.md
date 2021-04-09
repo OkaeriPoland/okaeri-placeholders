@@ -20,14 +20,14 @@ implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.3.1'
 
 ## Supported types
 
-- [HumanEntity](#HumanEntity)
-- [Inventory](#Inventory)
-- [InventoryView](#InventoryView)
-- [PlayerInventory](#PlayerInventory)
-- [OfflinePlayer](#OfflinePlayer)
-- [Player](#Player)
-- [Entity](#Entity)
-- [Location](#Location)
+- [HumanEntity](#humanentity-orgbukkitentityhumanentity)
+- [Inventory](#inventory-orgbukkitinventoryinventory)
+- [InventoryView](#inventoryview-orgbukkitinventoryinventoryview)
+- [PlayerInventory](#playerinventory-orgbukkitinventoryplayerinventory)
+- [OfflinePlayer](#offlineplayer-orgbukkitofflineplayer)
+- [Player](#player-orgbukkitentityplayer)
+- [Entity](#entity-orgbukkitentityentity)
+- [Location](#location-orgbukkitlocation)
 
 Note: It is most of the time (especially when description states that variable can be null)
 recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow messages to be safely rendered.
@@ -35,14 +35,14 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 ### HumanEntity (`org.bukkit.entity.HumanEntity`)
 | Field | Type | Description | Example |
 |-|-|-|-|
-| `enderChest` | [Inventory](#Inventory) | Get the player's EnderChest inventory. | `*Inventory*` |
+| `enderChest` | [Inventory](#inventory-orgbukkitinventoryinventory) | Get the player's EnderChest inventory. | `*Inventory*` |
 | `expToLevel` | int | Get the total amount of experience required for the player to level. | `7` |
 | `gameMode` | GameMode | Gets this human's current GameMode. | `CREATIVE`/`SURVIVAL`/.. |
-| `inventory` | [Inventory](#Inventory) | Get the player's inventory. | `*Inventory*` |
+| `inventory` | [Inventory](#inventory-orgbukkitinventoryinventory) | Get the player's inventory. | `*Inventory*` |
 | `itemInHand` | [ItemStack](#ItemStack) | Returns the ItemStack currently in your hand, can be empty. | `null`/`*ItemStack*` |
 | `itemOnCursor` | [ItemStack](#ItemStack) | Returns the ItemStack currently on your cursor, can be empty. | `null`/`*ItemStack*` |
 | `name` | String | Returns the name of this player. | `SomePlayer` |
-| `openInventory` | [InventoryView](#InventoryView) | Gets the inventory view the player is currently viewing. | `*InventoryView*` |
+| `openInventory` | [InventoryView](#inventoryview-orgbukkitinventoryinventoryview) | Gets the inventory view the player is currently viewing. | `*InventoryView*` |
 | `sleepTicks` | int | Get the sleep ticks of the player. | `0` |
 | `blocking` | boolean | Check if the player is currently blocking (ie with a sword). | `true`/`false` |
 | `sleeping` | boolean | Returns whether this player is slumbering. | `true`/`false` |
@@ -60,11 +60,11 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 ### InventoryView (`org.bukkit.inventory.InventoryView`)
 | Field | Type | Description | Example |
 |-|-|-|-|
-| `bottomInventory` | [Inventory](#Inventory) | Get the lower inventory involved in this transaction. | `*Inventory*` |
+| `bottomInventory` | [Inventory](#inventory-orgbukkitinventoryinventory) | Get the lower inventory involved in this transaction. | `*Inventory*` |
 | `cursor` | [ItemStack](#ItemStack) | Get the item on the cursor of one of the viewing players. | `null`/`*ItemStack*` |
-| `player` | [HumanEntity](#HumanEntity) | Get the player viewing. | `*Player*` |
+| `player` | [HumanEntity](#humanentity-orgbukkitentityhumanentity) | Get the player viewing. | `*Player*` |
 | `title` | String | Get the title of this inventory window. | `container.crafting` |
-| `topInventory` | [Inventory](#Inventory) | Get the upper inventory involved in this transaction. | `*Inventory*` |
+| `topInventory` | [Inventory](#inventory-orgbukkitinventoryinventory) | Get the upper inventory involved in this transaction. | `*Inventory*` |
 | `type` | InventoryType | Determine the type of inventory involved in the transaction. | `CREATIVE`/`CRAFTING`/.. |
 
 ### PlayerInventory (`org.bukkit.inventory.PlayerInventory`)
@@ -74,18 +74,18 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `chestplate` | [ItemStack](#ItemStack) | Return the ItemStack from the chestplate slot. | `null`/`*ItemStack*` |
 | `heldItemSlot` | int | Get the slot number of the currently held item. | `4` |
 | `helmet` | [ItemStack](#ItemStack) | Return the ItemStack from the helmet slot. | `null`/`*ItemStack*` |
-| `holder` | [HumanEntity](#HumanEntity) | Gets the block or entity belonging to the open inventory. | `*HumanEntity*` |
+| `holder` | [HumanEntity](#humanentity-orgbukkitentityhumanentity) | Gets the block or entity belonging to the open inventory. | `*HumanEntity*` |
 | `itemInHand` | [ItemStack](#ItemStack) | Returns the ItemStack currently hold. | `null`/`*ItemStack*` |
 | `leggings` | [ItemStack](#ItemStack) | Return the ItemStack from the leg slot. | `null`/`*ItemStack*` |
 
 ### OfflinePlayer (`org.bukkit.OfflinePlayer`)
 | Field | Type | Description | Example |
 |-|-|-|-|
-| `bedSpawnLocation` | [Location](#Location) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null`/`*Location*` |
-| `firstPlayed` | long | Gets the first date and time that this player was witnessed on this server. | `-` |
-| `lastPlayed` | long | Gets the last date and time that this player was witnessed on this server. | `-` |
-| `name` | String | Returns the name of this player. | `-` |
-| `uniqueId` | UUID | Returns the UUID of this player. | `-` |
+| `bedSpawnLocation` | [Location](#location-orgbukkitlocation) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null`/`*Location*` |
+| `firstPlayed` | long | Gets the first date and time that this player was witnessed on this server. | `1616478979960` |
+| `lastPlayed` | long | Gets the last date and time that this player was witnessed on this server. | `1617925100501` |
+| `name` | String | Returns the name of this player. | `SomePlayer` |
+| `uniqueId` | UUID | Returns the UUID of this player. | `fc286c60-8187-4725-b1e9-580f447cc391` |
 | `playedBefore` | boolean | Checks if this player has played on this server before. | `true`/`false` |
 | `banned` | boolean | Checks if this player is banned or not. | `true`/`false` |
 | `online` | boolean | Checks if this player is currently online. | `true`/`false` |
@@ -99,8 +99,8 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `addressFull` | String | The socket address of the player. | `/127.0.0.1:35288` |
 | `addressPort` | int | The socket port of the player. | `35288` |
 | `allowFlight` | boolean | Determines if the Player is allowed to fly via jump key double-tap like in creative mode. | `true`/`false` |
-| `bedSpawnLocation` | [Location](#Location) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null`/`*Location*` |
-| `compassTarget` | [Location](#Location) | Get the previously set compass target. | `*Location*` |
+| `bedSpawnLocation` | [Location](#location-orgbukkitlocation) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null`/`*Location*` |
+| `compassTarget` | [Location](#location-orgbukkitlocation) | Get the previously set compass target. | `*Location*` |
 | `displayName` | String | Gets the "friendly" name to display of this player. | `SomePlayer` |
 | `exhaustion` | float | Gets the players current exhaustion level. | `2.69` |
 | `exp` | float | Gets the players current experience points towards the next level. | `0.28` |
@@ -113,7 +113,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `playerTimeOffset` | long | Returns the player's current time offset relative to server time, or the current player's fixed time if the player's time is absolute. | `0` |
 | `weatherType` | WeatherType | Returns the type of weather the player is currently experiencing. | `CLEAR`/`DOWNFALL` |
 | `saturation` | float | Gets the players current saturation level. | `0.00` |
-| `spectatorTarget` | [Entity](#Entity) | Gets the entity which is followed by the camera when in GameMode.SPECTATOR. | `null`/`*Entity*`  |
+| `spectatorTarget` | [Entity](#entity-orgbukkitentityentity) | Gets the entity which is followed by the camera when in GameMode.SPECTATOR. | `null`/`*Entity*`  |
 | `totalExperience` | int | Gets the players total experience points | `2` |
 | `walkSpeed` | float | Gets the current allowed speed that a client can walk. | `0.20` |
 | `flying` | boolean | Checks to see if this player is currently flying or not. | `true`/`false` |
@@ -131,13 +131,13 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `fallDistance` | float | Returns the distance this entity has fallen. | `0.00` |
 | `fireTicks` | int | Returns the entity's current fire ticks (ticks before the entity stops being on fire). | `-20` |
 | `lastDamageCause` | [EntityDamageEvent](#EntityDamageEvent) | Retrieve the last EntityDamageEvent inflicted on this entity. | `null`/`*EntityDamageEvent*` |
-| `location` | [Location](#Location) | Gets the entity's current position. | `*Location*` |
+| `location` | [Location](#location-orgbukkitlocation) | Gets the entity's current position. | `*Location*` |
 | `maxFireTicks` | int | Returns the entity's maximum fire ticks. | `20` |
-| `passenger` | [Entity](#Entity) | Gets the primary passenger of a vehicle. | `null`/`*Entity*` |
+| `passenger` | [Entity](#entity-orgbukkitentityentity) | Gets the primary passenger of a vehicle. | `null`/`*Entity*` |
 | `ticksLived` | int | Gets the amount of ticks this entity has lived for. | `2041389` |
 | `type` | EntityType | Get the type of the entity. | `PLAYER`/`ZOMBIE`/.. |
 | `uniqueId` | UUID | Returns a unique and persistent id for this entity. | `fc286c60-8187-4725-b1e9-580f447cc391` |
-| `vehicle` | [Entity](#Entity) | Get the vehicle that this player is inside. | `null`/`*Entity*` |
+| `vehicle` | [Entity](#entity-orgbukkitentityentity) | Get the vehicle that this player is inside. | `null`/`*Entity*` |
 | `velocity` | [Vector](#Vector) | Gets this entity's current velocity. | `*Vector*` |
 | `world` | [World](#World) | Gets the current world this entity resides in. | `*World*` |
 | `customNameVisible` | boolean | Gets whether or not the mob's custom name is displayed client side. | `true`/`false` |
