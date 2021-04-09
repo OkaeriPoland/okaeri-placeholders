@@ -9,6 +9,8 @@ import eu.okaeri.placeholderstest.schema.own.Item;
 import eu.okaeri.placeholderstest.schema.own.Meta;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestSchema {
@@ -113,6 +115,35 @@ public class TestSchema {
         CompiledMessage message = CompiledMessage.of("Look at my {item.type} x {item.amount}! I named it '{item.meta.name|i didn't}' with '{item.meta.lore|no}' as description!");
         String test = placeholders.contextOf(message).with("item", item).apply();
         assertEquals("Look at my Stone x 123! I named it 'i didn't' with 'Really nice stone. I like it.' as description!", test);
+
+        System.out.println(test);
+    }
+
+    @Test
+    public void test_read_schema_external_4() {
+
+        Placeholders placeholders = Placeholders.create()
+                .registerPlaceholder(ExternalItem.class, "type", ExternalItem::getType)
+                .registerPlaceholder(ExternalItem.class, "amount", ExternalItem::getAmount)
+                .registerPlaceholder(ExternalItem.class, "damage", ExternalItem::getDamage)
+                .registerPlaceholder(ExternalItem.class, "data", ExternalItem::getData)
+                .registerPlaceholder(ExternalItem.class, "meta", ExternalItem::getMeta)
+                .registerPlaceholder(ExternalMeta.class, "name", ExternalMeta::getName)
+                .registerPlaceholder(ExternalMeta.class, "lore", ExternalMeta::getLore);
+
+        ExternalItem item = new ExternalItem();
+        item.setAmount(123);
+        item.setType("Stone");
+        item.setDamage((short) 10);
+        item.setData((byte) 1);
+        ExternalMeta meta = new ExternalMeta();
+        meta.setName(null); // explicit null
+        meta.setLore("Really nice stone. I like it.");
+        item.setMeta(meta);
+
+        CompiledMessage message = CompiledMessage.of(Locale.ENGLISH, "Look at my {item,items#item.amount}: {item.type} x {item.amount}! I named it '{item.meta.name|i didn't}' with '{item.meta.lore|no}' as description!");
+        String test = placeholders.contextOf(message).with("item", item).apply();
+        assertEquals("Look at my items: Stone x 123! I named it 'i didn't' with 'Really nice stone. I like it.' as description!", test);
 
         System.out.println(test);
     }

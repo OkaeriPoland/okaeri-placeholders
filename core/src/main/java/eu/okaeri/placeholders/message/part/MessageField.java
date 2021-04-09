@@ -55,6 +55,16 @@ public class MessageField implements MessageElement {
     private String metadataRaw;
     private String paramsRaw;
 
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+        MessageField field = this;
+        while (field.hasSub()) {
+            MessageField sub = field.getSub();
+            sub.setDefaultValue(defaultValue);
+            field = sub;
+        }
+    }
+
     public boolean hasSub() {
         return this.sub != null;
     }
@@ -80,18 +90,21 @@ public class MessageField implements MessageElement {
 
     public void setMetadataRaw(String metadataRaw) {
         this.metadataRaw = metadataRaw;
-        // load caches
-        String[] metadataPlurals = this.getMetadataOptions();
+        MessageField field = this;
+        while (field.hasSub()) {
+            MessageField sub = field.getSub();
+            sub.setMetadataRaw(metadataRaw);
+            sub.updateMetadataOptionsCache();
+            field = sub;
+        }
+        this.updateMetadataOptionsCache();
     }
 
-    public String[] getMetadataOptions() {
+    public void updateMetadataOptionsCache() {
         if (this.metadataRaw == null) {
-            return null;
+            return;
         }
-        if (this.metadataOptions == null) {
-            this.metadataOptions = this.metadataRaw.split(",|;");
-        }
-        return this.metadataOptions;
+        this.metadataOptions = this.metadataRaw.split(",|;");
     }
 
     public FieldParams getParams() {
