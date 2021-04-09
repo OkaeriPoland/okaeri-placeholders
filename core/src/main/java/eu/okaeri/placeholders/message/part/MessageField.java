@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MessageField implements MessageElement {
 
-    private static final Pattern PATH_ELEMENT_PATTERN = Pattern.compile("(?<name>[^\\s(]+)(?:\\((?<params>[^\\s)]+)\\))?");
+    private static final Pattern PATH_ELEMENT_PATTERN = Pattern.compile("^(?<name>[^\\s(]+)(?:\\((?<params>.*)\\))?$");
 
     public static MessageField of(String name) {
         return of(Locale.ENGLISH, name);

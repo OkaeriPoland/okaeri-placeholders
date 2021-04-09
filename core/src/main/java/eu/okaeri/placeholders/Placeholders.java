@@ -16,7 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Placeholders {
 
     public static Placeholders create() {
-        return new Placeholders();
+        return create(true);
+    }
+
+    public static Placeholders create(boolean registerDefaults) {
+        Placeholders placeholders = new Placeholders();
+        if (registerDefaults) placeholders.registerPlaceholders(new DefaultPlaceholderPack());
+        return placeholders;
     }
 
     public PlaceholderContext contextOf(CompiledMessage message) {
