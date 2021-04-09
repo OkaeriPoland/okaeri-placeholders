@@ -29,11 +29,15 @@ public class DefaultSchemaResolver implements SchemaResolver {
 
     @Override
     public boolean supports(Class<?> type) {
-        return SUPPORTED_TOSTRING_TYPES.contains(type);
+        return SUPPORTED_TOSTRING_TYPES.contains(type) || type.isEnum();
     }
 
     @Override
     public String resolve(Object object, MessageField field) {
+
+        if (object instanceof Enum) {
+            return ((Enum<?>) object).name();
+        }
 
         if ((field.getMetadataOptions() != null) && (object instanceof Integer) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
             return Pluralize.pluralize(field.getLocale(), ((Integer) object), field.getMetadataOptions());

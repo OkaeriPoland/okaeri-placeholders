@@ -20,8 +20,77 @@ implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.3.1'
 
 ## Supported types
 
+- [HumanEntity](#HumanEntity)
+- [Inventory](#Inventory)
+- [InventoryView](#InventoryView)
+- [PlayerInventory](#PlayerInventory)
+- [OfflinePlayer](#OfflinePlayer)
+- [Player](#Player)
+- [Entity](#Entity)
+- [Location](#Location)
+
 Note: It is most of the time (especially when description states that variable can be null)
 recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow messages to be safely rendered.
+
+### HumanEntity (`org.bukkit.entity.HumanEntity`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| `enderChest` | [Inventory](#Inventory) | Get the player's EnderChest inventory. | `*Inventory*` |
+| `expToLevel` | int | Get the total amount of experience required for the player to level. | `7` |
+| `gameMode` | GameMode | Gets this human's current GameMode. | `CREATIVE`/`SURVIVAL`/.. |
+| `inventory` | [Inventory](#Inventory) | Get the player's inventory. | `*Inventory*` |
+| `itemInHand` | [ItemStack](#ItemStack) | Returns the ItemStack currently in your hand, can be empty. | `null`/`*ItemStack*` |
+| `itemOnCursor` | [ItemStack](#ItemStack) | Returns the ItemStack currently on your cursor, can be empty. | `null`/`*ItemStack*` |
+| `name` | String | Returns the name of this player. | `SomePlayer` |
+| `openInventory` | [InventoryView](#InventoryView) | Gets the inventory view the player is currently viewing. | `*InventoryView*` |
+| `sleepTicks` | int | Get the sleep ticks of the player. | `0` |
+| `blocking` | boolean | Check if the player is currently blocking (ie with a sword). | `true`/`false` |
+| `sleeping` | boolean | Returns whether this player is slumbering. | `true`/`false` |
+| *self* | String | The name of the entity. | `SomePlayer` |
+
+### Inventory (`org.bukkit.inventory.Inventory`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| `name` | String | Returns the name of the inventory. | `container.inventory` |
+| `size` | int | Returns the size of the inventory. | `41` |
+| `title` | String | Returns the title of this inventory. | `container.inventory` |
+| `type` | InventoryType | Returns what type of inventory this is. | `PLAYER`/.. |
+| *self*  | String | The name of the inventory. | `container.inventory` |
+
+### InventoryView (`org.bukkit.inventory.InventoryView`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| `bottomInventory` | [Inventory](#Inventory) | Get the lower inventory involved in this transaction. | `*Inventory*` |
+| `cursor` | [ItemStack](#ItemStack) | Get the item on the cursor of one of the viewing players. | `null`/`*ItemStack*` |
+| `player` | [HumanEntity](#HumanEntity) | Get the player viewing. | `*Player*` |
+| `title` | String | Get the title of this inventory window. | `container.crafting` |
+| `topInventory` | [Inventory](#Inventory) | Get the upper inventory involved in this transaction. | `*Inventory*` |
+| `type` | InventoryType | Determine the type of inventory involved in the transaction. | `CREATIVE`/`CRAFTING`/.. |
+
+### PlayerInventory (`org.bukkit.inventory.PlayerInventory`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| `boots` | [ItemStack](#ItemStack) | Return the ItemStack from the boots slot. | `null`/`*ItemStack*` |
+| `chestplate` | [ItemStack](#ItemStack) | Return the ItemStack from the chestplate slot. | `null`/`*ItemStack*` |
+| `heldItemSlot` | int | Get the slot number of the currently held item. | `4` |
+| `helmet` | [ItemStack](#ItemStack) | Return the ItemStack from the helmet slot. | `null`/`*ItemStack*` |
+| `holder` | [HumanEntity](#HumanEntity) | Gets the block or entity belonging to the open inventory. | `*HumanEntity*` |
+| `itemInHand` | [ItemStack](#ItemStack) | Returns the ItemStack currently hold. | `null`/`*ItemStack*` |
+| `leggings` | [ItemStack](#ItemStack) | Return the ItemStack from the leg slot. | `null`/`*ItemStack*` |
+
+### OfflinePlayer (`org.bukkit.OfflinePlayer`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| `bedSpawnLocation` | [Location](#Location) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null`/`*Location*` |
+| `firstPlayed` | long | Gets the first date and time that this player was witnessed on this server. | `-` |
+| `lastPlayed` | long | Gets the last date and time that this player was witnessed on this server. | `-` |
+| `name` | String | Returns the name of this player. | `-` |
+| `uniqueId` | UUID | Returns the UUID of this player. | `-` |
+| `playedBefore` | boolean | Checks if this player has played on this server before. | `true`/`false` |
+| `banned` | boolean | Checks if this player is banned or not. | `true`/`false` |
+| `online` | boolean | Checks if this player is currently online. | `true`/`false` |
+| `whitelisted` | boolean | Checks if this player is whitelisted or not. | `true`/`false` |
+| *self*  | String | The name of the player. | `SomePlayer` |
 
 ### Player (`org.bukkit.entity.Player`)
 | Field | Type | Description | Example |
@@ -54,3 +123,46 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `sneaking` | boolean | Returns if the player is in sneak mode | `true`/`false` |
 | `sprinting` | boolean | Gets whether the player is sprinting or not. | `true`/`false` |
 | *self* | String | The name of the player. | `SomePlayer` |
+
+### Entity (`org.bukkit.entity.Entity`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| `entityId` | int | Returns a unique id for this entity. | `47` |
+| `fallDistance` | float | Returns the distance this entity has fallen. | `0.00` |
+| `fireTicks` | int | Returns the entity's current fire ticks (ticks before the entity stops being on fire). | `-20` |
+| `lastDamageCause` | [EntityDamageEvent](#EntityDamageEvent) | Retrieve the last EntityDamageEvent inflicted on this entity. | `null`/`*EntityDamageEvent*` |
+| `location` | [Location](#Location) | Gets the entity's current position. | `*Location*` |
+| `maxFireTicks` | int | Returns the entity's maximum fire ticks. | `20` |
+| `passenger` | [Entity](#Entity) | Gets the primary passenger of a vehicle. | `null`/`*Entity*` |
+| `ticksLived` | int | Gets the amount of ticks this entity has lived for. | `2041389` |
+| `type` | EntityType | Get the type of the entity. | `PLAYER`/`ZOMBIE`/.. |
+| `uniqueId` | UUID | Returns a unique and persistent id for this entity. | `fc286c60-8187-4725-b1e9-580f447cc391` |
+| `vehicle` | [Entity](#Entity) | Get the vehicle that this player is inside. | `null`/`*Entity*` |
+| `velocity` | [Vector](#Vector) | Gets this entity's current velocity. | `*Vector*` |
+| `world` | [World](#World) | Gets the current world this entity resides in. | `*World*` |
+| `customNameVisible` | boolean | Gets whether or not the mob's custom name is displayed client side. | `true`/`false` |
+| `dead` | boolean | Returns true if this entity has been marked for removal. | `true`/`false` |
+| `empty` | boolean | Check if a vehicle has passengers. | `true`/`false` |
+| `insideVehicle` | boolean | Returns whether this entity is inside a vehicle. | `true`/`false` |
+| `onGround` | boolean | Returns true if the entity is supported by a block. | `true`/`false` |
+| `valid` | boolean | Returns false if the entity has died or been despawned for some other reason. | `true`/`false` |
+| *self* | String | The name of the type of the entity. | `PLAYER`/.. |
+
+### Location (`org.bukkit.Location`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| `block` | [Block](#Block) | Gets the block at the represented location. | `*Block*` |
+| `blockX` | int | Gets the floored value of the X component, indicating the block that this location is contained with. | `4` |
+| `blockY` | int | Gets the floored value of the Y component, indicating the block that this location is contained with. | `79` |
+| `blockZ` | int | Gets the floored value of the Z component, indicating the block that this location is contained with. | `418` |
+| `chunk` | [Chunk](#Chunk) | Gets the chunk at the represented location. | `*Chunk*` |
+| `direction` | [Vector](#Vector) | Gets a unit-vector pointing in the direction that this Location is facing. | `*Vector*` |
+| `pitch` | float | Gets the pitch of this location, measured in degrees. | `12.14` |
+| `world` | [World](#World) | Gets the world that this location resides in. | `*World*` |
+| `x` | double | Gets the x-coordinate of this location. | `4.10` |
+| `y` | double | Gets the y-coordinate of this location. | `79.00` |
+| `yaw` | float | Gets the yaw of this location, measured in degrees. | `116.09` |
+| `z` | float | Gets the z-coordinate of this location. | `418.77` |
+| `length` | float | Gets the magnitude of the location, defined as sqrt(x^2+y^2+z^2). | `426.18` |
+| `lengthSquared` | float | Gets the magnitude of the location squared. | `181625.77` |
+| *self* | String | Representation of the basic location parameters as string. | `(world=world_nether, x=4.1, y=79.0, z=418.7)` |

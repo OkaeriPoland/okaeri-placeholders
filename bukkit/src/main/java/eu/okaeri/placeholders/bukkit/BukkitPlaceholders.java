@@ -8,7 +8,10 @@ import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.permissions.ServerOperator;
 import org.bukkit.util.Vector;
@@ -28,7 +31,7 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         // HumanEntity
         placeholders.registerPlaceholder(HumanEntity.class, "enderChest", HumanEntity::getEnderChest); // Inventory
         placeholders.registerPlaceholder(HumanEntity.class, "expToLevel", HumanEntity::getExpToLevel);
-        placeholders.registerPlaceholder(HumanEntity.class, "gameMode", HumanEntity::getGameMode);
+        placeholders.registerPlaceholder(HumanEntity.class, "gameMode", HumanEntity::getGameMode); // GameMode
         placeholders.registerPlaceholder(HumanEntity.class, "inventory", HumanEntity::getInventory); // PlayerInventory
         placeholders.registerPlaceholder(HumanEntity.class, "itemInHand", HumanEntity::getItemInHand); // ItemStack
         placeholders.registerPlaceholder(HumanEntity.class, "itemOnCursor", HumanEntity::getItemOnCursor); // ItemStack
@@ -37,6 +40,31 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(HumanEntity.class, "sleepTicks", HumanEntity::getSleepTicks);
         placeholders.registerPlaceholder(HumanEntity.class, "blocking", HumanEntity::isBlocking);
         placeholders.registerPlaceholder(HumanEntity.class, "sleeping", HumanEntity::isSleeping);
+        placeholders.registerPlaceholder(HumanEntity.class, HumanEntity::getName);
+
+        // Inventory
+        placeholders.registerPlaceholder(Inventory.class, "name", Inventory::getName);
+        placeholders.registerPlaceholder(Inventory.class, "size", Inventory::getSize);
+        placeholders.registerPlaceholder(Inventory.class, "title", Inventory::getTitle);
+        placeholders.registerPlaceholder(Inventory.class, "type", Inventory::getType); // InventoryType (enum)
+        placeholders.registerPlaceholder(Inventory.class, Inventory::getName);
+
+        // InventoryView
+        placeholders.registerPlaceholder(InventoryView.class, "bottomInventory", InventoryView::getBottomInventory); // Inventory
+        placeholders.registerPlaceholder(InventoryView.class, "cursor", InventoryView::getCursor); // ItemStack
+        placeholders.registerPlaceholder(InventoryView.class, "player", InventoryView::getPlayer); // HumanEntity
+        placeholders.registerPlaceholder(InventoryView.class, "title", InventoryView::getTitle);
+        placeholders.registerPlaceholder(InventoryView.class, "topInventory", InventoryView::getTopInventory); // Inventory
+        placeholders.registerPlaceholder(InventoryView.class, "type", InventoryView::getType); // InventoryType (enum)
+
+        // PlayerInventory
+        placeholders.registerPlaceholder(PlayerInventory.class, "boots", PlayerInventory::getBoots); // ItemStack
+        placeholders.registerPlaceholder(PlayerInventory.class, "chestplate", PlayerInventory::getChestplate); // ItemStack
+        placeholders.registerPlaceholder(PlayerInventory.class, "heldItemSlot", PlayerInventory::getHeldItemSlot);
+        placeholders.registerPlaceholder(PlayerInventory.class, "helmet", PlayerInventory::getHelmet); // ItemStack
+        placeholders.registerPlaceholder(PlayerInventory.class, "holder", PlayerInventory::getHolder); // HumanEntity
+        placeholders.registerPlaceholder(PlayerInventory.class, "itemInHand", PlayerInventory::getItemInHand); // ItemStack
+        placeholders.registerPlaceholder(PlayerInventory.class, "leggings", PlayerInventory::getLeggings); // ItemStack
 
         // OfflinePlayer
         placeholders.registerPlaceholder(OfflinePlayer.class, "bedSpawnLocation", OfflinePlayer::getBedSpawnLocation); // Location
@@ -48,6 +76,7 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(OfflinePlayer.class, "banned", OfflinePlayer::isBanned);
         placeholders.registerPlaceholder(OfflinePlayer.class, "online", OfflinePlayer::isOnline);
         placeholders.registerPlaceholder(OfflinePlayer.class, "whitelisted", OfflinePlayer::isWhitelisted);
+        placeholders.registerPlaceholder(OfflinePlayer.class, OfflinePlayer::getName);
 
         // Player
         placeholders.registerPlaceholder(Player.class, "address", player -> player.getAddress().getAddress().getHostAddress());
@@ -116,7 +145,7 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(Location.class, "z", Location::getZ);
         placeholders.registerPlaceholder(Location.class, "length", Location::length);
         placeholders.registerPlaceholder(Location.class, "lengthSquared", Location::lengthSquared);
-        placeholders.registerPlaceholder(Location.class, location -> "(world=" + location.getWorld().getName() + "x=" + location.getX() + ", y=" + location.getY() + ", z=" + location.getZ() + ")");
+        placeholders.registerPlaceholder(Location.class, location -> "(world=" + location.getWorld().getName() + ", x=" + location.getX() + ", y=" + location.getY() + ", z=" + location.getZ() + ")");
 
         // Block
         placeholders.registerPlaceholder(Block.class, "biome", Block::getBiome); // Biome (enum)
@@ -216,8 +245,11 @@ public final class BukkitPlaceholders implements PlaceholderPack {
 
         // Damageable
         placeholders.registerPlaceholder(Damageable.class, "health", Damageable::getHealth);
+        placeholders.registerPlaceholder(Damageable.class, "healthHearts", damageable -> (int) (damageable.getHealth() / 2));
         placeholders.registerPlaceholder(Damageable.class, "maxHealth", Damageable::getMaxHealth);
+        placeholders.registerPlaceholder(Damageable.class, "maxHealthHearts", damageable -> (int) (damageable.getMaxHealth() / 2));
         placeholders.registerPlaceholder(Damageable.class, "healthBarHearts", damageable -> renderHealthBar(damageable, (int) (damageable.getMaxHealth() / 2), '❤'));
+        placeholders.registerPlaceholder(Damageable.class, "healthBarHeartsNum", damageable -> ((int) (damageable.getHealth() / 2)) + "/" + ((int) (damageable.getMaxHealth() / 2)));
         placeholders.registerPlaceholder(Damageable.class, "healthBar10", damageable -> renderHealthBar(damageable, 10, '|'));
         placeholders.registerPlaceholder(Damageable.class, "healthBar20", damageable -> renderHealthBar(damageable, 20, '|'));
         placeholders.registerPlaceholder(Damageable.class, "healthBar30", damageable -> renderHealthBar(damageable, 30, '|'));
