@@ -147,4 +147,128 @@ public class TestSchema {
 
         System.out.println(test);
     }
+
+    @Test
+    public void test_read_schema_external_5() {
+
+        Placeholders placeholders = Placeholders.create()
+                .registerPlaceholder(ExternalItem.class, "type", ExternalItem::getType)
+                .registerPlaceholder(ExternalItem.class, "amount", ExternalItem::getAmount)
+                .registerPlaceholder(ExternalItem.class, "damage", ExternalItem::getDamage)
+                .registerPlaceholder(ExternalItem.class, "data", ExternalItem::getData)
+                .registerPlaceholder(ExternalItem.class, "meta", ExternalItem::getMeta)
+                .registerPlaceholder(ExternalMeta.class, "name", ExternalMeta::getName)
+                .registerPlaceholder(ExternalMeta.class, "lore", ExternalMeta::getLore)
+                .registerPlaceholder(ExternalItem.class, "typeEnum", ExternalItem::getTypeEnum);
+
+        ExternalItem item = new ExternalItem();
+        item.setAmount(123);
+        item.setType("Stone");
+        item.setDamage((short) 10);
+        item.setData((byte) 1);
+        item.setTypeEnum(ExternalItem.Type.DIAMOND_PICKAXE);
+        ExternalMeta meta = new ExternalMeta();
+        meta.setName(null); // explicit null
+        meta.setLore("Really nice stone. I like it.");
+        item.setMeta(meta);
+
+        CompiledMessage message = CompiledMessage.of(Locale.ENGLISH, "abc {item.typeEnum.lower} aaa");
+        String test = placeholders.contextOf(message).with("item", item).apply();
+        assertEquals("abc <noresolver:typeEnum@lower> aaa", test);
+
+        System.out.println(test);
+    }
+
+    @Test
+    public void test_read_schema_external_7() {
+
+        Placeholders placeholders = Placeholders.create()
+                .registerPlaceholder(ExternalItem.class, "type", ExternalItem::getType)
+                .registerPlaceholder(ExternalItem.class, "amount", ExternalItem::getAmount)
+                .registerPlaceholder(ExternalItem.class, "damage", ExternalItem::getDamage)
+                .registerPlaceholder(ExternalItem.class, "data", ExternalItem::getData)
+                .registerPlaceholder(ExternalItem.class, "meta", ExternalItem::getMeta)
+                .registerPlaceholder(ExternalMeta.class, "name", ExternalMeta::getName)
+                .registerPlaceholder(ExternalMeta.class, "lore", ExternalMeta::getLore)
+                .registerPlaceholder(ExternalItem.class, "typeEnum", ExternalItem::getTypeEnum);
+
+        ExternalItem item = new ExternalItem();
+        item.setAmount(123);
+        item.setType("DIAMOND_PICKAXE");
+        item.setDamage((short) 10);
+        item.setData((byte) 1);
+        item.setTypeEnum(ExternalItem.Type.DIAMOND_PICKAXE);
+        ExternalMeta meta = new ExternalMeta();
+        meta.setName(null); // explicit null
+        meta.setLore("Really nice stone. I like it.");
+        item.setMeta(meta);
+
+        CompiledMessage message = CompiledMessage.of(Locale.ENGLISH, "abc {item.type.replace(_, ).toLowerCase().capitalize()} aaa");
+        String test = placeholders.contextOf(message).with("item", item).apply();
+        assertEquals("abc Diamond pickaxe aaa", test);
+
+        System.out.println(test);
+    }
+
+    @Test
+    public void test_read_schema_external_8() {
+
+        Placeholders placeholders = Placeholders.create()
+                .registerPlaceholder(ExternalItem.class, "type", ExternalItem::getType)
+                .registerPlaceholder(ExternalItem.class, "amount", ExternalItem::getAmount)
+                .registerPlaceholder(ExternalItem.class, "damage", ExternalItem::getDamage)
+                .registerPlaceholder(ExternalItem.class, "data", ExternalItem::getData)
+                .registerPlaceholder(ExternalItem.class, "meta", ExternalItem::getMeta)
+                .registerPlaceholder(ExternalMeta.class, "name", ExternalMeta::getName)
+                .registerPlaceholder(ExternalMeta.class, "lore", ExternalMeta::getLore)
+                .registerPlaceholder(ExternalItem.class, "typeEnum", ExternalItem::getTypeEnum);
+
+        ExternalItem item = new ExternalItem();
+        item.setAmount(123);
+        item.setType("DIAMOND_PICKAXE");
+        item.setDamage((short) 10);
+        item.setData((byte) 1);
+        item.setTypeEnum(ExternalItem.Type.DIAMOND_PICKAXE);
+        ExternalMeta meta = new ExternalMeta();
+        meta.setName(null); // explicit null
+        meta.setLore("Really nice stone. I like it.");
+        item.setMeta(meta);
+
+        CompiledMessage message = CompiledMessage.of(Locale.ENGLISH, "abc {item.typeEnum.pretty} aaa");
+        String test = placeholders.contextOf(message).with("item", item).apply();
+        assertEquals("abc Diamond Pickaxe aaa", test);
+
+        System.out.println(test);
+    }
+
+    @Test
+    public void test_read_schema_external_9() {
+
+        Placeholders placeholders = Placeholders.create()
+                .registerPlaceholder(ExternalItem.class, "type", ExternalItem::getType)
+                .registerPlaceholder(ExternalItem.class, "amount", ExternalItem::getAmount)
+                .registerPlaceholder(ExternalItem.class, "damage", ExternalItem::getDamage)
+                .registerPlaceholder(ExternalItem.class, "data", ExternalItem::getData)
+                .registerPlaceholder(ExternalItem.class, "meta", ExternalItem::getMeta)
+                .registerPlaceholder(ExternalMeta.class, "name", ExternalMeta::getName)
+                .registerPlaceholder(ExternalMeta.class, "lore", ExternalMeta::getLore)
+                .registerPlaceholder(ExternalItem.class, "typeEnum", ExternalItem::getTypeEnum);
+
+        ExternalItem item = new ExternalItem();
+        item.setAmount(123);
+        item.setType("DIAMOND_PICKAXE");
+        item.setDamage((short) 10);
+        item.setData((byte) 1);
+        item.setTypeEnum(ExternalItem.Type.DIAMOND_PICKAXE);
+        ExternalMeta meta = new ExternalMeta();
+        meta.setName(null); // explicit null
+        meta.setLore("Really nice stone. I like it.");
+        item.setMeta(meta);
+
+        CompiledMessage message = CompiledMessage.of(Locale.ENGLISH, "abc {item.amount.multiply(0).add(1)} aaa");
+        String test = placeholders.contextOf(message).with("item", item).apply();
+        assertEquals("abc 1 aaa", test);
+
+        System.out.println(test);
+    }
 }

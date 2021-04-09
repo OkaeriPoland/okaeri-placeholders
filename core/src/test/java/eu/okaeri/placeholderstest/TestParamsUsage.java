@@ -109,4 +109,47 @@ public class TestParamsUsage {
         assertEquals("|", sub.getParams().strAt(3));
         assertArrayEquals(new String[]{"(", "20", "X", "|"}, sub.getParams().strArr());
     }
+
+    @Test
+    public void test_params_6() {
+        CompiledMessage message = CompiledMessage.of("Woah: {some,trash#player.healthBar((,20, ,|)|def}");
+
+        assertEquals(2, message.getParts().size());
+        assertEquals(MessageStatic.of("Woah: "), message.getParts().get(0));
+
+        MessageField field = (MessageField) message.getParts().get(1);
+        assertEquals("player.healthBar", field.getLastSubPath());
+        assertNotNull(field.getSub());
+
+        MessageField sub = field.getSub();
+        assertNotNull(sub.getParams());
+
+        assertEquals("(", sub.getParams().strAt(0));
+        assertEquals(20, sub.getParams().intAt(1));
+        assertEquals(" ", sub.getParams().strAt(2));
+        assertEquals("|", sub.getParams().strAt(3));
+        assertArrayEquals(new String[]{"(", "20", " ", "|"}, sub.getParams().strArr());
+    }
+
+    @Test
+    public void test_params_7() {
+        CompiledMessage message = CompiledMessage.of("Woah: {some,trash#player.healthBar((,20, ,|, ))|def}");
+
+        assertEquals(2, message.getParts().size());
+        assertEquals(MessageStatic.of("Woah: "), message.getParts().get(0));
+
+        MessageField field = (MessageField) message.getParts().get(1);
+        assertEquals("player.healthBar", field.getLastSubPath());
+        assertNotNull(field.getSub());
+
+        MessageField sub = field.getSub();
+        assertNotNull(sub.getParams());
+
+        assertEquals("(", sub.getParams().strAt(0));
+        assertEquals(20, sub.getParams().intAt(1));
+        assertEquals(" ", sub.getParams().strAt(2));
+        assertEquals("|", sub.getParams().strAt(3));
+        assertEquals(" )", sub.getParams().strAt(4));
+        assertArrayEquals(new String[]{"(", "20", " ", "|", " )"}, sub.getParams().strArr());
+    }
 }

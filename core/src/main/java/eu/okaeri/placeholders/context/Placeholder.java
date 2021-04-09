@@ -45,10 +45,11 @@ public class Placeholder {
             if (field.hasSub()) {
                 MessageField fieldSub = field.getSub();
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
-                if (resolver != null) {
-                    Object value = resolver.resolve(object, fieldSub.getParams());
-                    return this.render(value, fieldSub);
+                if (resolver == null) {
+                    return ("<noresolver:" + field.getName() + "@" + fieldSub.getName() + ">");
                 }
+                Object value = resolver.resolve(object, fieldSub.getParams());
+                return this.render(value, fieldSub);
             } else {
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
                 if (resolver != null) {
