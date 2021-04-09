@@ -35,10 +35,6 @@ public class DefaultSchemaResolver implements SchemaResolver {
     @Override
     public String resolve(Object object, MessageField field) {
 
-        if (object instanceof Enum) {
-            return ((Enum<?>) object).name();
-        }
-
         if ((field.getMetadataOptions() != null) && (object instanceof Integer) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
             return Pluralize.pluralize(field.getLocale(), ((Integer) object), field.getMetadataOptions());
         }
@@ -57,6 +53,10 @@ public class DefaultSchemaResolver implements SchemaResolver {
     @Override
     @SuppressWarnings("MalformedFormatString")
     public String resolve(Object object) {
+
+        if (object instanceof Enum) {
+            return ((Enum<?>) object).name();
+        }
 
         if ((object instanceof Float) || (object instanceof Double)) {
             return String.format("%.2f", object);
