@@ -2,7 +2,9 @@ package eu.okaeri.placeholders;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
+import eu.okaeri.placeholders.message.part.FieldParams;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+import eu.okaeri.placeholders.schema.resolver.SimplePlaceholderResolver;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -26,12 +28,20 @@ public class Placeholders {
         return this;
     }
 
+    public <T> Placeholders registerPlaceholder(Class<T> type, SimplePlaceholderResolver<T> resolver) {
+        return this.registerPlaceholder(type,(from, params) -> resolver.resolve(from));
+    }
+
     public <T> Placeholders registerPlaceholder(Class<T> type, PlaceholderResolver<T> resolver) {
         if (type == null) throw new IllegalArgumentException("type cannot be null");
         if (resolver == null) throw new IllegalArgumentException("resolver cannot be null");
         Map<String, PlaceholderResolver> resolverMap = this.resolvers.computeIfAbsent(type, kk -> new HashMap<>());
         resolverMap.put(null, resolver);
         return this;
+    }
+
+    public <T> Placeholders registerPlaceholder(Class<T> type, String name, SimplePlaceholderResolver<T> resolver) {
+        return this.registerPlaceholder(type, name, (from, params) -> resolver.resolve(from));
     }
 
     public <T> Placeholders registerPlaceholder(Class<T> type, String name, PlaceholderResolver<T> resolver) {
@@ -47,7 +57,7 @@ public class Placeholders {
     public Object readValue(Object from) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, null);
         if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from);
+            return placeholderResolver.resolve(from, FieldParams.empty());
         }
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass());
     }
@@ -56,7 +66,7 @@ public class Placeholders {
     public Object readValue(Object from, String param) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, param);
         if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from);
+            return placeholderResolver.resolve(from, FieldParams.empty());
         }
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass() + ": " + param);
     }

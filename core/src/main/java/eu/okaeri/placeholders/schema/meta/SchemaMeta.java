@@ -82,7 +82,7 @@ public class SchemaMeta {
                 // submeta
                 if (PlaceholderSchema.class.isAssignableFrom(returnType)) {
                     MethodHandle handle = toHandle(method);
-                    placeholders.put(name, from -> handleholder(handle, from, null));
+                    placeholders.put(name, (from, params) -> handleholder(handle, from, null));
                     continue;
                 }
 
@@ -93,7 +93,7 @@ public class SchemaMeta {
                 }
 
                 MethodHandle handle = toHandle(method);
-                placeholders.put(name, from -> handleholder(handle, from, resolver));
+                placeholders.put(name, (from, params) -> handleholder(handle, from, resolver));
             }
         }
 
@@ -110,14 +110,14 @@ public class SchemaMeta {
             String name = placeholder.name().isEmpty() ? field.getName() : placeholder.name();
             if (PlaceholderSchema.class.isAssignableFrom(fieldType)) {
                 MethodHandle handle = toHandle(field);
-                placeholders.put(name, from -> handleholder(handle, from, null));
+                placeholders.put(name, (from, params) -> handleholder(handle, from, null));
                 continue;
             }
 
             SchemaResolver resolver = resolver(placeholder.resolver());
             if (resolver.supports(fieldType)) {
                 MethodHandle handle = toHandle(field);
-                placeholders.put(name, from -> handleholder(handle, from, resolver));
+                placeholders.put(name, (from, params) -> handleholder(handle, from, resolver));
                 continue;
             }
 
@@ -137,7 +137,7 @@ public class SchemaMeta {
             String name = placeholder.name().isEmpty() ? method.getName() : placeholder.name();
             if (PlaceholderSchema.class.isAssignableFrom(returnType)) {
                 MethodHandle handle = toHandle(method);
-                placeholders.put(name, from -> handleholder(handle, from, null));
+                placeholders.put(name, (from, params) -> handleholder(handle, from, null));
                 continue;
             }
 
@@ -152,7 +152,7 @@ public class SchemaMeta {
             }
 
             MethodHandle handle = toHandle(method);
-            placeholders.put(name, from -> handleholder(handle, from, resolver));
+            placeholders.put(name, (from, params) -> handleholder(handle, from, resolver));
         }
 
         SchemaMeta meta = new SchemaMeta(clazz, placeholders);

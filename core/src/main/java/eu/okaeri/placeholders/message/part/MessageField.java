@@ -5,10 +5,14 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MessageField implements MessageElement {
+
+    private static final Pattern PATH_ELEMENT_PATTERN = Pattern.compile("(?<name>[^\\s(]+)(?:\\((?<params>[^\\s)]+)\\))?");
 
     public static MessageField of(String name) {
         return of(Locale.ENGLISH, name);
@@ -20,12 +24,25 @@ public class MessageField implements MessageElement {
         MessageField field = null;
 
         for (int i = parts.length - 1; i >= 0; i--) {
-            field = new MessageField(locale, parts[i], field);
+
+            String pathElement = parts[i];
+            Matcher matcher = PATH_ELEMENT_PATTERN.matcher(pathElement);
+
+            if (!matcher.find()) {
+                throw new RuntimeException("invalid field path element: " + pathElement);
+            }
+
+            String fieldRealName = matcher.group("name");
+            String fieldParams = matcher.group("params");
+
+            field = new MessageField(locale, fieldRealName, field);
+            field.setParamsRaw(fieldParams);
         }
 
         if (field != null) { // load caches
             MessageField lastSub = field.getLastSub();
             String lastSubPath = field.getLastSubPath();
+            FieldParams params = field.getParams();
         }
 
         return field;
@@ -36,6 +53,7 @@ public class MessageField implements MessageElement {
     private final MessageField sub;
     private String defaultValue;
     private String metadataRaw;
+    private String paramsRaw;
 
     public boolean hasSub() {
         return this.sub != null;
@@ -76,6 +94,16 @@ public class MessageField implements MessageElement {
         return this.metadataOptions;
     }
 
+    public FieldParams getParams() {
+        if (this.paramsRaw == null) {
+            this.params = FieldParams.empty();
+        }
+        if (this.params == null) {
+            this.params = FieldParams.of(this.paramsRaw.split(",|;"));
+        }
+        return this.params;
+    }
+
     private static String lastSubPath(MessageField field) {
 
         MessageField last = field;
@@ -93,4 +121,5 @@ public class MessageField implements MessageElement {
     private String lastSubPath;
     private MessageField lastSub;
     private String[] metadataOptions;
+    private FieldParams params;
 }

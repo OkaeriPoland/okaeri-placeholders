@@ -46,13 +46,13 @@ public class Placeholder {
                 MessageField fieldSub = field.getSub();
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
                 if (resolver != null) {
-                    Object value = resolver.resolve(object);
+                    Object value = resolver.resolve(object, fieldSub.getParams());
                     return this.render(value, fieldSub);
                 }
             } else {
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
                 if (resolver != null) {
-                    Object value = resolver.resolve(object);
+                    Object value = resolver.resolve(object, field.getParams());
                     return this.render(value, field);
                 }
             }
@@ -77,7 +77,7 @@ public class Placeholder {
                 throw new RuntimeException("resolver cannot be null: " + fieldSub.getName());
             }
 
-            Object resolved = resolver.resolve(object);
+            Object resolved = resolver.resolve(object, fieldSub.getParams());
             return this.render(resolved, fieldSub);
         }
 

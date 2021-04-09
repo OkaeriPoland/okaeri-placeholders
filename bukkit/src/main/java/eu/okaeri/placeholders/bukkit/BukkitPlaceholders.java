@@ -113,7 +113,7 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(Entity.class, "fallDistance", Entity::getFallDistance);
         placeholders.registerPlaceholder(Entity.class, "fireTicks", Entity::getFireTicks);
         placeholders.registerPlaceholder(Entity.class, "lastDamageCause", Entity::getFireTicks); // EntityDamageEvent
-        placeholders.registerPlaceholder(Entity.class, "location", Entity::getLocation); // Location
+        placeholders.registerPlaceholder(Entity.class, "location", (e, p) -> e.getLocation()); // Location
         placeholders.registerPlaceholder(Entity.class, "maxFireTicks", Entity::getMaxFireTicks);
         placeholders.registerPlaceholder(Entity.class, "passenger", Entity::getPassenger); // Entity
         placeholders.registerPlaceholder(Entity.class, "ticksLived", Entity::getTicksLived);
@@ -155,7 +155,7 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(Block.class, "lightFromBlocks", Block::getLightFromBlocks);
         placeholders.registerPlaceholder(Block.class, "lightFromSky", Block::getLightFromSky);
         placeholders.registerPlaceholder(Block.class, "lightLevel", Block::getLightLevel);
-        placeholders.registerPlaceholder(Block.class, "location", Block::getLocation);
+        placeholders.registerPlaceholder(Block.class, "location", (e, p) -> e.getLocation());
         placeholders.registerPlaceholder(Block.class, "state", Block::getState); // BlockState
         placeholders.registerPlaceholder(Block.class, "temperature", Block::getTemperature);
         placeholders.registerPlaceholder(Block.class, "type", Block::getType); // Material (enum)
@@ -246,15 +246,27 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         // Damageable
         placeholders.registerPlaceholder(Damageable.class, "health", Damageable::getHealth);
         placeholders.registerPlaceholder(Damageable.class, "healthHearts", damageable -> (int) (damageable.getHealth() / 2));
+        placeholders.registerPlaceholder(Damageable.class, "healthHeartsWithMax", damageable -> {
+            int current = (int) (damageable.getHealth() / 2);
+            int max = (int) (damageable.getMaxHealth() / 2);
+            return current + "/" + max;
+        });
         placeholders.registerPlaceholder(Damageable.class, "maxHealth", Damageable::getMaxHealth);
         placeholders.registerPlaceholder(Damageable.class, "maxHealthHearts", damageable -> (int) (damageable.getMaxHealth() / 2));
-        placeholders.registerPlaceholder(Damageable.class, "healthBarHearts", damageable -> renderHealthBar(damageable, (int) (damageable.getMaxHealth() / 2), '❤'));
-        placeholders.registerPlaceholder(Damageable.class, "healthBarHeartsNum", damageable -> ((int) (damageable.getHealth() / 2)) + "/" + ((int) (damageable.getMaxHealth() / 2)));
-        placeholders.registerPlaceholder(Damageable.class, "healthBar10", damageable -> renderHealthBar(damageable, 10, '|'));
-        placeholders.registerPlaceholder(Damageable.class, "healthBar20", damageable -> renderHealthBar(damageable, 20, '|'));
-        placeholders.registerPlaceholder(Damageable.class, "healthBar30", damageable -> renderHealthBar(damageable, 30, '|'));
-        placeholders.registerPlaceholder(Damageable.class, "healthBar40", damageable -> renderHealthBar(damageable, 40, '|'));
-        placeholders.registerPlaceholder(Damageable.class, "healthBar50", damageable -> renderHealthBar(damageable, 50, '|'));
+        placeholders.registerPlaceholder(Damageable.class, "healthBarHearts", (damageable, params) -> {
+            int maxHearts = (int) (damageable.getMaxHealth() / 2);
+            String okColor = params.strAt(0, "c");
+            String emptyColor = params.strAt(1, "7");
+            String symbol = params.strAt(3, "❤");
+            return renderHealthBar(damageable, maxHearts, symbol, okColor, emptyColor);
+        });
+        placeholders.registerPlaceholder(Damageable.class, "healthBar", (damageable, params) -> {
+            int barLength = params.intAt(0, 40);
+            String okColor = params.strAt(1, "c");
+            String emptyColor = params.strAt(2, "7");
+            String symbol = params.strAt(3, "|");
+            return renderHealthBar(damageable, barLength, symbol, okColor, emptyColor);
+        });
     }
 
     public static String enumList(Collection<? extends Enum> enums) {
@@ -263,37 +275,37 @@ public final class BukkitPlaceholders implements PlaceholderPack {
                 .collect(Collectors.joining(", "));
     }
 
-    public static String renderHealthBar(Damageable damageable, int limit, char pointChar) {
+    public static String renderHealthBar(Damageable damageable, int limit, String symbol, String okColor, String emptyColor) {
         double result = (damageable.getHealth() / damageable.getMaxHealth()) * limit;
         if ((result < 1) && (result > 0)) result = 1;
-        return renderHealthBarWith((int) result, limit, pointChar);
+        return renderHealthBarWith((int) result, limit, symbol, okColor, emptyColor);
     }
 
-    public static String renderHealthBarWith(int value, int max, char pointChar) {
+    public static String renderHealthBarWith(int value, int max, String symbol, String okColor, String emptyColor) {
 
         StringBuilder buf = new StringBuilder();
 
         // empty
         if (value == 0) {
-            buf.append(ChatColor.COLOR_CHAR).append("7");
-            for (int i = 0; i < max; i++) buf.append(pointChar);
+            buf.append(ChatColor.COLOR_CHAR).append(emptyColor);
+            for (int i = 0; i < max; i++) buf.append(symbol);
             return buf.toString();
         }
 
         // full
         if (value == max) {
-            buf.append(ChatColor.COLOR_CHAR).append("c");
-            for (int i = 0; i < max; i++) buf.append(pointChar);
+            buf.append(ChatColor.COLOR_CHAR).append(okColor);
+            for (int i = 0; i < max; i++) buf.append(symbol);
             return buf.toString();
         }
 
         // partial
-        buf.append(ChatColor.COLOR_CHAR).append("c");
+        buf.append(ChatColor.COLOR_CHAR).append(okColor);
         for (int i = 0; i < max; i++) {
             if (i == value) {
-                buf.append(ChatColor.COLOR_CHAR).append("7");
+                buf.append(ChatColor.COLOR_CHAR).append(emptyColor);
             }
-            buf.append(pointChar);
+            buf.append(symbol);
         }
 
         return buf.toString();
