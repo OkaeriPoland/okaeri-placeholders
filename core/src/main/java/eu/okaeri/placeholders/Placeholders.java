@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Placeholders {
 
     public static Placeholders create() {
-        return create(true);
+        return create(false);
     }
 
     public static Placeholders create(boolean registerDefaults) {
