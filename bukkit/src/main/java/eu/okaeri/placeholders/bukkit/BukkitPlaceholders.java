@@ -22,7 +22,12 @@ import java.util.stream.Collectors;
 public final class BukkitPlaceholders implements PlaceholderPack {
 
     public static Placeholders create() {
-        return Placeholders.create().registerPlaceholders(new BukkitPlaceholders());
+        return create(false);
+    }
+
+    public static Placeholders create(boolean registerDefaults) {
+        return Placeholders.create(registerDefaults)
+                .registerPlaceholders(new BukkitPlaceholders());
     }
 
     @Override

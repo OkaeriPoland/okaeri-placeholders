@@ -182,7 +182,7 @@ public class TestSchema {
     @Test
     public void test_read_schema_external_7() {
 
-        Placeholders placeholders = Placeholders.create()
+        Placeholders placeholders = Placeholders.create(true)
                 .registerPlaceholder(ExternalItem.class, "type", ExternalItem::getType)
                 .registerPlaceholder(ExternalItem.class, "amount", ExternalItem::getAmount)
                 .registerPlaceholder(ExternalItem.class, "damage", ExternalItem::getDamage)
@@ -213,7 +213,7 @@ public class TestSchema {
     @Test
     public void test_read_schema_external_8() {
 
-        Placeholders placeholders = Placeholders.create()
+        Placeholders placeholders = Placeholders.create(true)
                 .registerPlaceholder(ExternalItem.class, "type", ExternalItem::getType)
                 .registerPlaceholder(ExternalItem.class, "amount", ExternalItem::getAmount)
                 .registerPlaceholder(ExternalItem.class, "damage", ExternalItem::getDamage)
@@ -244,7 +244,7 @@ public class TestSchema {
     @Test
     public void test_read_schema_external_9() {
 
-        Placeholders placeholders = Placeholders.create()
+        Placeholders placeholders = Placeholders.create(true)
                 .registerPlaceholder(ExternalItem.class, "type", ExternalItem::getType)
                 .registerPlaceholder(ExternalItem.class, "amount", ExternalItem::getAmount)
                 .registerPlaceholder(ExternalItem.class, "damage", ExternalItem::getDamage)
