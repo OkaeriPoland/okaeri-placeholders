@@ -9,13 +9,13 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-bukkit</artifactId>
-  <version>1.4.3</version>
+  <version>1.4.4</version>
 </dependency>
 ```
 ### Gradle
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.3'
+implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.4'
 ```
 
 ## Supported types
@@ -127,6 +127,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 ### Entity (`org.bukkit.entity.Entity`)
 | Field | Type | Description | Example |
 |-|-|-|-|
+| `customName` | String | Gets the custom name on a mob. | `SomePlayers's dog` |
 | `entityId` | int | Returns a unique id for this entity. | `47` |
 | `fallDistance` | float | Returns the distance this entity has fallen. | `0.00` |
 | `fireTicks` | int | Returns the entity's current fire ticks (ticks before the entity stops being on fire). | `-20` |
