@@ -114,6 +114,7 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(Player.class, (e, p) -> e.getName());
 
         // Entity
+        placeholders.registerPlaceholder(Entity.class, "customName", (e, p) -> e.getCustomName());
         placeholders.registerPlaceholder(Entity.class, "entityId", (e, p) -> e.getEntityId());
         placeholders.registerPlaceholder(Entity.class, "fallDistance", (e, p) -> e.getFallDistance());
         placeholders.registerPlaceholder(Entity.class, "fireTicks", (e, p) -> e.getFireTicks());
@@ -243,7 +244,7 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(ItemMeta.class, (e, p) -> "(name=" + e.getDisplayName() + ", lore=" + String.join(", ", e.getLore()) + ")");
 
         // Nameable
-        placeholders.registerPlaceholder(Nameable.class, "customName", (e, p) -> e.getCustomName());
+//        placeholders.registerPlaceholder(Nameable.class, "customName", (e, p) -> e.getCustomName()); // nameable available in 1.8.8
 
         // ServerOperator
         placeholders.registerPlaceholder(ServerOperator.class, "op", (e, p) -> e.isOp());
