@@ -2,6 +2,7 @@ package eu.okaeri.placeholders.message.part;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class FieldParams {
 
-    public static FieldParams of(String[] params) {
+    public static FieldParams of(@NonNull String[] params) {
         return new FieldParams(params);
     }
 

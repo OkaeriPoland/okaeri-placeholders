@@ -8,6 +8,7 @@ import eu.okaeri.placeholders.schema.resolver.DefaultSchemaResolver;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
@@ -30,12 +31,12 @@ public class Placeholder {
     private final Object value;
 
     @SuppressWarnings("unchecked")
-    public String render(MessageField field) {
+    public String render(@NonNull MessageField field) {
         return this.render(this.value, field);
     }
 
     @SuppressWarnings("unchecked")
-    private String render(Object object, MessageField field) {
+    private String render(Object object, @NonNull MessageField field) {
 
         if (object == null) {
             return null;

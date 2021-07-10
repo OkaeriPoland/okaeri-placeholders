@@ -5,6 +5,7 @@ import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.message.part.MessageStatic;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.*;
@@ -17,15 +18,11 @@ public class CompiledMessage {
 
     private static final Pattern FIELD_PATTERN = Pattern.compile("\\{(?<content>[^}]+)\\}");
 
-    public static CompiledMessage of(String source) {
+    public static CompiledMessage of(@NonNull String source) {
         return of(Locale.ENGLISH, source);
     }
 
-    public static CompiledMessage of(Locale locale, String source) {
-
-        if (source == null) {
-            throw new IllegalArgumentException("source cannot be null");
-        }
+    public static CompiledMessage of(@NonNull Locale locale, @NonNull String source) {
 
         if (source.isEmpty()) {
             return new CompiledMessage(source, 0, 0, 0, false, Collections.emptyList(), Collections.emptySet());
@@ -84,7 +81,7 @@ public class CompiledMessage {
         return this.usedFields.contains(name);
     }
 
-    private static String[] parseFieldToArray(String raw) {
+    private static String[] parseFieldToArray(@NonNull String raw) {
 
         String[] arr = new String[3];
 

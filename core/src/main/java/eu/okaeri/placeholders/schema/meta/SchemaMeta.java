@@ -4,10 +4,7 @@ import eu.okaeri.placeholders.schema.PlaceholderSchema;
 import eu.okaeri.placeholders.schema.annotation.Placeholder;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import eu.okaeri.placeholders.schema.resolver.SchemaResolver;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import lombok.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -27,7 +24,7 @@ public class SchemaMeta {
     private static final Map<Class<? extends SchemaResolver>, SchemaResolver> RESOLVER_CACHE = new ConcurrentHashMap<>();
 
     @SneakyThrows
-    private static SchemaResolver resolver(Class<? extends SchemaResolver> clazz) {
+    private static SchemaResolver resolver(@NonNull Class<? extends SchemaResolver> clazz) {
 
         SchemaResolver resolver = RESOLVER_CACHE.get(clazz);
         if (resolver != null) {
@@ -41,7 +38,7 @@ public class SchemaMeta {
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
-    public static SchemaMeta of(Class<? extends PlaceholderSchema> clazz) {
+    public static SchemaMeta of(@NonNull Class<? extends PlaceholderSchema> clazz) {
 
         SchemaMeta cached = SCHEMA_CACHE.get(clazz);
         if (cached != null) {
