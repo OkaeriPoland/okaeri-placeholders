@@ -6,6 +6,7 @@ import eu.okaeri.placeholders.message.part.FieldParams;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
 import java.util.HashMap;
@@ -24,34 +25,29 @@ public class Placeholders {
         return placeholders;
     }
 
-    public PlaceholderContext contextOf(CompiledMessage message) {
+    public PlaceholderContext contextOf(@NonNull CompiledMessage message) {
         return PlaceholderContext.of(this, message);
     }
 
-    public Placeholders registerPlaceholders(PlaceholderPack pack) {
+    public Placeholders registerPlaceholders(@NonNull PlaceholderPack pack) {
         pack.register(this);
         return this;
     }
 
-    public <T> Placeholders registerPlaceholder(Class<T> type, PlaceholderResolver<T> resolver) {
-        if (type == null) throw new IllegalArgumentException("type cannot be null");
-        if (resolver == null) throw new IllegalArgumentException("resolver cannot be null");
+    public <T> Placeholders registerPlaceholder(@NonNull Class<T> type, @NonNull PlaceholderResolver<T> resolver) {
         Map<String, PlaceholderResolver> resolverMap = this.resolvers.computeIfAbsent(type, kk -> new HashMap<>());
         resolverMap.put(null, resolver);
         return this;
     }
 
-    public <T> Placeholders registerPlaceholder(Class<T> type, String name, PlaceholderResolver<T> resolver) {
-        if (type == null) throw new IllegalArgumentException("type cannot be null");
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        if (resolver == null) throw new IllegalArgumentException("resolver cannot be null");
+    public <T> Placeholders registerPlaceholder(@NonNull Class<T> type, @NonNull String name, @NonNull PlaceholderResolver<T> resolver) {
         Map<String, PlaceholderResolver> resolverMap = this.resolvers.computeIfAbsent(type, kk -> new HashMap<>());
         resolverMap.put(name, resolver);
         return this;
     }
 
     @SuppressWarnings("unchecked")
-    public Object readValue(Object from) {
+    public Object readValue(@NonNull Object from) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, null);
         if (placeholderResolver != null) {
             return placeholderResolver.resolve(from, FieldParams.empty());
@@ -60,7 +56,7 @@ public class Placeholders {
     }
 
     @SuppressWarnings("unchecked")
-    public Object readValue(Object from, String param) {
+    public Object readValue(@NonNull Object from, String param) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, param);
         if (placeholderResolver != null) {
             return placeholderResolver.resolve(from, FieldParams.empty());
@@ -68,7 +64,7 @@ public class Placeholders {
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass() + ": " + param);
     }
 
-    public PlaceholderResolver getResolver(Object from, String param) {
+    public PlaceholderResolver getResolver(@NonNull Object from, String param) {
 
         Class<?> fromClass = from.getClass();
         Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(fromClass);

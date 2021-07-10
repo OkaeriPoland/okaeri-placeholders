@@ -6,6 +6,7 @@ import eu.okaeri.placeholders.message.part.MessageElement;
 import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.message.part.MessageStatic;
 import lombok.Data;
+import lombok.NonNull;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,27 +19,21 @@ public class PlaceholderContext {
         return create(FailMode.FAIL_SAFE);
     }
 
-    public static PlaceholderContext create(FailMode failMode) {
-        if (failMode == null) throw new IllegalArgumentException("failMode cannot be null");
+    public static PlaceholderContext create(@NonNull FailMode failMode) {
         return new PlaceholderContext(null, failMode);
     }
 
-    public static PlaceholderContext of(CompiledMessage message) {
+    public static PlaceholderContext of(@NonNull CompiledMessage message) {
         return of(null, message);
     }
 
-    public static PlaceholderContext of(Placeholders placeholders, CompiledMessage message) {
+    public static PlaceholderContext of(Placeholders placeholders, @NonNull CompiledMessage message) {
         return of(placeholders, message, FailMode.FAIL_SAFE);
     }
 
-    public static PlaceholderContext of(Placeholders placeholders, CompiledMessage message, FailMode failMode) {
-
-        if (message == null) throw new IllegalArgumentException("message cannot be null");
-        if (failMode == null) throw new IllegalArgumentException("failMode cannot be null");
-
+    public static PlaceholderContext of(Placeholders placeholders, @NonNull CompiledMessage message, @NonNull FailMode failMode) {
         PlaceholderContext context = new PlaceholderContext(message, failMode);
         context.setPlaceholders(placeholders);
-
         return context;
     }
 
@@ -47,7 +42,7 @@ public class PlaceholderContext {
     private final FailMode failMode;
     private Placeholders placeholders;
 
-    public PlaceholderContext with(String field, Object value) {
+    public PlaceholderContext with(@NonNull String field, Object value) {
 
         if ((this.message != null) && (!this.message.isWithFields() || !this.message.hasField(field))) {
             return this;
@@ -61,7 +56,7 @@ public class PlaceholderContext {
         return this.apply(this.message);
     }
 
-    public String apply(CompiledMessage message) {
+    public String apply(@NonNull CompiledMessage message) {
 
         // someone is trying to apply message on the specific non-shareable context
         if ((message != this.message) && (this.message != null)) {

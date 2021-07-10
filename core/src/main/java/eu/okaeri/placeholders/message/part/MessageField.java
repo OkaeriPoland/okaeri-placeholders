@@ -2,6 +2,7 @@ package eu.okaeri.placeholders.message.part;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Locale;
@@ -14,11 +15,11 @@ public class MessageField implements MessageElement {
 
     private static final Pattern PATH_ELEMENT_PATTERN = Pattern.compile("^(?<name>[^\\s(]+)(?:\\((?<params>.*)\\))?$");
 
-    public static MessageField of(String name) {
+    public static MessageField of(@NonNull String name) {
         return of(Locale.ENGLISH, name);
     }
 
-    public static MessageField of(Locale locale, String name) {
+    public static MessageField of(@NonNull Locale locale, @NonNull String name) {
 
         String[] parts = name.split("\\.");
         MessageField field = null;
@@ -117,7 +118,7 @@ public class MessageField implements MessageElement {
         return this.params;
     }
 
-    private static String lastSubPath(MessageField field) {
+    private static String lastSubPath(@NonNull MessageField field) {
 
         MessageField last = field;
         StringBuilder out = new StringBuilder(field.getName());

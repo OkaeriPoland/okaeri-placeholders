@@ -2,6 +2,7 @@ package eu.okaeri.placeholders.schema.resolver;
 
 import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.pluralize.Pluralize;
+import lombok.NonNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -28,12 +29,12 @@ public class DefaultSchemaResolver implements SchemaResolver {
             UUID.class));
 
     @Override
-    public boolean supports(Class<?> type) {
+    public boolean supports(@NonNull Class<?> type) {
         return SUPPORTED_TOSTRING_TYPES.contains(type) || type.isEnum();
     }
 
     @Override
-    public String resolve(Object object, MessageField field) {
+    public String resolve(@NonNull Object object, @NonNull MessageField field) {
 
         if ((field.getMetadataOptions() != null) && (object instanceof Integer) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
             return Pluralize.pluralize(field.getLocale(), ((Integer) object), field.getMetadataOptions());
@@ -52,7 +53,7 @@ public class DefaultSchemaResolver implements SchemaResolver {
 
     @Override
     @SuppressWarnings("MalformedFormatString")
-    public String resolve(Object object) {
+    public String resolve(@NonNull Object object) {
 
         if (object instanceof Enum) {
             return ((Enum<?>) object).name();
