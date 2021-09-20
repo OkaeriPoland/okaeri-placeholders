@@ -17,7 +17,7 @@
         <dependency>
             <groupId>eu.okaeri</groupId>
             <artifactId>okaeri-placeholders</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -39,15 +39,15 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.16</version>
+            <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <repositories>
         <repository>
-            <id>okaeri-repo</id>
-            <url>https://storehouse.okaeri.eu/repository/maven-public/</url>
+            <id>storehouse-releases</id>
+            <url>https://storehouse.okaeri.eu/repository/maven-releases/</url>
         </repository>
     </repositories>
 

@@ -9,13 +9,13 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-bukkit</artifactId>
-  <version>1.4.5</version>
+  <version>1.4.6</version>
 </dependency>
 ```
 ### Gradle
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.5'
+implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.6'
 ```
 
 ## Supported types

@@ -7,14 +7,16 @@
     <groupId>eu.okaeri</groupId>
     <artifactId>okaeri-placeholders</artifactId>
     <packaging>pom</packaging>
-    <version>1.4.5</version>
+    <version>1.4.6</version>
 
     <modules>
         <module>core</module>
         <module>bukkit</module>
+        <module>bungee</module>
     </modules>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
@@ -27,6 +29,13 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>storehouse-releases</id>
+            <url>https://storehouse.okaeri.eu/repository/maven-releases/</url>
+        </repository>
+    </repositories>
 
     <distributionManagement>
         <repository>
