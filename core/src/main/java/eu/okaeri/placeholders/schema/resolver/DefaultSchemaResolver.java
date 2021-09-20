@@ -45,7 +45,7 @@ public class DefaultSchemaResolver implements SchemaResolver {
         }
 
         if ((field.getMetadataRaw() != null) && (object instanceof Number) && (field.getMetadataRaw().length() > 1) && (field.getMetadataRaw().charAt(0) == '%')) {
-            return String.format(field.getMetadataRaw(), new BigDecimal(String.valueOf(object)).doubleValue());
+            return String.format(field.getLocale(), field.getMetadataRaw(), new BigDecimal(String.valueOf(object)).doubleValue());
         }
 
         return this.resolve(object);
