@@ -47,11 +47,15 @@ public class Placeholder {
                 MessageField fieldSub = field.getSub();
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
                 if (resolver == null) {
+                    if (object instanceof PlaceholderSchema) {
+                        return this.renderUsingPlaceholderSchema(object, field);
+                    }
                     return ("<noresolver:" + field.getName() + "@" + fieldSub.getName() + ">");
                 }
                 Object value = resolver.resolve(object, fieldSub.getParams());
                 return this.render(value, fieldSub);
-            } else {
+            }
+            else {
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
                 if (resolver != null) {
                     Object value = resolver.resolve(object, field.getParams());
@@ -65,24 +69,29 @@ public class Placeholder {
         }
 
         if (object instanceof PlaceholderSchema) {
-
-            SchemaMeta meta = SchemaMeta.of((Class<? extends PlaceholderSchema>) object.getClass());
-            if (!field.hasSub()) {
-                throw new RuntimeException("rendering PlaceholderSchema itself not supported at the moment");
-            }
-
-            MessageField fieldSub = field.getSub();
-            Map<String, PlaceholderResolver> placeholders = meta.getPlaceholders();
-            PlaceholderResolver resolver = placeholders.get(fieldSub.getName());
-
-            if (resolver == null) {
-                throw new RuntimeException("resolver cannot be null: " + fieldSub.getName());
-            }
-
-            Object resolved = resolver.resolve(object, fieldSub.getParams());
-            return this.render(resolved, fieldSub);
+            return this.renderUsingPlaceholderSchema(object, field);
         }
 
         return "<norenderer:" + field.getLastSubPath() + "(" + object.getClass().getSimpleName() + ")>";
+    }
+
+    @SuppressWarnings("unchecked")
+    private String renderUsingPlaceholderSchema(@NonNull Object object, @NonNull MessageField field) {
+
+        SchemaMeta meta = SchemaMeta.of((Class<? extends PlaceholderSchema>) object.getClass());
+        if (!field.hasSub()) {
+            throw new RuntimeException("rendering PlaceholderSchema itself not supported at the moment");
+        }
+
+        MessageField fieldSub = field.getSub();
+        Map<String, PlaceholderResolver> placeholders = meta.getPlaceholders();
+        PlaceholderResolver resolver = placeholders.get(fieldSub.getName());
+
+        if (resolver == null) {
+            throw new RuntimeException("resolver cannot be null: " + fieldSub.getName());
+        }
+
+        Object resolved = resolver.resolve(object, fieldSub.getParams());
+        return this.render(resolved, fieldSub);
     }
 }

@@ -33,6 +33,9 @@ public final class BukkitPlaceholders implements PlaceholderPack {
     @Override
     public void register(Placeholders placeholders) {
 
+        // ChatColor
+        placeholders.registerPlaceholder(ChatColor.class, (e, p) -> e.toString());
+
         // HumanEntity
         placeholders.registerPlaceholder(HumanEntity.class, "enderChest", (e, p) -> e.getEnderChest()); // Inventory
         placeholders.registerPlaceholder(HumanEntity.class, "expToLevel", (e, p) -> e.getExpToLevel());
