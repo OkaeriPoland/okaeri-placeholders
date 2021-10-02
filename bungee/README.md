@@ -9,13 +9,13 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-bungee</artifactId>
-  <version>1.4.6</version>
+  <version>1.4.7</version>
 </dependency>
 ```
 ### Gradle
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-bungee:1.4.6'
+implementation 'eu.okaeri:okaeri-placeholders-bungee:1.4.7'
 ```
 
 Note: It is most of the time (especially when description states that variable can be null)
@@ -23,10 +23,16 @@ recommended to add fallback value e.g. `{player.uniqueId|-}` to allow messages t
 
 ## Supported types
 
-- [CommandSender](#commandsender-netmd_5bungeeapiCommandSender)
+- [Chatcolor](#chatcolor-netmd_5bungeeapichatcolor)
+- [CommandSender](#commandsender-netmd_5bungeeapicommandsender)
 - [ProxyServer](#proxyserver-netmd_5bungeeapiproxyserver)
 - [ProxiedPlayer](#proxiedplayer-netmd_5bungeeapiconnectionproxiedplayer)
 - [Server](#server-netmd_5bungeeapiconnectionserver)
+
+### ChatColor (`net.md_5.bungee.api.ChatColor`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| *self* | String | The text embeddable color. | `§f` |
 
 ### CommandSender (`net.md_5.bungee.api.CommandSender`)
 | Field | Type | Description | Example |

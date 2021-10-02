@@ -9,17 +9,18 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-bukkit</artifactId>
-  <version>1.4.6</version>
+  <version>1.4.7</version>
 </dependency>
 ```
 ### Gradle
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.6'
+implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.7'
 ```
 
 ## Supported types
 
+- [ChatColor](#chatcolor-orgbukkitchatcolor)
 - [HumanEntity](#humanentity-orgbukkitentityhumanentity)
 - [Inventory](#inventory-orgbukkitinventoryinventory)
 - [InventoryView](#inventoryview-orgbukkitinventoryinventoryview)
@@ -31,6 +32,11 @@ implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.6'
 
 Note: It is most of the time (especially when description states that variable can be null)
 recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow messages to be safely rendered.
+
+### ChatColor (`org.bukkit.ChatColor`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| *self* | String | The text embeddable color. | `§f` |
 
 ### HumanEntity (`org.bukkit.entity.HumanEntity`)
 | Field | Type | Description | Example |
