@@ -9,13 +9,13 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-bungee</artifactId>
-  <version>1.4.7</version>
+  <version>1.4.8</version>
 </dependency>
 ```
 ### Gradle
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-bungee:1.4.7'
+implementation 'eu.okaeri:okaeri-placeholders-bungee:1.4.8'
 ```
 
 Note: It is most of the time (especially when description states that variable can be null)

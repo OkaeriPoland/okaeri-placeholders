@@ -9,18 +9,19 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-bukkit</artifactId>
-  <version>1.4.7</version>
+  <version>1.4.8</version>
 </dependency>
 ```
 ### Gradle
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.7'
+implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.8'
 ```
 
 ## Supported types
 
 - [ChatColor](#chatcolor-orgbukkitchatcolor)
+- [CommandSender](#humanentity-orgbukkitcommandcommandsender)
 - [HumanEntity](#humanentity-orgbukkitentityhumanentity)
 - [Inventory](#inventory-orgbukkitinventoryinventory)
 - [InventoryView](#inventoryview-orgbukkitinventoryinventoryview)
@@ -37,6 +38,12 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | Field | Type | Description | Example |
 |-|-|-|-|
 | *self* | String | The text embeddable color. | `§f` |
+
+### CommandSender (`org.bukkit.command.CommandSender`)
+| Field | Type | Description | Example |
+|-|-|-|-|
+| `name` | String | Gets the name of this command sender | `CONSOLE` |
+| *self* | String | The name of the sender. | `CONSOLE` |
 
 ### HumanEntity (`org.bukkit.entity.HumanEntity`)
 | Field | Type | Description | Example |
