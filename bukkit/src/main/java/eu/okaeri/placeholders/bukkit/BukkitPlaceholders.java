@@ -4,6 +4,7 @@ import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.Placeholders;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -35,6 +36,10 @@ public final class BukkitPlaceholders implements PlaceholderPack {
 
         // ChatColor
         placeholders.registerPlaceholder(ChatColor.class, (e, p) -> e.toString());
+
+        // CommandSender
+        placeholders.registerPlaceholder(CommandSender.class, "name", (e, p) -> e.getName());
+        placeholders.registerPlaceholder(CommandSender.class, (e, p) -> e.getName());
 
         // HumanEntity
         placeholders.registerPlaceholder(HumanEntity.class, "enderChest", (e, p) -> e.getEnderChest()); // Inventory
