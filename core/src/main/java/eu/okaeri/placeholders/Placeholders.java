@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class Placeholders {
     }
 
     @SuppressWarnings("unchecked")
-    public Object readValue(@NonNull Object from, String param) {
+    public Object readValue(@NonNull Object from, @Nullable String param) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, param);
         if (placeholderResolver != null) {
             return placeholderResolver.resolve(from, FieldParams.empty());
@@ -64,7 +65,7 @@ public class Placeholders {
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass() + ": " + param);
     }
 
-    public PlaceholderResolver getResolver(@NonNull Object from, String param) {
+    public PlaceholderResolver getResolver(@NonNull Object from, @Nullable String param) {
 
         Class<?> fromClass = from.getClass();
         Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(fromClass);
@@ -103,7 +104,7 @@ public class Placeholders {
         Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new HashMap<>();
         for (Map.Entry<Class<?>, Map<String, PlaceholderResolver>> entry : this.resolvers.entrySet()) {
             Map<String, PlaceholderResolver> map = new HashMap<>();
-            entry.getValue().forEach(map::put);
+            map.putAll(entry.getValue());
             resolvers.put(entry.getKey(), map);
         }
         return resolvers;

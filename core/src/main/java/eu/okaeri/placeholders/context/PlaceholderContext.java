@@ -7,6 +7,7 @@ import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.message.part.MessageStatic;
 import lombok.Data;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,11 +28,11 @@ public class PlaceholderContext {
         return of(null, message);
     }
 
-    public static PlaceholderContext of(Placeholders placeholders, @NonNull CompiledMessage message) {
+    public static PlaceholderContext of(@Nullable Placeholders placeholders, @NonNull CompiledMessage message) {
         return of(placeholders, message, FailMode.FAIL_SAFE);
     }
 
-    public static PlaceholderContext of(Placeholders placeholders, @NonNull CompiledMessage message, @NonNull FailMode failMode) {
+    public static PlaceholderContext of(@Nullable Placeholders placeholders, @NonNull CompiledMessage message, @NonNull FailMode failMode) {
         PlaceholderContext context = new PlaceholderContext(message, failMode);
         context.setPlaceholders(placeholders);
         return context;
@@ -42,7 +43,7 @@ public class PlaceholderContext {
     private final FailMode failMode;
     private Placeholders placeholders;
 
-    public PlaceholderContext with(@NonNull String field, Object value) {
+    public PlaceholderContext with(@NonNull String field, @Nullable Object value) {
 
         if ((this.message != null) && (!this.message.isWithFields() || !this.message.hasField(field))) {
             return this;
