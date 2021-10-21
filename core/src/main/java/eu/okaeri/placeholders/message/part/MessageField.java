@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -51,15 +52,15 @@ public class MessageField implements MessageElement {
 
     private final Locale locale;
     private final String name;
-    private final MessageField sub;
-    private String defaultValue;
-    private String metadataRaw;
-    private String paramsRaw;
+    @Nullable private final MessageField sub;
+    @Nullable private String defaultValue;
+    @Nullable private String metadataRaw;
+    @Nullable private String paramsRaw;
 
-    public void setDefaultValue(String defaultValue) {
+    public void setDefaultValue(@Nullable String defaultValue) {
         this.defaultValue = defaultValue;
         MessageField field = this;
-        while (field.hasSub()) {
+        while (field.getSub() != null) {
             MessageField sub = field.getSub();
             sub.setDefaultValue(defaultValue);
             field = sub;
@@ -70,13 +71,14 @@ public class MessageField implements MessageElement {
         return this.sub != null;
     }
 
+    @Nullable
     public MessageField getLastSub() {
         if (this.sub == null) {
             return null;
         }
         if (this.lastSub == null) {
             MessageField last = this.sub;
-            while (last.hasSub()) last = last.getSub();
+            while (last.getSub() != null) last = last.getSub();
             this.lastSub = last;
         }
         return this.lastSub;
@@ -89,10 +91,10 @@ public class MessageField implements MessageElement {
         return this.lastSubPath;
     }
 
-    public void setMetadataRaw(String metadataRaw) {
+    public void setMetadataRaw(@Nullable String metadataRaw) {
         this.metadataRaw = metadataRaw;
         MessageField field = this;
-        while (field.hasSub()) {
+        while (field.getSub() != null) {
             MessageField sub = field.getSub();
             sub.setMetadataRaw(metadataRaw);
             sub.updateMetadataOptionsCache();
@@ -123,7 +125,7 @@ public class MessageField implements MessageElement {
         MessageField last = field;
         StringBuilder out = new StringBuilder(field.getName());
 
-        while (last.hasSub()) {
+        while (last.getSub() != null) {
             last = last.getSub();
             out.append(".").append(last.getName());
         }

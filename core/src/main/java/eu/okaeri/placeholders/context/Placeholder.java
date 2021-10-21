@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -17,11 +18,11 @@ import java.util.Map;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Placeholder {
 
-    public static Placeholder of(Object value) {
+    public static Placeholder of(@Nullable Object value) {
         return new Placeholder(value);
     }
 
-    public static Placeholder of(Placeholders placeholders, Object value) {
+    public static Placeholder of(@Nullable Placeholders placeholders, @Nullable Object value) {
         Placeholder placeholder = new Placeholder(value);
         placeholder.setPlaceholders(placeholders);
         return placeholder;
@@ -30,20 +31,22 @@ public class Placeholder {
     private Placeholders placeholders;
     private final Object value;
 
+    @Nullable
     @SuppressWarnings("unchecked")
     public String render(@NonNull MessageField field) {
         return this.render(this.value, field);
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
-    private String render(Object object, @NonNull MessageField field) {
+    private String render(@Nullable Object object, @NonNull MessageField field) {
 
         if (object == null) {
             return null;
         }
 
         if (this.placeholders != null) {
-            if (field.hasSub()) {
+            if (field.getSub() != null) {
                 MessageField fieldSub = field.getSub();
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
                 if (resolver == null) {
@@ -79,7 +82,7 @@ public class Placeholder {
     private String renderUsingPlaceholderSchema(@NonNull Object object, @NonNull MessageField field) {
 
         SchemaMeta meta = SchemaMeta.of((Class<? extends PlaceholderSchema>) object.getClass());
-        if (!field.hasSub()) {
+        if (field.getSub() == null) {
             throw new RuntimeException("rendering PlaceholderSchema itself not supported at the moment");
         }
 

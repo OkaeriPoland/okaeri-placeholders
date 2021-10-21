@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -77,7 +78,7 @@ public class CompiledMessage {
     private final List<MessageElement> parts;
     private final Set<String> usedFields;
 
-    public boolean hasField(String name) {
+    public boolean hasField(@Nullable String name) {
         return this.usedFields.contains(name);
     }
 
