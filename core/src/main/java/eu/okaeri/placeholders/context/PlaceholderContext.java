@@ -53,6 +53,11 @@ public class PlaceholderContext {
         return this;
     }
 
+    public PlaceholderContext with(@NonNull Map<String, Object> fields) {
+        fields.forEach(this::with);
+        return this;
+    }
+
     public String apply() {
         return this.apply(this.message);
     }
