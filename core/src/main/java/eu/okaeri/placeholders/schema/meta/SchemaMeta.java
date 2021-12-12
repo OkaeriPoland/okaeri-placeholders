@@ -22,6 +22,8 @@ public class SchemaMeta {
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
     private static final Map<Class<? extends PlaceholderSchema>, SchemaMeta> SCHEMA_CACHE = new ConcurrentHashMap<>();
     private static final Map<Class<? extends SchemaResolver>, SchemaResolver> RESOLVER_CACHE = new ConcurrentHashMap<>();
+    private final Class<?> type;
+    private final Map<String, PlaceholderResolver> placeholders;
 
     @SneakyThrows
     private static SchemaResolver resolver(@NonNull Class<? extends SchemaResolver> clazz) {
@@ -176,7 +178,4 @@ public class SchemaMeta {
         field.setAccessible(true);
         return LOOKUP.unreflectGetter(field);
     }
-
-    private final Class<?> type;
-    private final Map<String, PlaceholderResolver> placeholders;
 }

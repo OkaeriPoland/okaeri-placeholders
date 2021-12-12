@@ -12,9 +12,9 @@ public class TestPlaceholderUsage {
     public void test_simple_message_1() {
 
         PlaceholderContext context = PlaceholderContext.of(CompiledMessage.of("Hello {who}! How are you {when}? I'm {how}."))
-                .with("who", "World")
-                .with("when", "today")
-                .with("how", "ok");
+            .with("who", "World")
+            .with("when", "today")
+            .with("how", "ok");
         String test = context.apply();
         assertEquals("Hello World! How are you today? I'm ok.", test);
 
@@ -26,9 +26,9 @@ public class TestPlaceholderUsage {
     public void test_simple_message_2() {
 
         PlaceholderContext context = PlaceholderContext.of(CompiledMessage.of("Hola {who}! ¿Cómo estás {when}? Estoy {how}."))
-                .with("who", "Mundo")
-                .with("when", "hoy")
-                .with("how", "bien");
+            .with("who", "Mundo")
+            .with("when", "hoy")
+            .with("how", "bien");
         String test = context.apply();
         assertEquals("Hola Mundo! ¿Cómo estás hoy? Estoy bien.", test);
 

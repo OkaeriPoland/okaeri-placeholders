@@ -16,6 +16,8 @@ import java.util.Map;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Placeholders {
 
+    @Setter private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new HashMap<>();
+
     public static Placeholders create() {
         return create(false);
     }
@@ -90,8 +92,8 @@ public class Placeholders {
 
     public int getResolversCount() {
         return Math.toIntExact(this.resolvers.values().stream()
-                .mapToLong(map -> map.entrySet().size())
-                .sum());
+            .mapToLong(map -> map.entrySet().size())
+            .sum());
     }
 
     public Placeholders copy() {
@@ -109,6 +111,4 @@ public class Placeholders {
         }
         return resolvers;
     }
-
-    @Setter private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new HashMap<>();
 }

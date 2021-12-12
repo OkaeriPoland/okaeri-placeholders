@@ -3,7 +3,9 @@
 This module includes bungee specific mappings.
 
 ## Installation
+
 ### Maven
+
 Add dependency to the `dependencies` section:
 ```xml
 <dependency>
@@ -12,7 +14,9 @@ Add dependency to the `dependencies` section:
   <version>1.4.11</version>
 </dependency>
 ```
+
 ### Gradle
+
 Add dependency to the `maven` section:
 ```groovy
 implementation 'eu.okaeri:okaeri-placeholders-bungee:1.4.11'
@@ -30,17 +34,20 @@ recommended to add fallback value e.g. `{player.uniqueId|-}` to allow messages t
 - [Server](#server-netmd_5bungeeapiconnectionserver)
 
 ### ChatColor (`net.md_5.bungee.api.ChatColor`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | *self* | String | The text embeddable color. | `§f` |
 
 ### CommandSender (`net.md_5.bungee.api.CommandSender`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `name` | String | Get the unique name of this command sender. | `SomePlayer` |
 | *self* | String | The name of the sender. | `SomePlayer` |
 
 ### ProxyServer (`net.md_5.bungee.api.ProxyServer`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `name` | String | Gets the name of the currently running proxy software. | ? |
@@ -48,6 +55,7 @@ recommended to add fallback value e.g. `{player.uniqueId|-}` to allow messages t
 | *self* | String | The name of the server. | `SomePlayer` |
 
 ### ProxiedPlayer (`net.md_5.bungee.api.connection.ProxiedPlayer`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `displayName` | String | Gets this player's display name. | `SomePlayer` |
@@ -59,6 +67,7 @@ recommended to add fallback value e.g. `{player.uniqueId|-}` to allow messages t
 | `chatMode` | Enum | Gets this player's chat mode. | `SHOWN` |
 
 ### Server (`net.md_5.bungee.api.connection.Server`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `name` | String | The name of the server. | `skyblock` |

@@ -11,11 +11,11 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class FieldParams {
 
+    private final String[] params;
+
     public static FieldParams of(@NonNull String[] params) {
         return new FieldParams(params);
     }
-
-    private final String[] params;
 
     public static FieldParams empty() {
         return new FieldParams(new String[]{});

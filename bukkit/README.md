@@ -3,7 +3,9 @@
 This module includes bukkit specific mappings.
 
 ## Installation
+
 ### Maven
+
 Add dependency to the `dependencies` section:
 ```xml
 <dependency>
@@ -12,7 +14,9 @@ Add dependency to the `dependencies` section:
   <version>1.4.11</version>
 </dependency>
 ```
+
 ### Gradle
+
 Add dependency to the `maven` section:
 ```groovy
 implementation 'eu.okaeri:okaeri-placeholders-bukkit:1.4.11'
@@ -35,17 +39,20 @@ Note: It is most of the time (especially when description states that variable c
 recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow messages to be safely rendered.
 
 ### ChatColor (`org.bukkit.ChatColor`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | *self* | String | The text embeddable color. | `§f` |
 
 ### CommandSender (`org.bukkit.command.CommandSender`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `name` | String | Gets the name of this command sender | `CONSOLE` |
 | *self* | String | The name of the sender. | `CONSOLE` |
 
 ### HumanEntity (`org.bukkit.entity.HumanEntity`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `enderChest` | [Inventory](#inventory-orgbukkitinventoryinventory) | Get the player's EnderChest inventory. | `*Inventory*` |
@@ -62,6 +69,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | *self* | String | The name of the entity. | `SomePlayer` |
 
 ### Inventory (`org.bukkit.inventory.Inventory`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `name` | String | Returns the name of the inventory. | `container.inventory` |
@@ -71,6 +79,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | *self*  | String | The name of the inventory. | `container.inventory` |
 
 ### InventoryView (`org.bukkit.inventory.InventoryView`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `bottomInventory` | [Inventory](#inventory-orgbukkitinventoryinventory) | Get the lower inventory involved in this transaction. | `*Inventory*` |
@@ -81,6 +90,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `type` | InventoryType | Determine the type of inventory involved in the transaction. | `CREATIVE`/`CRAFTING`/.. |
 
 ### PlayerInventory (`org.bukkit.inventory.PlayerInventory`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `boots` | [ItemStack](#ItemStack) | Return the ItemStack from the boots slot. | `null`/`*ItemStack*` |
@@ -92,6 +102,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | `leggings` | [ItemStack](#ItemStack) | Return the ItemStack from the leg slot. | `null`/`*ItemStack*` |
 
 ### OfflinePlayer (`org.bukkit.OfflinePlayer`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `bedSpawnLocation` | [Location](#location-orgbukkitlocation) | Gets the Location where the player will spawn at their bed, null if they have not slept in one or their current bed spawn is invalid. | `null`/`*Location*` |
@@ -106,6 +117,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | *self*  | String | The name of the player. | `SomePlayer` |
 
 ### Player (`org.bukkit.entity.Player`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `address` | String | The IP address of the player. | `127.0.0.1` |
@@ -138,6 +150,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | *self* | String | The name of the player. | `SomePlayer` |
 
 ### Entity (`org.bukkit.entity.Entity`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `customName` | String | Gets the custom name on a mob. | `SomePlayers's dog` |
@@ -163,6 +176,7 @@ recommended to add fallback value e.g. `{player.bedSpawnLocation|-}` to allow me
 | *self* | String | The name of the type of the entity. | `PLAYER`/.. |
 
 ### Location (`org.bukkit.Location`)
+
 | Field | Type | Description | Example |
 |-|-|-|-|
 | `block` | [Block](#Block) | Gets the block at the represented location. | `*Block*` |

@@ -4,6 +4,22 @@ import java.util.Locale;
 
 public class DefaultPlaceholderPack implements PlaceholderPack {
 
+    private static String capitalize(String text) {
+        text = text.replace("_", " ");
+        text = text.substring(0, 1).toUpperCase(Locale.ROOT) + text.substring(1);
+        return text;
+    }
+
+    private static String capitalizeFully(String text) {
+        String[] words = text.split(" ");
+        StringBuilder buf = new StringBuilder();
+        for (String word : words) {
+            buf.append(Character.toUpperCase(word.charAt(0)));
+            buf.append(word.substring(1).toLowerCase(Locale.ROOT)).append(" ");
+        }
+        return buf.toString().trim();
+    }
+
     @Override
     public void register(Placeholders placeholders) {
 
@@ -62,21 +78,5 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         });
         placeholders.registerPlaceholder(String.class, "capitalize", (str, p) -> capitalize(str));
         placeholders.registerPlaceholder(String.class, "capitalizeFully", (str, p) -> capitalizeFully(str));
-    }
-
-    private static String capitalize(String text) {
-        text = text.replace("_", " ");
-        text = text.substring(0, 1).toUpperCase(Locale.ROOT) + text.substring(1);
-        return text;
-    }
-
-    private static String capitalizeFully(String text) {
-        String[] words = text.split(" ");
-        StringBuilder buf = new StringBuilder();
-        for (String word : words) {
-            buf.append(Character.toUpperCase(word.charAt(0)));
-            buf.append(word.substring(1).toLowerCase(Locale.ROOT)).append(" ");
-        }
-        return buf.toString().trim();
     }
 }

@@ -16,6 +16,11 @@ import java.util.Map;
 @Data
 public class PlaceholderContext {
 
+    private final Map<String, Placeholder> fields = new LinkedHashMap<>();
+    private final CompiledMessage message;
+    private final FailMode failMode;
+    private Placeholders placeholders;
+
     public static PlaceholderContext create() {
         return create(FailMode.FAIL_SAFE);
     }
@@ -37,11 +42,6 @@ public class PlaceholderContext {
         context.setPlaceholders(placeholders);
         return context;
     }
-
-    private final Map<String, Placeholder> fields = new LinkedHashMap<>();
-    private final CompiledMessage message;
-    private final FailMode failMode;
-    private Placeholders placeholders;
 
     public PlaceholderContext with(@NonNull String field, @Nullable Object value) {
 
@@ -67,8 +67,8 @@ public class PlaceholderContext {
         // someone is trying to apply message on the specific non-shareable context
         if ((message != this.message) && (this.message != null)) {
             throw new IllegalArgumentException("cannot apply another message for context created with prepacked message: " +
-                    "if you intended to use this context as shared please use empty context from #create(), " +
-                    "if you're just trying to send a message use of(message)");
+                "if you intended to use this context as shared please use empty context from #create(), " +
+                "if you're just trying to send a message use of(message)");
         }
 
         // no fields, no need for processing
