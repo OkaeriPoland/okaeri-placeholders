@@ -34,13 +34,13 @@ public class TestCompiledMessage {
         CompiledMessage message = CompiledMessage.of("Hello {who}! How are you {when}? I'm {how}.");
         assertEquals("Hello {who}! How are you {when}? I'm {how}.", message.getRaw());
         assertIterableEquals(message.getParts(), Arrays.asList(
-                MessageStatic.of("Hello "),
-                MessageField.of("who"),
-                MessageStatic.of("! How are you "),
-                MessageField.of("when"),
-                MessageStatic.of("? I'm "),
-                MessageField.of("how"),
-                MessageStatic.of(".")
+            MessageStatic.of("Hello "),
+            MessageField.of("who"),
+            MessageStatic.of("! How are you "),
+            MessageField.of("when"),
+            MessageStatic.of("? I'm "),
+            MessageField.of("how"),
+            MessageStatic.of(".")
         ));
         System.out.println(message);
     }

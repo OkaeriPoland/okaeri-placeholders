@@ -15,18 +15,18 @@ public class DefaultSchemaResolver implements SchemaResolver {
 
     public static final SchemaResolver INSTANCE = new DefaultSchemaResolver();
     private static final Set<Class<?>> SUPPORTED_TOSTRING_TYPES = new HashSet<>(Arrays.asList(
-            BigDecimal.class,
-            BigInteger.class,
-            Boolean.class, boolean.class,
-            Byte.class, byte.class,
-            Character.class, char.class,
-            Double.class, double.class,
-            Float.class, float.class,
-            Integer.class, int.class,
-            Long.class, long.class,
-            Short.class, short.class,
-            String.class,
-            UUID.class));
+        BigDecimal.class,
+        BigInteger.class,
+        Boolean.class, boolean.class,
+        Byte.class, byte.class,
+        Character.class, char.class,
+        Double.class, double.class,
+        Float.class, float.class,
+        Integer.class, int.class,
+        Long.class, long.class,
+        Short.class, short.class,
+        String.class,
+        UUID.class));
 
     @Override
     public boolean supports(@NonNull Class<?> type) {

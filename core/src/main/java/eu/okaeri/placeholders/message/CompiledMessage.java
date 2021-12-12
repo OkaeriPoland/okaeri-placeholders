@@ -19,6 +19,14 @@ public class CompiledMessage {
 
     private static final Pattern FIELD_PATTERN = Pattern.compile("\\{(?<content>[^}]+)\\}");
 
+    private final String raw;
+    private final int rawLength;
+    private final int fieldsLength;
+    private final int staticLength;
+    private final boolean withFields;
+    private final List<MessageElement> parts;
+    private final Set<String> usedFields;
+
     public static CompiledMessage of(@NonNull String source) {
         return of(Locale.ENGLISH, source);
     }
@@ -70,18 +78,6 @@ public class CompiledMessage {
         return new CompiledMessage(source, rawLength, fieldsLength, (rawLength - fieldsLength), withFields, Collections.unmodifiableList(parts), Collections.unmodifiableSet(usedFields));
     }
 
-    private final String raw;
-    private final int rawLength;
-    private final int fieldsLength;
-    private final int staticLength;
-    private final boolean withFields;
-    private final List<MessageElement> parts;
-    private final Set<String> usedFields;
-
-    public boolean hasField(@Nullable String name) {
-        return this.usedFields.contains(name);
-    }
-
     private static String[] parseFieldToArray(@NonNull String raw) {
 
         String[] arr = new String[3];
@@ -101,5 +97,9 @@ public class CompiledMessage {
 
         arr[1] = raw;
         return arr;
+    }
+
+    public boolean hasField(@Nullable String name) {
+        return this.usedFields.contains(name);
     }
 }

@@ -17,8 +17,8 @@ public class TestParamsUsage {
     public void test_params_1() {
         CompiledMessage message = CompiledMessage.of("Woah: {player.healthBar(20)}");
         List<MessageElement> compare = Arrays.asList(
-                MessageStatic.of("Woah: "),
-                MessageField.of("player.healthBar(20)")
+            MessageStatic.of("Woah: "),
+            MessageField.of("player.healthBar(20)")
         );
         assertIterableEquals(compare, message.getParts());
 
@@ -34,8 +34,8 @@ public class TestParamsUsage {
     public void test_params_2() {
         CompiledMessage message = CompiledMessage.of("Woah: {player.healthBar(20,X)}");
         List<MessageElement> compare = Arrays.asList(
-                MessageStatic.of("Woah: "),
-                MessageField.of("player.healthBar(20,X)")
+            MessageStatic.of("Woah: "),
+            MessageField.of("player.healthBar(20,X)")
         );
         assertIterableEquals(compare, message.getParts());
 

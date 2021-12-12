@@ -18,6 +18,9 @@ import java.util.Map;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Placeholder {
 
+    private final Object value;
+    private Placeholders placeholders;
+
     public static Placeholder of(@Nullable Object value) {
         return new Placeholder(value);
     }
@@ -27,9 +30,6 @@ public class Placeholder {
         placeholder.setPlaceholders(placeholders);
         return placeholder;
     }
-
-    private Placeholders placeholders;
-    private final Object value;
 
     @Nullable
     @SuppressWarnings("unchecked")

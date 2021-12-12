@@ -15,6 +15,17 @@ import java.util.regex.Pattern;
 public class MessageField implements MessageElement {
 
     private static final Pattern PATH_ELEMENT_PATTERN = Pattern.compile("^(?<name>[^\\s(]+)(?:\\((?<params>.*)\\))?$");
+    private final Locale locale;
+    private final String name;
+    @Nullable private final MessageField sub;
+    @Nullable private String defaultValue;
+    @Nullable private String metadataRaw;
+    @Nullable private String paramsRaw;
+    // cached values
+    private String lastSubPath;
+    private MessageField lastSub;
+    private String[] metadataOptions;
+    private FieldParams params;
 
     public static MessageField of(@NonNull String name) {
         return of(Locale.ENGLISH, name);
@@ -50,12 +61,18 @@ public class MessageField implements MessageElement {
         return field;
     }
 
-    private final Locale locale;
-    private final String name;
-    @Nullable private final MessageField sub;
-    @Nullable private String defaultValue;
-    @Nullable private String metadataRaw;
-    @Nullable private String paramsRaw;
+    private static String lastSubPath(@NonNull MessageField field) {
+
+        MessageField last = field;
+        StringBuilder out = new StringBuilder(field.getName());
+
+        while (last.getSub() != null) {
+            last = last.getSub();
+            out.append(".").append(last.getName());
+        }
+
+        return out.toString();
+    }
 
     public void setDefaultValue(@Nullable String defaultValue) {
         this.defaultValue = defaultValue;
@@ -119,23 +136,4 @@ public class MessageField implements MessageElement {
         }
         return this.params;
     }
-
-    private static String lastSubPath(@NonNull MessageField field) {
-
-        MessageField last = field;
-        StringBuilder out = new StringBuilder(field.getName());
-
-        while (last.getSub() != null) {
-            last = last.getSub();
-            out.append(".").append(last.getName());
-        }
-
-        return out.toString();
-    }
-
-    // cached values
-    private String lastSubPath;
-    private MessageField lastSub;
-    private String[] metadataOptions;
-    private FieldParams params;
 }

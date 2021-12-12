@@ -28,7 +28,49 @@ public final class BukkitPlaceholders implements PlaceholderPack {
 
     public static Placeholders create(boolean registerDefaults) {
         return Placeholders.create(registerDefaults)
-                .registerPlaceholders(new BukkitPlaceholders());
+            .registerPlaceholders(new BukkitPlaceholders());
+    }
+
+    public static String enumList(Collection<? extends Enum> enums) {
+        return enums.stream()
+            .map(Enum::name)
+            .collect(Collectors.joining(", "));
+    }
+
+    public static String renderHealthBar(Damageable damageable, int limit, String symbol, String okColor, String emptyColor) {
+        double result = (damageable.getHealth() / damageable.getMaxHealth()) * limit;
+        if ((result < 1) && (result > 0)) result = 1;
+        return renderHealthBarWith((int) result, limit, symbol, okColor, emptyColor);
+    }
+
+    public static String renderHealthBarWith(int value, int max, String symbol, String okColor, String emptyColor) {
+
+        StringBuilder buf = new StringBuilder();
+
+        // empty
+        if (value == 0) {
+            buf.append(ChatColor.COLOR_CHAR).append(emptyColor);
+            for (int i = 0; i < max; i++) buf.append(symbol);
+            return buf.toString();
+        }
+
+        // full
+        if (value == max) {
+            buf.append(ChatColor.COLOR_CHAR).append(okColor);
+            for (int i = 0; i < max; i++) buf.append(symbol);
+            return buf.toString();
+        }
+
+        // partial
+        buf.append(ChatColor.COLOR_CHAR).append(okColor);
+        for (int i = 0; i < max; i++) {
+            if (i == value) {
+                buf.append(ChatColor.COLOR_CHAR).append(emptyColor);
+            }
+            buf.append(symbol);
+        }
+
+        return buf.toString();
     }
 
     @Override
@@ -281,47 +323,5 @@ public final class BukkitPlaceholders implements PlaceholderPack {
             String symbol = p.strAt(3, "|");
             return renderHealthBar(e, barLength, symbol, okColor, emptyColor);
         });
-    }
-
-    public static String enumList(Collection<? extends Enum> enums) {
-        return enums.stream()
-                .map(Enum::name)
-                .collect(Collectors.joining(", "));
-    }
-
-    public static String renderHealthBar(Damageable damageable, int limit, String symbol, String okColor, String emptyColor) {
-        double result = (damageable.getHealth() / damageable.getMaxHealth()) * limit;
-        if ((result < 1) && (result > 0)) result = 1;
-        return renderHealthBarWith((int) result, limit, symbol, okColor, emptyColor);
-    }
-
-    public static String renderHealthBarWith(int value, int max, String symbol, String okColor, String emptyColor) {
-
-        StringBuilder buf = new StringBuilder();
-
-        // empty
-        if (value == 0) {
-            buf.append(ChatColor.COLOR_CHAR).append(emptyColor);
-            for (int i = 0; i < max; i++) buf.append(symbol);
-            return buf.toString();
-        }
-
-        // full
-        if (value == max) {
-            buf.append(ChatColor.COLOR_CHAR).append(okColor);
-            for (int i = 0; i < max; i++) buf.append(symbol);
-            return buf.toString();
-        }
-
-        // partial
-        buf.append(ChatColor.COLOR_CHAR).append(okColor);
-        for (int i = 0; i < max; i++) {
-            if (i == value) {
-                buf.append(ChatColor.COLOR_CHAR).append(emptyColor);
-            }
-            buf.append(symbol);
-        }
-
-        return buf.toString();
     }
 }

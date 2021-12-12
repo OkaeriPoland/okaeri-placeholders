@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Placeholder {
+
     String name() default "";
+
     Class<? extends SchemaResolver> resolver() default DefaultSchemaResolver.class;
 }

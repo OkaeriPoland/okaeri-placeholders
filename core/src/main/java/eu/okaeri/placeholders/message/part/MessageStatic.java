@@ -9,9 +9,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MessageStatic implements MessageElement {
 
+    private final String value;
+
     public static MessageStatic of(@NonNull String value) {
         return new MessageStatic(value);
     }
-
-    private final String value;
 }

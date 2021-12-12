@@ -16,7 +16,7 @@ public final class BungeePlaceholders implements PlaceholderPack {
 
     public static Placeholders create(boolean registerDefaults) {
         return Placeholders.create(registerDefaults)
-                .registerPlaceholders(new BungeePlaceholders());
+            .registerPlaceholders(new BungeePlaceholders());
     }
 
     @Override
