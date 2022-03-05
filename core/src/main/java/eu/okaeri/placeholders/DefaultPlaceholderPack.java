@@ -1,13 +1,12 @@
 package eu.okaeri.placeholders;
 
+import java.time.Duration;
 import java.util.Locale;
 
 public class DefaultPlaceholderPack implements PlaceholderPack {
 
     private static String capitalize(String text) {
-        text = text.replace("_", " ");
-        text = text.substring(0, 1).toUpperCase(Locale.ROOT) + text.substring(1);
-        return text;
+        return text.substring(0, 1).toUpperCase(Locale.ROOT) + text.substring(1);
     }
 
     private static String capitalizeFully(String text) {
@@ -20,8 +19,49 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         return buf.toString().trim();
     }
 
+    private static String simpleDuration(Duration duration, SimpleDurationAccuracy accuracy) {
+
+        StringBuilder builder = new StringBuilder();
+        if (duration.isNegative()) builder.append("-");
+        duration = duration.abs();
+
+        long days = duration.getSeconds() / 86400L;
+        if ((accuracy.ordinal() <= 5) && (days > 0)) builder.append(days).append("d");
+
+        long hours = duration.toHours() % 24L;
+        if ((accuracy.ordinal() <= 4) && (hours > 0)) builder.append(hours).append("h");
+
+        long minutes = duration.toMinutes() % 60L;
+        if ((accuracy.ordinal() <= 3) && (minutes > 0)) builder.append(minutes).append("m");
+
+        long seconds = duration.getSeconds() % 60L;
+        if ((accuracy.ordinal() <= 2) && (seconds > 0)) builder.append(seconds).append("s");
+
+        long millis = duration.getNano() / 1_000_000L;
+        if ((accuracy.ordinal() <= 1) && (millis > 0)) builder.append(millis).append("ms");
+
+        long nanos = (duration.getNano() >= 1_000_000L) ? 0L : duration.getNano();
+        if ((accuracy.ordinal() <= 0) && (nanos > 0)) builder.append(nanos).append("ns");
+
+        return builder.toString();
+    }
+
+    @SuppressWarnings("StandardVariableNames")
+    private enum SimpleDurationAccuracy {
+        ns, ms, s, m, h, d
+    }
+
     @Override
     public void register(Placeholders placeholders) {
+
+        // Duration
+        placeholders.registerPlaceholder(Duration.class, "days", (dur, p) -> dur.getSeconds() / 86400L);
+        placeholders.registerPlaceholder(Duration.class, "hours", (dur, p) -> dur.toHours() % 24L);
+        placeholders.registerPlaceholder(Duration.class, "minutes", (dur, p) -> dur.toMinutes() % 60L);
+        placeholders.registerPlaceholder(Duration.class, "seconds", (dur, p) -> dur.getSeconds() % 60L);
+        placeholders.registerPlaceholder(Duration.class, "millis", (dur, p) -> dur.getNano() / 1_000_000L);
+        placeholders.registerPlaceholder(Duration.class, "nanos", (dur, p) -> (dur.getNano() >= 1_000_000L) ? 0L : dur.getNano());
+        placeholders.registerPlaceholder(Duration.class, (dur, p) -> simpleDuration(dur, SimpleDurationAccuracy.valueOf(p.strAt(0, "s"))));
 
         // Enum
         placeholders.registerPlaceholder(Enum.class, "name", (e, p) -> e.name());
