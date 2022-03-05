@@ -134,4 +134,14 @@ public class TestDurationPlaceholders {
         this.test(Duration.ofMillis(23), "23ms", "{d(s)}");
         this.test(Duration.ofNanos(350), "350ns", "{d(s)}");
     }
+
+    @Test
+    public void test_duration_zero() {
+        this.test(Duration.ofSeconds(0), "0d", "{d(d)}");
+        this.test(Duration.ZERO, "0h", "{d(h)}");
+        this.test(Duration.ZERO, "0m", "{d(m)}");
+        this.test(Duration.ZERO, "0s", "{d(s)}");
+        this.test(Duration.ZERO, "0ms", "{d(ms)}");
+        this.test(Duration.ZERO, "0ns", "{d(ns)}");
+    }
 }
