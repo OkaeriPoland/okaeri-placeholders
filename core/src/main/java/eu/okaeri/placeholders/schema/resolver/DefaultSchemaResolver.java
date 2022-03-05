@@ -36,8 +36,9 @@ public class DefaultSchemaResolver implements SchemaResolver {
     @Override
     public String resolve(@NonNull Object object, @NonNull MessageField field) {
 
-        if ((field.getMetadataOptions() != null) && (object instanceof Integer) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
-            return Pluralize.pluralize(field.getLocale(), ((Integer) object), field.getMetadataOptions());
+        if ((field.getMetadataOptions() != null) && (object instanceof Number) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
+            int intValue = new BigDecimal(String.valueOf(object)).intValueExact();
+            return Pluralize.pluralize(field.getLocale(), intValue, field.getMetadataOptions());
         }
 
         if ((field.getMetadataOptions() != null) && (object instanceof Boolean) && (field.getMetadataOptions().length == 2)) {
@@ -45,7 +46,8 @@ public class DefaultSchemaResolver implements SchemaResolver {
         }
 
         if ((field.getMetadataRaw() != null) && (object instanceof Number) && (field.getMetadataRaw().length() > 1) && (field.getMetadataRaw().charAt(0) == '%')) {
-            return String.format(field.getLocale(), field.getMetadataRaw(), new BigDecimal(String.valueOf(object)).doubleValue());
+            double doubleValue = new BigDecimal(String.valueOf(object)).doubleValue();
+            return String.format(field.getLocale(), field.getMetadataRaw(), doubleValue);
         }
 
         return this.resolve(object);
