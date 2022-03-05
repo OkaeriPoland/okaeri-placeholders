@@ -21,6 +21,10 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
 
     private static String simpleDuration(Duration duration, SimpleDurationAccuracy accuracy) {
 
+        if (duration.isZero()) {
+            return "0" + accuracy.name();
+        }
+
         StringBuilder builder = new StringBuilder();
         if (duration.isNegative()) builder.append("-");
         duration = duration.abs();
@@ -43,7 +47,9 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         long nanos = (duration.getNano() >= 1_000_000L) ? 0L : duration.getNano();
         if ((accuracy.ordinal() <= 0) && (nanos > 0)) builder.append(nanos).append("ns");
 
-        return builder.toString();
+        return builder.toString().isEmpty()
+            ? simpleDuration(duration, SimpleDurationAccuracy.values()[accuracy.ordinal() - 1])
+            : builder.toString();
     }
 
     @SuppressWarnings("StandardVariableNames")
