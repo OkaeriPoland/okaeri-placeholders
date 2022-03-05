@@ -6,15 +6,17 @@ import lombok.NonNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.time.temporal.TemporalAccessor;
+import java.util.*;
 
 public class DefaultSchemaResolver implements SchemaResolver {
 
     public static final SchemaResolver INSTANCE = new DefaultSchemaResolver();
-    private static final Set<Class<?>> SUPPORTED_TOSTRING_TYPES = new HashSet<>(Arrays.asList(
+    private static final Set<Class<?>> SUPPORTED_TYPES = new HashSet<>(Arrays.asList(
         BigDecimal.class,
         BigInteger.class,
         Boolean.class, boolean.class,
@@ -26,11 +28,12 @@ public class DefaultSchemaResolver implements SchemaResolver {
         Long.class, long.class,
         Short.class, short.class,
         String.class,
-        UUID.class));
+        UUID.class,
+        Instant.class));
 
     @Override
     public boolean supports(@NonNull Class<?> type) {
-        return SUPPORTED_TOSTRING_TYPES.contains(type) || type.isEnum();
+        return SUPPORTED_TYPES.contains(type) || type.isEnum();
     }
 
     @Override
@@ -48,6 +51,53 @@ public class DefaultSchemaResolver implements SchemaResolver {
         if ((field.getMetadataRaw() != null) && (object instanceof Number) && (field.getMetadataRaw().length() > 1) && (field.getMetadataRaw().charAt(0) == '%')) {
             double doubleValue = new BigDecimal(String.valueOf(object)).doubleValue();
             return String.format(field.getLocale(), field.getMetadataRaw(), doubleValue);
+        }
+
+        if ((field.getMetadataRaw() != null) && (object instanceof Instant)) {
+
+            String[] metadataOptions = field.getMetadataOptions();
+            String rawFormat = metadataOptions[0].toUpperCase(Locale.ROOT);
+
+            FormatStyle style = null;
+            String pattern = null;
+
+            if ("P".equals(rawFormat)) {
+                if (metadataOptions.length < 2) {
+                    throw new IllegalArgumentException("The pattern formatter ('P') requires a pattern as a second metadata option.");
+                }
+                pattern = metadataOptions[1];
+            } else {
+                style = (metadataOptions.length >= 2)
+                    ? FormatStyle.valueOf(metadataOptions[1].toUpperCase(Locale.ROOT))
+                    : FormatStyle.SHORT;
+            }
+
+            DateTimeFormatter formatter;
+            switch (rawFormat) {
+                case "LT":
+                    formatter = DateTimeFormatter.ofLocalizedTime(style);
+                    break;
+                case "LDT":
+                    formatter = DateTimeFormatter.ofLocalizedDateTime(style);
+                    break;
+                case "LD":
+                    formatter = DateTimeFormatter.ofLocalizedDate(style);
+                    break;
+                case "P":
+                    formatter = DateTimeFormatter.ofPattern(pattern);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown time formatter: " + rawFormat);
+            }
+
+            ZoneId zone = ((field.getMetadataRaw() == null) || (field.getMetadataOptions().length < 3))
+                ? ZoneId.systemDefault()
+                : ZoneId.of(metadataOptions[2]);
+
+            return formatter
+                .withLocale(field.getLocale())
+                .withZone(zone)
+                .format((TemporalAccessor) object);
         }
 
         return this.resolve(object);
