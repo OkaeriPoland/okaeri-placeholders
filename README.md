@@ -73,9 +73,9 @@ Time: {ldt,medium,Europe/Paris#time}
 ## Example
 
 Basic example representing standard usage for simple placeholders. For more examples and advanced usage cases
-see [tests](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/src/test/java/eu/okaeri/placeholderstest). For subfield support (e.g. {player.name})
-see [TestSchema.java](https://github.com/OkaeriPoland/okaeri-placeholders/blob/master/src/test/java/eu/okaeri/placeholderstest/schema/TestSchema.java), for pluralization and other metadata
-see [TestMetadataUsage.java](https://github.com/OkaeriPoland/okaeri-placeholders/blob/master/src/test/java/eu/okaeri/placeholderstest/TestMetadataUsage.java).
+see [tests](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/core/src/test/java/eu/okaeri/placeholderstest). For subfield support (e.g. {player.name})
+see [TestSchema.java](https://github.com/OkaeriPoland/okaeri-placeholders/blob/master/core/src/test/java/eu/okaeri/placeholderstest/schema/TestSchema.java), for pluralization and other metadata
+see [TestMetadataUsage.java](https://github.com/OkaeriPoland/okaeri-placeholders/blob/master/core/src/test/java/eu/okaeri/placeholderstest/TestMetadataUsage.java).
 
 ```java
 // this is intended to be loaded from the configuration on the startup/cached and stored compiled
