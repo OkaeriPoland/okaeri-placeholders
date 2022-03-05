@@ -124,7 +124,7 @@ public class MessageField implements MessageElement {
         if (this.metadataRaw == null) {
             return;
         }
-        this.metadataOptions = this.metadataRaw.split(",|;");
+        this.metadataOptions = splitPartsWithEscape(this.metadataRaw);
     }
 
     public FieldParams getParams() {
@@ -132,8 +132,18 @@ public class MessageField implements MessageElement {
             this.params = FieldParams.empty();
         }
         if (this.params == null) {
-            this.params = FieldParams.of(this.paramsRaw.split(",|;"));
+            this.params = FieldParams.of(splitPartsWithEscape(this.paramsRaw));
         }
         return this.params;
+    }
+
+    private static String[] splitPartsWithEscape(String text) {
+        String[] options = text.split("(?<!\\\\)(?:;|,)");
+        for (int i = 0; i < options.length; i++) {
+            options[i] = options[i]
+                .replace("\\,", ",")
+                .replace("\\;", ";");
+        }
+        return options;
     }
 }

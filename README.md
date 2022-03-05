@@ -27,7 +27,7 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-[platform]</artifactId>
-  <version>1.4.13</version>
+  <version>1.4.14</version>
 </dependency>
 ```
 
@@ -42,7 +42,7 @@ maven { url "https://storehouse.okaeri.eu/repository/maven-public/" }
 Add dependency to the `maven` section:
 
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-[platform]:1.4.13'
+implementation 'eu.okaeri:okaeri-placeholders-[platform]:1.4.14'
 ```
 
 ## Format
@@ -66,6 +66,8 @@ Active: {yes,no#status}
 Value: {%.2f#value}
 # with duration (e.g. "1d12h", supports precision, see: (h))
 Remaining time: {duration(h)}
+# with instant (time, datetime, date, pattern - localized - optional timezone)
+Time: {ldt,medium,Europe/Paris#time}
 ```
 
 ## Example
