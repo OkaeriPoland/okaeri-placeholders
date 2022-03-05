@@ -21,28 +21,28 @@ public class TestDurationPlaceholders {
 
     @Test
     public void test_duration_days() {
-        this.test(Duration.ofDays(-1), "-1 days", "{d.days} {hour,days#d.days}");
+        this.test(Duration.ofDays(-1), "-1 days", "{d.days} {day,days#d.days}");
         this.test(Duration.ofDays(-1), "-1d", "{d}");
-        this.test(Duration.ofDays(0), "0 days", "{d.days} {hour,days#d.days}");
-        this.test(Duration.ofDays(1), "1 hour", "{d.days} {hour,days#d.days}");
+        this.test(Duration.ofDays(0), "0 days", "{d.days} {day,days#d.days}");
+        this.test(Duration.ofDays(1), "1 day", "{d.days} {day,days#d.days}");
         this.test(Duration.ofDays(1), "1d", "{d}");
-        this.test(Duration.ofDays(2), "2 days", "{d.days} {hour,days#d.days}");
-        this.test(Duration.ofDays(30), "30 days", "{d.days} {hour,days#d.days}");
-        this.test(Duration.ofDays(365), "365 days", "{d.days} {hour,days#d.days}");
-        this.test(Duration.ofDays(1000), "1000 days", "{d.days} {hour,days#d.days}");
+        this.test(Duration.ofDays(2), "2 days", "{d.days} {day,days#d.days}");
+        this.test(Duration.ofDays(30), "30 days", "{d.days} {day,days#d.days}");
+        this.test(Duration.ofDays(365), "365 days", "{d.days} {day,days#d.days}");
+        this.test(Duration.ofDays(1000), "1000 days", "{d.days} {day,days#d.days}");
     }
 
     @Test
     public void test_duration_days_reminder() {
-        this.test(Duration.ofDays(-1).minus(Duration.ofHours(12)), "-1 days", "{d.days} {hour,days#d.days}");
+        this.test(Duration.ofDays(-1).minus(Duration.ofHours(12)), "-1 days", "{d.days} {day,days#d.days}");
         this.test(Duration.ofDays(-1).minus(Duration.ofHours(12)), "-1d12h", "{d}");
-        this.test(Duration.ofDays(0).plus(Duration.ofHours(12)), "0 days", "{d.days} {hour,days#d.days}");
-        this.test(Duration.ofDays(1).plus(Duration.ofHours(12)), "1 hour", "{d.days} {hour,days#d.days}");
+        this.test(Duration.ofDays(0).plus(Duration.ofHours(12)), "0 days", "{d.days} {day,days#d.days}");
+        this.test(Duration.ofDays(1).plus(Duration.ofHours(12)), "1 day", "{d.days} {day,days#d.days}");
         this.test(Duration.ofDays(1).plus(Duration.ofHours(12)), "1d12h", "{d}");
-        this.test(Duration.ofDays(2).plus(Duration.ofHours(12)), "2 days", "{d.days} {hour,days#d.days}");
-        this.test(Duration.ofDays(30).plus(Duration.ofHours(12)), "30 days", "{d.days} {hour,days#d.days}");
-        this.test(Duration.ofDays(365).plus(Duration.ofHours(12)), "365 days", "{d.days} {hour,days#d.days}");
-        this.test(Duration.ofDays(1000).plus(Duration.ofHours(12)), "1000 days", "{d.days} {hour,days#d.days}");
+        this.test(Duration.ofDays(2).plus(Duration.ofHours(12)), "2 days", "{d.days} {day,days#d.days}");
+        this.test(Duration.ofDays(30).plus(Duration.ofHours(12)), "30 days", "{d.days} {day,days#d.days}");
+        this.test(Duration.ofDays(365).plus(Duration.ofHours(12)), "365 days", "{d.days} {day,days#d.days}");
+        this.test(Duration.ofDays(1000).plus(Duration.ofHours(12)), "1000 days", "{d.days} {day,days#d.days}");
     }
 
     @Test
