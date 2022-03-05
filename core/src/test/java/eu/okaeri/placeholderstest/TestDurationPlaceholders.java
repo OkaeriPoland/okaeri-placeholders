@@ -125,4 +125,13 @@ public class TestDurationPlaceholders {
         this.test(dur2, "1 day, 21 hours, 37 minutes, 1 second, and 1 millisecond", pattern);
         this.test(dur2, "1d21h37m1s1ms", "{d(ms)}");
     }
+
+    @Test
+    public void test_duration_too_short() {
+        this.test(Duration.ofMinutes(5), "5m", "{d(h)}");
+        this.test(Duration.ofSeconds(5), "5s", "{d(h)}");
+        this.test(Duration.ofSeconds(3), "3s", "{d(m)}");
+        this.test(Duration.ofMillis(23), "23ms", "{d(s)}");
+        this.test(Duration.ofNanos(350), "350ns", "{d(s)}");
+    }
 }
