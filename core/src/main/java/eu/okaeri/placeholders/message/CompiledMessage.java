@@ -60,7 +60,7 @@ public class CompiledMessage {
 
             parts.add(messageField);
             usedFields.add(fieldName);
-            usedFields.add(fieldName.split("\\.", 2)[0]);
+            usedFields.add(fieldName.split("(\\.|\\()", 2)[0]);
 
             lastIndex = matcher.end();
             fieldsLength += matcher.group().length();
