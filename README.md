@@ -94,7 +94,7 @@ String test = context.apply();
 
 ## Benchmarks
 
-**Note**: Since JDK8 times, the built-in `String#replace` has become faster or comparable to the `okaeri-placeholders` in some benchmarks,
+**Note**: Since JDK8 times, the built-in `String#replace(CharSequence, CharSequence)` has become faster or comparable to the `okaeri-placeholders` in some benchmarks,
 but even ignoring lacking features, it is and will be always unsafe to use for placeholders due to the sole nature of chaining.
 
 Charts are representing operations per second for each of the implementations. For the current source code of test
