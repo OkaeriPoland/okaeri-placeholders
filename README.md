@@ -27,7 +27,7 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-[platform]</artifactId>
-  <version>1.4.15</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 
@@ -42,7 +42,7 @@ maven { url "https://storehouse.okaeri.eu/repository/maven-public/" }
 Add dependency to the `maven` section:
 
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-[platform]:1.4.15'
+implementation 'eu.okaeri:okaeri-placeholders-[platform]:2.0.0'
 ```
 
 ## Format

@@ -2,7 +2,6 @@ package eu.okaeri.placeholders.context;
 
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.message.part.MessageField;
-import eu.okaeri.placeholders.schema.PlaceholderSchema;
 import eu.okaeri.placeholders.schema.meta.SchemaMeta;
 import eu.okaeri.placeholders.schema.resolver.DefaultSchemaResolver;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
@@ -50,7 +49,7 @@ public class Placeholder {
                 MessageField fieldSub = field.getSub();
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
                 if (resolver == null) {
-                    if (object instanceof PlaceholderSchema) {
+                    if (object.getClass().getAnnotation(eu.okaeri.placeholders.schema.annotation.Placeholder.class) != null) {
                         return this.renderUsingPlaceholderSchema(object, field);
                     }
                     return ("<noresolver:" + field.getName() + "@" + fieldSub.getName() + ">");
@@ -71,7 +70,7 @@ public class Placeholder {
             return DefaultSchemaResolver.INSTANCE.resolve(object, field);
         }
 
-        if (object instanceof PlaceholderSchema) {
+        if (object.getClass().getAnnotation(eu.okaeri.placeholders.schema.annotation.Placeholder.class) != null) {
             return this.renderUsingPlaceholderSchema(object, field);
         }
 
@@ -81,7 +80,7 @@ public class Placeholder {
     @SuppressWarnings("unchecked")
     private String renderUsingPlaceholderSchema(@NonNull Object object, @NonNull MessageField field) {
 
-        SchemaMeta meta = SchemaMeta.of((Class<? extends PlaceholderSchema>) object.getClass());
+        SchemaMeta meta = SchemaMeta.of(object.getClass());
         if (field.getSub() == null) {
             throw new RuntimeException("rendering PlaceholderSchema itself not supported at the moment");
         }
