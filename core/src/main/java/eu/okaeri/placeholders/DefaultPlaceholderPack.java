@@ -124,5 +124,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         });
         placeholders.registerPlaceholder(String.class, "capitalize", (str, p) -> capitalize(str));
         placeholders.registerPlaceholder(String.class, "capitalizeFully", (str, p) -> capitalizeFully(str));
+        placeholders.registerPlaceholder(String.class, "prepend", (str, p) -> p.strAt(0, "") + str);
+        placeholders.registerPlaceholder(String.class, "append", (str, p) -> str + p.strAt(0, ""));
     }
 }
