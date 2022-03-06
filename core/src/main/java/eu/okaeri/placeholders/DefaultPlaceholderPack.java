@@ -47,7 +47,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         long nanos = (duration.getNano() >= 1_000_000L) ? 0L : duration.getNano();
         if ((accuracy.ordinal() <= 0) && (nanos > 0)) builder.append(nanos).append("ns");
 
-        return builder.toString().isEmpty()
+        return (builder.toString().isEmpty() || "-".equals(builder.toString()))
             ? simpleDuration(duration, SimpleDurationAccuracy.values()[accuracy.ordinal() - 1])
             : builder.toString();
     }
