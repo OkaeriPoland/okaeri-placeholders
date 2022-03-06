@@ -1,9 +1,7 @@
 package eu.okaeri.placeholders.schema.meta;
 
-import eu.okaeri.placeholders.schema.PlaceholderSchema;
 import eu.okaeri.placeholders.schema.annotation.Placeholder;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
-import eu.okaeri.placeholders.schema.resolver.SchemaResolver;
 import lombok.*;
 
 import java.lang.invoke.MethodHandle;
@@ -20,27 +18,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SchemaMeta {
 
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
-    private static final Map<Class<? extends PlaceholderSchema>, SchemaMeta> SCHEMA_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Class<? extends SchemaResolver>, SchemaResolver> RESOLVER_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, SchemaMeta> SCHEMA_CACHE = new ConcurrentHashMap<>();
+
     private final Class<?> type;
     private final Map<String, PlaceholderResolver> placeholders;
 
     @SneakyThrows
-    private static SchemaResolver resolver(@NonNull Class<? extends SchemaResolver> clazz) {
-
-        SchemaResolver resolver = RESOLVER_CACHE.get(clazz);
-        if (resolver != null) {
-            return resolver;
-        }
-
-        SchemaResolver instance = clazz.newInstance();
-        RESOLVER_CACHE.put(clazz, instance);
-        return instance;
-    }
-
-    @SneakyThrows
     @SuppressWarnings("unchecked")
-    public static SchemaMeta of(@NonNull Class<? extends PlaceholderSchema> clazz) {
+    public static SchemaMeta of(@NonNull Class<?> clazz) {
 
         SchemaMeta cached = SCHEMA_CACHE.get(clazz);
         if (cached != null) {
@@ -53,7 +38,7 @@ public class SchemaMeta {
 
         // annotated classes
         Placeholder clazzAnnotation = clazz.getAnnotation(Placeholder.class);
-        if (clazzAnnotation != null) {
+        if ((clazzAnnotation != null) && clazzAnnotation.scan()) {
             for (Method method : methods) {
 
                 if (!Modifier.isPublic(method.getModifiers())) {
@@ -76,23 +61,10 @@ public class SchemaMeta {
                 char nameArr[] = name.toCharArray();
                 nameArr[0] = Character.toLowerCase(nameArr[0]);
                 name = new String(nameArr);
+
                 Class<?> returnType = method.getReturnType();
-
-                // submeta
-                if (PlaceholderSchema.class.isAssignableFrom(returnType)) {
-                    MethodHandle handle = toHandle(method);
-                    placeholders.put(name, (from, params) -> handleholder(handle, from, null));
-                    continue;
-                }
-
-                // normal
-                SchemaResolver resolver = resolver(clazzAnnotation.resolver());
-                if (!resolver.supports(returnType)) {
-                    continue;
-                }
-
                 MethodHandle handle = toHandle(method);
-                placeholders.put(name, (from, params) -> handleholder(handle, from, resolver));
+                placeholders.put(name, (from, params) -> handleholder(handle, from));
             }
         }
 
@@ -105,53 +77,22 @@ public class SchemaMeta {
                 continue;
             }
 
-            // submeta
             String name = placeholder.name().isEmpty() ? field.getName() : placeholder.name();
-            if (PlaceholderSchema.class.isAssignableFrom(fieldType)) {
-                MethodHandle handle = toHandle(field);
-                placeholders.put(name, (from, params) -> handleholder(handle, from, null));
-                continue;
-            }
-
-            SchemaResolver resolver = resolver(placeholder.resolver());
-            if (resolver.supports(fieldType)) {
-                MethodHandle handle = toHandle(field);
-                placeholders.put(name, (from, params) -> handleholder(handle, from, resolver));
-                continue;
-            }
-
-            throw new RuntimeException("cannot convert field with type " + fieldType + " using " + resolver.getClass());
+            MethodHandle handle = toHandle(field);
+            placeholders.put(name, (from, params) -> handleholder(handle, from));
         }
 
         // annotated methods
         for (Method method : methods) {
 
-            Class<?> returnType = method.getReturnType();
             Placeholder placeholder = method.getAnnotation(Placeholder.class);
             if (placeholder == null) {
                 continue;
             }
 
-            // submeta
             String name = placeholder.name().isEmpty() ? method.getName() : placeholder.name();
-            if (PlaceholderSchema.class.isAssignableFrom(returnType)) {
-                MethodHandle handle = toHandle(method);
-                placeholders.put(name, (from, params) -> handleholder(handle, from, null));
-                continue;
-            }
-
-            SchemaResolver resolver = resolver(placeholder.resolver());
-            if (!resolver.supports(returnType)) {
-                throw new RuntimeException("cannot convert method with return type " + returnType + " using " + resolver.getClass());
-            }
-
-            // FIXME: support for schema mappers?
-            if (method.getParameters().length > 0) {
-                throw new RuntimeException("cannot convert using method with arguments: " + method);
-            }
-
             MethodHandle handle = toHandle(method);
-            placeholders.put(name, (from, params) -> handleholder(handle, from, resolver));
+            placeholders.put(name, (from, params) -> handleholder(handle, from));
         }
 
         SchemaMeta meta = new SchemaMeta(clazz, placeholders);
@@ -161,10 +102,8 @@ public class SchemaMeta {
     }
 
     @SneakyThrows
-    private static Object handleholder(MethodHandle handle, Object from, SchemaResolver resolver) {
-        Object object = handle.invoke(from);
-        if (resolver == null) return object;
-        return resolver.resolve(object);
+    private static Object handleholder(MethodHandle handle, Object from) {
+        return handle.invoke(from);
     }
 
     @SneakyThrows

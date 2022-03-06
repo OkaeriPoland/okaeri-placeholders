@@ -28,9 +28,9 @@ public class TestSchema {
         meta.setLore("Really nice stone. I like it.");
         item.setMeta(meta);
 
-        CompiledMessage message = CompiledMessage.of("Look at my {item.type} x {item.amount}! I named it '{item.meta.name}' with '{item.meta.lore}' as description!");
+        CompiledMessage message = CompiledMessage.of("Look at my {item.type} x {item.amount}! I named it '{item.meta.name}' with '{item.meta.lore}' as description! {Ston.,Stonks.#item.amount}");
         String test = PlaceholderContext.of(message).with("item", item).apply();
-        assertEquals("Look at my Stone x 123! I named it 'Red stone' with 'Really nice stone. I like it.' as description!", test);
+        assertEquals("Look at my Stone x 123! I named it 'Red stone' with 'Really nice stone. I like it.' as description! Stonks.", test);
 
         System.out.println(test);
     }
