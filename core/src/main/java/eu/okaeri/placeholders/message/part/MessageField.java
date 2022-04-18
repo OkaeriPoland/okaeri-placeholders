@@ -129,10 +129,10 @@ public class MessageField implements MessageElement {
 
     public FieldParams getParams() {
         if (this.paramsRaw == null) {
-            this.params = FieldParams.empty();
+            this.params = FieldParams.empty(this.name);
         }
         if (this.params == null) {
-            this.params = FieldParams.of(splitPartsWithEscape(this.paramsRaw));
+            this.params = FieldParams.of(this.name, splitPartsWithEscape(this.paramsRaw));
         }
         return this.params;
     }

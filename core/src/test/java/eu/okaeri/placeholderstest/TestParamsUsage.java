@@ -174,4 +174,22 @@ public class TestParamsUsage {
         assertEquals("), ", sub.getParams().strAt(4));
         assertArrayEquals(new String[]{"(", "20", "", "|", "), "}, sub.getParams().strArr());
     }
+
+    @Test
+    public void test_params_9() {
+        CompiledMessage message = CompiledMessage.of("Hi: {player.kill()}");
+
+        assertEquals(2, message.getParts().size());
+        assertEquals(MessageStatic.of("Hi: "), message.getParts().get(0));
+
+        MessageField field = (MessageField) message.getParts().get(1);
+        assertEquals("player.kill", field.getLastSubPath());
+        assertNotNull(field.getSub());
+
+        MessageField sub = field.getSub();
+        assertNotNull(sub.getParams());
+
+        assertEquals("", sub.getParams().strAt(0));
+        assertArrayEquals(new String[]{""}, sub.getParams().strArr());
+    }
 }

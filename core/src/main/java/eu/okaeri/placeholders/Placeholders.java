@@ -4,10 +4,7 @@ import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.part.FieldParams;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -17,6 +14,7 @@ import java.util.Map;
 public class Placeholders {
 
     @Setter private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new HashMap<>();
+    @Getter private PlaceholderResolver fallbackResolver = null;
 
     public static Placeholders create() {
         return create(false);
@@ -30,6 +28,11 @@ public class Placeholders {
 
     public PlaceholderContext contextOf(@NonNull CompiledMessage message) {
         return PlaceholderContext.of(this, message);
+    }
+
+    public Placeholders fallbackResolver(PlaceholderResolver fallbackResolver) {
+        this.fallbackResolver = fallbackResolver;
+        return this;
     }
 
     public Placeholders registerPlaceholders(@NonNull PlaceholderPack pack) {
@@ -53,7 +56,7 @@ public class Placeholders {
     public Object readValue(@NonNull Object from) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, null);
         if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from, FieldParams.empty());
+            return placeholderResolver.resolve(from, FieldParams.empty(null));
         }
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass());
     }
@@ -62,7 +65,7 @@ public class Placeholders {
     public Object readValue(@NonNull Object from, @Nullable String param) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, param);
         if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from, FieldParams.empty());
+            return placeholderResolver.resolve(from, FieldParams.empty(param));
         }
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass() + ": " + param);
     }
@@ -73,6 +76,7 @@ public class Placeholders {
         Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(fromClass);
 
         if (resolverMap == null) {
+
             for (Class<?> potentialType : this.resolvers.keySet()) {
                 if (potentialType.isAssignableFrom(fromClass)) {
 
@@ -84,10 +88,16 @@ public class Placeholders {
                     }
                 }
             }
-            return null;
+
+            return this.fallbackResolver;
         }
 
-        return resolverMap.get(param);
+        PlaceholderResolver resolver = resolverMap.get(param);
+        if (resolver == null) {
+            return this.fallbackResolver;
+        }
+
+        return resolver;
     }
 
     public int getResolversCount() {
@@ -99,6 +109,7 @@ public class Placeholders {
     public Placeholders copy() {
         Placeholders placeholders = new Placeholders();
         placeholders.resolvers = this.getResolversCopy();
+        placeholders.fallbackResolver = this.getFallbackResolver();
         return placeholders;
     }
 
