@@ -13,6 +13,7 @@
         <module>core</module>
         <module>bukkit</module>
         <module>bungee</module>
+        <module>reflect</module>
     </modules>
 
     <properties>
