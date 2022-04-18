@@ -54,16 +54,21 @@ public class Placeholder {
                     }
                     return ("<noresolver:" + field.getName() + "@" + fieldSub.getName() + ">");
                 }
-                Object value = resolver.resolve(object, fieldSub.getParams());
-                return this.render(value, fieldSub);
+                object = resolver.resolve(object, fieldSub.getParams());
+                if (fieldSub.hasSub()) {
+                    return this.render(object, fieldSub);
+                }
             }
             else {
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
                 if (resolver != null) {
-                    Object value = resolver.resolve(object, field.getParams());
-                    return this.render(value, field);
+                    object = resolver.resolve(object, field.getParams());
                 }
             }
+        }
+
+        if (object == null) {
+            return null;
         }
 
         if (DefaultSchemaResolver.INSTANCE.supports(object.getClass())) {

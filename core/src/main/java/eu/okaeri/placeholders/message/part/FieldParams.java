@@ -11,14 +11,15 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class FieldParams {
 
+    private final String field;
     private final String[] params;
 
-    public static FieldParams of(@NonNull String[] params) {
-        return new FieldParams(params);
+    public static FieldParams of(String field, @NonNull String[] params) {
+        return new FieldParams(field, params);
     }
 
-    public static FieldParams empty() {
-        return new FieldParams(new String[]{});
+    public static FieldParams empty(String field) {
+        return new FieldParams(field, new String[]{});
     }
 
     public String[] strArr() {
