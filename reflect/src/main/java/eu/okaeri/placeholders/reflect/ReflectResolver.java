@@ -21,11 +21,11 @@ public class ReflectResolver implements PlaceholderResolver {
 
         Optional<Object> resolvedOptional = Optional.empty();
         if (object instanceof Class) {
-            resolvedOptional = this._resolve(object, (Class<?>) object, params);
+            resolvedOptional = this.resolve(object, (Class<?>) object, params);
         }
 
         if (!resolvedOptional.isPresent()) {
-            resolvedOptional = this._resolve(object, clazz, params);
+            resolvedOptional = this.resolve(object, clazz, params);
         }
 
         if (resolvedOptional.isPresent()) {
@@ -36,7 +36,7 @@ public class ReflectResolver implements PlaceholderResolver {
     }
 
     @SneakyThrows
-    private Optional<Object> _resolve(Object object, Class<?> clazz, FieldParams params) {
+    private Optional<Object> resolve(Object object, Class<?> clazz, FieldParams params) {
 
         // field
         Field field = this.getField(clazz, params.getField());
