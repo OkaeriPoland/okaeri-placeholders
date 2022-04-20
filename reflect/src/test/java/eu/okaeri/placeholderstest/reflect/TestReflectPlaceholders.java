@@ -40,12 +40,21 @@ public class TestReflectPlaceholders {
             .apply());
     }
 
-//    @Test
-//    public void test_method_2arg() {
-//        assertEquals("jeve.leng.String", this.reflect.contextOf(CompiledMessage.of("{name.getClass().getName().replace(a,e)}"))
-//            .with("name", "John")
-//            .apply());
-//    }
+    @Test
+    public void test_method_2arg() {
+        assertEquals("jeve.leng.String", this.reflect.contextOf(CompiledMessage.of("{name.getClass().getName().replace('a','e')}"))
+            .with("name", "John")
+            .apply());
+    }
+
+    @Test
+    public void test_method_2arg_context() {
+        assertEquals("jeve.leng.String", this.reflect.contextOf(CompiledMessage.of("{name.getClass().getName().replace(from,to)}"))
+            .with("name", "John")
+            .with("from", "a")
+            .with("to", "e")
+            .apply());
+    }
 
     @Test
     public void test_field_static() {

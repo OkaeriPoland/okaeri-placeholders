@@ -11,7 +11,8 @@ public final class ReflectPlaceholders implements PlaceholderPack {
 
     public static Placeholders create(boolean registerDefaults) {
         return Placeholders.create(registerDefaults)
-            .registerPlaceholders(new ReflectPlaceholders());
+            .registerPlaceholders(new ReflectPlaceholders())
+            .fastMode(false);
     }
 
     @Override
