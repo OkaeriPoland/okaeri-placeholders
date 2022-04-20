@@ -64,7 +64,7 @@ public class SchemaMeta {
 
                 Class<?> returnType = method.getReturnType();
                 MethodHandle handle = toHandle(method);
-                placeholders.put(name, (from, params) -> handleholder(handle, from));
+                placeholders.put(name, (from, params, context) -> handleholder(handle, from));
             }
         }
 
@@ -79,7 +79,7 @@ public class SchemaMeta {
 
             String name = placeholder.name().isEmpty() ? field.getName() : placeholder.name();
             MethodHandle handle = toHandle(field);
-            placeholders.put(name, (from, params) -> handleholder(handle, from));
+            placeholders.put(name, (from, params, context) -> handleholder(handle, from));
         }
 
         // annotated methods
@@ -92,7 +92,7 @@ public class SchemaMeta {
 
             String name = placeholder.name().isEmpty() ? method.getName() : placeholder.name();
             MethodHandle handle = toHandle(method);
-            placeholders.put(name, (from, params) -> handleholder(handle, from));
+            placeholders.put(name, (from, params, context) -> handleholder(handle, from));
         }
 
         SchemaMeta meta = new SchemaMeta(clazz, placeholders);

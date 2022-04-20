@@ -15,6 +15,7 @@ public class Placeholders {
 
     @Setter private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new HashMap<>();
     @Getter private PlaceholderResolver fallbackResolver = null;
+    @Getter private boolean fastMode = true;
 
     public static Placeholders create() {
         return create(false);
@@ -32,6 +33,25 @@ public class Placeholders {
 
     public Placeholders fallbackResolver(PlaceholderResolver fallbackResolver) {
         this.fallbackResolver = fallbackResolver;
+        return this;
+    }
+
+    /**
+     * Sets fast mode state.
+     *
+     * Fast mode applies to the non-shared {@link PlaceholderContext} instances.
+     *
+     * When {@code fastMode} is set to {@code true}, fields added to the context
+     * and not present in the specific message would be discarded immediately.
+     *
+     * When {@code fastMode} is set to {@code false}, all fields added to the
+     * context are preserved regardless of the message contents.
+     *
+     * @param fastMode Target fast mode state
+     * @return This instance
+     */
+    public Placeholders fastMode(boolean fastMode) {
+        this.fastMode = fastMode;
         return this;
     }
 
@@ -56,7 +76,7 @@ public class Placeholders {
     public Object readValue(@NonNull Object from) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, null);
         if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from, FieldParams.empty(null));
+            return placeholderResolver.resolve(from, FieldParams.empty(null), null);
         }
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass());
     }
@@ -65,7 +85,7 @@ public class Placeholders {
     public Object readValue(@NonNull Object from, @Nullable String param) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, param);
         if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from, FieldParams.empty(param));
+            return placeholderResolver.resolve(from, FieldParams.empty(param), null);
         }
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass() + ": " + param);
     }
