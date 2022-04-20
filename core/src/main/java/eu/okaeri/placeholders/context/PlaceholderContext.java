@@ -45,11 +45,11 @@ public class PlaceholderContext {
 
     public PlaceholderContext with(@NonNull String field, @Nullable Object value) {
 
-        if ((this.message != null) && (!this.message.isWithFields() || !this.message.hasField(field))) {
+        if (this.placeholders.isFastMode() && (this.message != null) && (!this.message.isWithFields() || !this.message.hasField(field))) {
             return this;
         }
 
-        this.fields.put(field, Placeholder.of(this.placeholders, value));
+        this.fields.put(field, Placeholder.of(this.placeholders, value, this));
         return this;
     }
 
@@ -101,11 +101,11 @@ public class PlaceholderContext {
             Placeholder placeholder = this.fields.get(name);
             if ((placeholder == null) || (placeholder.getValue() == null)) {
                 if (field.getDefaultValue() != null) {
-                    placeholder = Placeholder.of(field.getDefaultValue());
+                    placeholder = Placeholder.of(null, field.getDefaultValue(), this);
                 } else if (this.failMode == FailMode.FAIL_FAST) {
                     throw new IllegalArgumentException("missing placeholder '" + name + "' for message '" + state + "'");
                 } else if (this.failMode == FailMode.FAIL_SAFE) {
-                    placeholder = Placeholder.of("<missing:" + field.getLastSubPath() + ">");
+                    placeholder = Placeholder.of(null, "<missing:" + field.getLastSubPath() + ">", this);
                 } else {
                     throw new RuntimeException("unknown fail mode: " + this.failMode);
                 }
