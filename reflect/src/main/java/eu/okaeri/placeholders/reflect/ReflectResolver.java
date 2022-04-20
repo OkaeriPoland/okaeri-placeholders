@@ -15,7 +15,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ReflectResolver implements PlaceholderResolver {
@@ -39,29 +38,29 @@ public class ReflectResolver implements PlaceholderResolver {
         Class<?> clazz = object.getClass();
         String name = params.getField();
 
-        Optional<Object> resolvedOptional = Optional.empty();
+        Object[] resolved = new Object[0];
         if (object instanceof Class) {
-            resolvedOptional = this.resolve(object, (Class<?>) object, params, context);
+            resolved = this.resolve(object, (Class<?>) object, params, context);
         }
 
-        if (!resolvedOptional.isPresent()) {
-            resolvedOptional = this.resolve(object, clazz, params, context);
+        if (resolved.length == 0) {
+            resolved = this.resolve(object, clazz, params, context);
         }
 
-        if (resolvedOptional.isPresent()) {
-            return resolvedOptional.get();
+        if (resolved.length > 0) {
+            return resolved[0];
         }
 
         throw new RuntimeException("Cannot reflect " + params + " for " + object + " [" + clazz + "]");
     }
 
     @SneakyThrows
-    private Optional<Object> resolve(@NonNull Object object, @NonNull Class<?> clazz, @NonNull FieldParams params, @Nullable PlaceholderContext context) {
+    private Object[] resolve(@NonNull Object object, @NonNull Class<?> clazz, @NonNull FieldParams params, @Nullable PlaceholderContext context) {
 
         // field
         Field field = this.getField(clazz, params.getField());
         if ((field != null) && (params.getParams().length == 0)) {
-            return Optional.ofNullable(field.get(object));
+            return new Object[]{field.get(object)};
         }
 
         // method
@@ -71,7 +70,7 @@ public class ReflectResolver implements PlaceholderResolver {
             if ((params.getParams().length == 1) && "".equals(params.getParams()[0])) {
                 Method method = this.getMethod(clazz, params.getField());
                 if (method != null) {
-                    return Optional.ofNullable(method.invoke(object));
+                    return new Object[]{method.invoke(object)};
                 }
             }
 
@@ -138,11 +137,11 @@ public class ReflectResolver implements PlaceholderResolver {
                         "call: " + Arrays.toString(call) + ", " +
                         "context: " + (context != null ? context.getFields().keySet() : null) + ")"));
 
-                return Optional.ofNullable(targetMethod.invoke(object, call));
+                return new Object[]{targetMethod.invoke(object, call)};
             }
         }
 
-        return Optional.empty();
+        return new Object[0];
     }
 
     private Field getField(@NonNull Class<?> clazz, @NonNull String name) {
