@@ -45,8 +45,13 @@ public class PlaceholderContext {
 
     public PlaceholderContext with(@NonNull String field, @Nullable Object value) {
 
-        if (this.placeholders.isFastMode() && (this.message != null) && (!this.message.isWithFields() || !this.message.hasField(field))) {
-            return this;
+        // only in fast mode
+        if ((this.placeholders != null) && this.placeholders.isFastMode()) {
+            // when non-shared context (message assigned) with no fields or field with such name not present
+            if ((this.message != null) && (!this.message.isWithFields() || !this.message.hasField(field))) {
+                // skip adding placeholder to the context
+                return this;
+            }
         }
 
         this.fields.put(field, Placeholder.of(this.placeholders, value, this));
