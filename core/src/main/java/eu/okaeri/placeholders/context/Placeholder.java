@@ -5,15 +5,13 @@ import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.schema.meta.SchemaMeta;
 import eu.okaeri.placeholders.schema.resolver.DefaultSchemaResolver;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 @Data
+@ToString(exclude = "context")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Placeholder {
 
