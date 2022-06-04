@@ -15,9 +15,12 @@ import java.util.regex.Pattern;
 public class MessageField implements MessageElement {
 
     private static final Pattern PATH_ELEMENT_PATTERN = Pattern.compile("^(?<name>[^\\s(]+)(?:\\((?<params>.*)\\))?$");
+
     private final Locale locale;
     private final String name;
+    private final String source;
     @Nullable private final MessageField sub;
+
     @Nullable private String defaultValue;
     @Nullable private String metadataRaw;
     @Nullable private String paramsRaw;
@@ -27,13 +30,13 @@ public class MessageField implements MessageElement {
     private String[] metadataOptions;
     private FieldParams params;
 
-    public static MessageField of(@NonNull String name) {
-        return of(Locale.ENGLISH, name);
+    public static MessageField of(@NonNull String source) {
+        return of(Locale.ENGLISH, source);
     }
 
-    public static MessageField of(@NonNull Locale locale, @NonNull String name) {
+    public static MessageField of(@NonNull Locale locale, @NonNull String source) {
 
-        String[] parts = name.split("\\.");
+        String[] parts = source.split("\\.");
         MessageField field = null;
 
         for (int i = parts.length - 1; i >= 0; i--) {
@@ -48,7 +51,7 @@ public class MessageField implements MessageElement {
             String fieldRealName = matcher.group("name");
             String fieldParams = matcher.group("params");
 
-            field = new MessageField(locale, fieldRealName, field);
+            field = new MessageField(locale, fieldRealName, source, field);
             field.setParamsRaw(fieldParams);
         }
 
