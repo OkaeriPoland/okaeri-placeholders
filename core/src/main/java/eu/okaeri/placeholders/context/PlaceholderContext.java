@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,11 +64,11 @@ public class PlaceholderContext {
         return this;
     }
 
-    public String apply() {
-        return this.apply(this.message);
+    public Map<MessageField, String> renderFields() {
+        return this.renderFields(this.message);
     }
 
-    public String apply(@NonNull CompiledMessage message) {
+    public Map<MessageField, String> renderFields(@NonNull CompiledMessage message) {
 
         // someone is trying to apply message on the specific non-shareable context
         if ((message != this.message) && (this.message != null)) {
@@ -78,14 +79,13 @@ public class PlaceholderContext {
 
         // no fields, no need for processing
         if (!message.isWithFields()) {
-            return message.getRaw();
+            return Collections.emptyMap();
         }
 
         // prepare for fields
         String state = message.getRaw();
         List<MessageElement> parts = message.getParts();
         Map<MessageField, String> rendered = new LinkedHashMap<>();
-        int totalRenderLength = 0;
 
         // render field parts
         for (MessageElement part : parts) {
@@ -99,7 +99,6 @@ public class PlaceholderContext {
             String alreadyRendered = rendered.get(field);
 
             if (alreadyRendered != null) {
-                totalRenderLength += alreadyRendered.length();
                 continue;
             }
 
@@ -130,11 +129,22 @@ public class PlaceholderContext {
             }
 
             rendered.put(field, render);
-            totalRenderLength += render.length();
         }
 
+        return rendered;
+    }
+
+    public String apply() {
+        return this.apply(this.message);
+    }
+
+    public String apply(@NonNull CompiledMessage message) {
+
+        List<MessageElement> parts = message.getParts();
+        Map<MessageField, String> rendered = this.renderFields(message);
+
         // build message
-        StringBuilder builder = new StringBuilder(message.getStaticLength() + totalRenderLength);
+        StringBuilder builder = new StringBuilder();
         for (MessageElement part : parts) {
 
             if (part instanceof MessageStatic) {
