@@ -7,13 +7,13 @@ import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import lombok.*;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Placeholders {
 
-    @Setter private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new HashMap<>();
+    private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new LinkedHashMap<>();
+    private List<Class<?>> resolversOrdered = new ArrayList<>();
     @Getter private PlaceholderResolver fallbackResolver = null;
     @Getter private boolean fastMode = true;
 
@@ -60,14 +60,33 @@ public class Placeholders {
         return this;
     }
 
+    public void setResolvers(@NonNull Map<Class<?>, Map<String, PlaceholderResolver>> resolvers) {
+        this.resolvers = resolvers;
+        ArrayList<Class<?>> keys = new ArrayList<>(resolvers.keySet());
+        Collections.reverse(keys);
+        this.resolversOrdered = keys;
+    }
+
     public <T> Placeholders registerPlaceholder(@NonNull Class<T> type, @NonNull PlaceholderResolver<T> resolver) {
-        Map<String, PlaceholderResolver> resolverMap = this.resolvers.computeIfAbsent(type, kk -> new HashMap<>());
+
+        if (!this.resolvers.containsKey(type)) {
+            this.resolvers.put(type, new HashMap<>());
+            this.resolversOrdered.add(0, type);
+        }
+
+        Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(type);
         resolverMap.put(null, resolver);
         return this;
     }
 
     public <T> Placeholders registerPlaceholder(@NonNull Class<T> type, @NonNull String name, @NonNull PlaceholderResolver<T> resolver) {
-        Map<String, PlaceholderResolver> resolverMap = this.resolvers.computeIfAbsent(type, kk -> new HashMap<>());
+
+        if (!this.resolvers.containsKey(type)) {
+            this.resolvers.put(type, new HashMap<>());
+            this.resolversOrdered.add(0, type);
+        }
+
+        Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(type);
         resolverMap.put(name, resolver);
         return this;
     }
@@ -97,7 +116,7 @@ public class Placeholders {
 
         if (resolverMap == null) {
 
-            for (Class<?> potentialType : this.resolvers.keySet()) {
+            for (Class<?> potentialType : this.resolversOrdered) {
                 if (potentialType.isAssignableFrom(fromClass)) {
 
                     resolverMap = this.resolvers.get(potentialType);
@@ -128,13 +147,13 @@ public class Placeholders {
 
     public Placeholders copy() {
         Placeholders placeholders = new Placeholders();
-        placeholders.resolvers = this.getResolversCopy();
+        placeholders.setResolvers(this.getResolversCopy());
         placeholders.fallbackResolver = this.getFallbackResolver();
         return placeholders;
     }
 
     public Map<Class<?>, Map<String, PlaceholderResolver>> getResolversCopy() {
-        Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new HashMap<>();
+        Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new LinkedHashMap<>();
         for (Map.Entry<Class<?>, Map<String, PlaceholderResolver>> entry : this.resolvers.entrySet()) {
             Map<String, PlaceholderResolver> map = new HashMap<>();
             map.putAll(entry.getValue());

@@ -79,24 +79,6 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         // ChatColor
         placeholders.registerPlaceholder(ChatColor.class, (e, p, o) -> e.toString());
 
-        // CommandSender
-        placeholders.registerPlaceholder(CommandSender.class, "name", (e, p, o) -> e.getName());
-        placeholders.registerPlaceholder(CommandSender.class, (e, p, o) -> e.getName());
-
-        // HumanEntity
-        placeholders.registerPlaceholder(HumanEntity.class, "enderChest", (e, p, o) -> e.getEnderChest()); // Inventory
-        placeholders.registerPlaceholder(HumanEntity.class, "expToLevel", (e, p, o) -> e.getExpToLevel());
-        placeholders.registerPlaceholder(HumanEntity.class, "gameMode", (e, p, o) -> e.getGameMode()); // GameMode
-        placeholders.registerPlaceholder(HumanEntity.class, "inventory", (e, p, o) -> e.getInventory()); // PlayerInventory
-        placeholders.registerPlaceholder(HumanEntity.class, "itemInHand", (e, p, o) -> e.getItemInHand()); // ItemStack
-        placeholders.registerPlaceholder(HumanEntity.class, "itemOnCursor", (e, p, o) -> e.getItemOnCursor()); // ItemStack
-        placeholders.registerPlaceholder(HumanEntity.class, "name", (e, p, o) -> e.getName());
-        placeholders.registerPlaceholder(HumanEntity.class, "openInventory", (e, p, o) -> e.getOpenInventory()); // InventoryView
-        placeholders.registerPlaceholder(HumanEntity.class, "sleepTicks", (e, p, o) -> e.getSleepTicks());
-        placeholders.registerPlaceholder(HumanEntity.class, "blocking", (e, p, o) -> e.isBlocking());
-        placeholders.registerPlaceholder(HumanEntity.class, "sleeping", (e, p, o) -> e.isSleeping());
-        placeholders.registerPlaceholder(HumanEntity.class, (e, p, o) -> e.getName());
-
         // Inventory
         placeholders.registerPlaceholder(Inventory.class, "name", (e, p, o) -> e.getName());
         placeholders.registerPlaceholder(Inventory.class, "size", (e, p, o) -> e.getSize());
@@ -120,6 +102,47 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(PlayerInventory.class, "holder", (e, p, o) -> e.getHolder()); // HumanEntity
         placeholders.registerPlaceholder(PlayerInventory.class, "itemInHand", (e, p, o) -> e.getItemInHand()); // ItemStack
         placeholders.registerPlaceholder(PlayerInventory.class, "leggings", (e, p, o) -> e.getLeggings()); // ItemStack
+
+        // Entity
+        placeholders.registerPlaceholder(Entity.class, "customName", (e, p, o) -> e.getCustomName());
+        placeholders.registerPlaceholder(Entity.class, "entityId", (e, p, o) -> e.getEntityId());
+        placeholders.registerPlaceholder(Entity.class, "fallDistance", (e, p, o) -> e.getFallDistance());
+        placeholders.registerPlaceholder(Entity.class, "fireTicks", (e, p, o) -> e.getFireTicks());
+        placeholders.registerPlaceholder(Entity.class, "lastDamageCause", (e, p, o) -> e.getFireTicks()); // EntityDamageEvent
+        placeholders.registerPlaceholder(Entity.class, "location", (e, p, o) -> e.getLocation()); // Location
+        placeholders.registerPlaceholder(Entity.class, "maxFireTicks", (e, p, o) -> e.getMaxFireTicks());
+        placeholders.registerPlaceholder(Entity.class, "passenger", (e, p, o) -> e.getPassenger()); // Entity
+        placeholders.registerPlaceholder(Entity.class, "ticksLived", (e, p, o) -> e.getTicksLived());
+        placeholders.registerPlaceholder(Entity.class, "type", (e, p, o) -> e.getType()); // EntityType (enum)
+        placeholders.registerPlaceholder(Entity.class, "uniqueId", (e, p, o) -> e.getUniqueId());
+        placeholders.registerPlaceholder(Entity.class, "vehicle", (e, p, o) -> e.getVehicle()); // Entity
+        placeholders.registerPlaceholder(Entity.class, "velocity", (e, p, o) -> e.getVelocity()); // Vector
+        placeholders.registerPlaceholder(Entity.class, "world", (e, p, o) -> e.getWorld()); // World
+        placeholders.registerPlaceholder(Entity.class, "customNameVisible", (e, p, o) -> e.isCustomNameVisible());
+        placeholders.registerPlaceholder(Entity.class, "dead", (e, p, o) -> e.isDead());
+        placeholders.registerPlaceholder(Entity.class, "empty", (e, p, o) -> e.isEmpty());
+        placeholders.registerPlaceholder(Entity.class, "insideVehicle", (e, p, o) -> e.isInsideVehicle());
+        placeholders.registerPlaceholder(Entity.class, "onGround", (e, p, o) -> e.isOnGround());
+        placeholders.registerPlaceholder(Entity.class, "valid", (e, p, o) -> e.isValid());
+        placeholders.registerPlaceholder(Entity.class, (e, p, o) -> e.getType().name());
+
+        // CommandSender
+        placeholders.registerPlaceholder(CommandSender.class, "name", (e, p, o) -> e.getName());
+        placeholders.registerPlaceholder(CommandSender.class, (e, p, o) -> e.getName());
+
+        // HumanEntity
+        placeholders.registerPlaceholder(HumanEntity.class, "enderChest", (e, p, o) -> e.getEnderChest()); // Inventory
+        placeholders.registerPlaceholder(HumanEntity.class, "expToLevel", (e, p, o) -> e.getExpToLevel());
+        placeholders.registerPlaceholder(HumanEntity.class, "gameMode", (e, p, o) -> e.getGameMode()); // GameMode
+        placeholders.registerPlaceholder(HumanEntity.class, "inventory", (e, p, o) -> e.getInventory()); // PlayerInventory
+        placeholders.registerPlaceholder(HumanEntity.class, "itemInHand", (e, p, o) -> e.getItemInHand()); // ItemStack
+        placeholders.registerPlaceholder(HumanEntity.class, "itemOnCursor", (e, p, o) -> e.getItemOnCursor()); // ItemStack
+        placeholders.registerPlaceholder(HumanEntity.class, "name", (e, p, o) -> e.getName());
+        placeholders.registerPlaceholder(HumanEntity.class, "openInventory", (e, p, o) -> e.getOpenInventory()); // InventoryView
+        placeholders.registerPlaceholder(HumanEntity.class, "sleepTicks", (e, p, o) -> e.getSleepTicks());
+        placeholders.registerPlaceholder(HumanEntity.class, "blocking", (e, p, o) -> e.isBlocking());
+        placeholders.registerPlaceholder(HumanEntity.class, "sleeping", (e, p, o) -> e.isSleeping());
+        placeholders.registerPlaceholder(HumanEntity.class, (e, p, o) -> e.getName());
 
         // OfflinePlayer
         placeholders.registerPlaceholder(OfflinePlayer.class, "bedSpawnLocation", (e, p, o) -> e.getBedSpawnLocation()); // Location
@@ -162,29 +185,6 @@ public final class BukkitPlaceholders implements PlaceholderPack {
         placeholders.registerPlaceholder(Player.class, "sneaking", (e, p, o) -> e.isSneaking());
         placeholders.registerPlaceholder(Player.class, "sprinting", (e, p, o) -> e.isSprinting());
         placeholders.registerPlaceholder(Player.class, (e, p, o) -> e.getName());
-
-        // Entity
-        placeholders.registerPlaceholder(Entity.class, "customName", (e, p, o) -> e.getCustomName());
-        placeholders.registerPlaceholder(Entity.class, "entityId", (e, p, o) -> e.getEntityId());
-        placeholders.registerPlaceholder(Entity.class, "fallDistance", (e, p, o) -> e.getFallDistance());
-        placeholders.registerPlaceholder(Entity.class, "fireTicks", (e, p, o) -> e.getFireTicks());
-        placeholders.registerPlaceholder(Entity.class, "lastDamageCause", (e, p, o) -> e.getFireTicks()); // EntityDamageEvent
-        placeholders.registerPlaceholder(Entity.class, "location", (e, p, o) -> e.getLocation()); // Location
-        placeholders.registerPlaceholder(Entity.class, "maxFireTicks", (e, p, o) -> e.getMaxFireTicks());
-        placeholders.registerPlaceholder(Entity.class, "passenger", (e, p, o) -> e.getPassenger()); // Entity
-        placeholders.registerPlaceholder(Entity.class, "ticksLived", (e, p, o) -> e.getTicksLived());
-        placeholders.registerPlaceholder(Entity.class, "type", (e, p, o) -> e.getType()); // EntityType (enum)
-        placeholders.registerPlaceholder(Entity.class, "uniqueId", (e, p, o) -> e.getUniqueId());
-        placeholders.registerPlaceholder(Entity.class, "vehicle", (e, p, o) -> e.getVehicle()); // Entity
-        placeholders.registerPlaceholder(Entity.class, "velocity", (e, p, o) -> e.getVelocity()); // Vector
-        placeholders.registerPlaceholder(Entity.class, "world", (e, p, o) -> e.getWorld()); // World
-        placeholders.registerPlaceholder(Entity.class, "customNameVisible", (e, p, o) -> e.isCustomNameVisible());
-        placeholders.registerPlaceholder(Entity.class, "dead", (e, p, o) -> e.isDead());
-        placeholders.registerPlaceholder(Entity.class, "empty", (e, p, o) -> e.isEmpty());
-        placeholders.registerPlaceholder(Entity.class, "insideVehicle", (e, p, o) -> e.isInsideVehicle());
-        placeholders.registerPlaceholder(Entity.class, "onGround", (e, p, o) -> e.isOnGround());
-        placeholders.registerPlaceholder(Entity.class, "valid", (e, p, o) -> e.isValid());
-        placeholders.registerPlaceholder(Entity.class, (e, p, o) -> e.getType().name());
 
         // Location
         placeholders.registerPlaceholder(Location.class, "block", (e, p, o) -> e.getBlock()); // Block
