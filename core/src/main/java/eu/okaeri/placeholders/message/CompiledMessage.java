@@ -20,12 +20,27 @@ public class CompiledMessage {
     private static final Pattern FIELD_PATTERN = Pattern.compile("\\{(?<content>[^}]+)\\}");
 
     private final String raw;
-    private final int rawLength;
-    private final int fieldsLength;
-    private final int staticLength;
-    private final boolean withFields;
     private final List<MessageElement> parts;
     private final Set<String> usedFields;
+
+    public static CompiledMessage of(@NonNull String raw, @NonNull List<MessageElement> parts) {
+
+        Set<String> usedFields = new HashSet<>();
+        for (MessageElement part : parts) {
+
+            if (!(part instanceof MessageField)) {
+                continue;
+            }
+
+            MessageField field = (MessageField) part;
+            String fieldName = field.getName();
+
+            usedFields.add(fieldName);
+            usedFields.add(fieldName.split("(\\.|\\()", 2)[0]);
+        }
+
+        return new CompiledMessage(raw, parts, usedFields);
+    }
 
     public static CompiledMessage of(@NonNull String source) {
         return of(Locale.ENGLISH, source);
@@ -34,7 +49,7 @@ public class CompiledMessage {
     public static CompiledMessage of(@NonNull Locale locale, @NonNull String source) {
 
         if (source.isEmpty()) {
-            return new CompiledMessage(source, 0, 0, 0, false, Collections.emptyList(), Collections.emptySet());
+            return new CompiledMessage(source, Collections.emptyList(), Collections.emptySet());
         }
 
         Matcher matcher = FIELD_PATTERN.matcher(source);
@@ -75,7 +90,11 @@ public class CompiledMessage {
             throw new RuntimeException("noticed message without fields with more than one element: " + parts);
         }
 
-        return new CompiledMessage(source, rawLength, fieldsLength, (rawLength - fieldsLength), withFields, Collections.unmodifiableList(parts), Collections.unmodifiableSet(usedFields));
+        return new CompiledMessage(
+            source,
+            Collections.unmodifiableList(parts),
+            Collections.unmodifiableSet(usedFields)
+        );
     }
 
     private static String[] parseFieldToArray(@NonNull String raw) {
@@ -101,5 +120,9 @@ public class CompiledMessage {
 
     public boolean hasField(@Nullable String name) {
         return this.usedFields.contains(name);
+    }
+
+    public boolean isWithFields() {
+        return !this.usedFields.isEmpty();
     }
 }
