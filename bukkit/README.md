@@ -11,7 +11,7 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-bukkit</artifactId>
-  <version>3.0.5</version>
+  <version>4.0.3</version>
 </dependency>
 ```
 
@@ -19,7 +19,7 @@ Add dependency to the `dependencies` section:
 
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-bukkit:3.0.5'
+implementation 'eu.okaeri:okaeri-placeholders-bukkit:4.0.3'
 ```
 
 ## Supported types
