@@ -1,9 +1,6 @@
 package eu.okaeri.placeholders.message.part;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
@@ -11,6 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Data
+@EqualsAndHashCode(exclude = "raw")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MessageField implements MessageElement {
 
@@ -24,6 +22,8 @@ public class MessageField implements MessageElement {
     @Nullable private String defaultValue;
     @Nullable private String metadataRaw;
     @Nullable private String paramsRaw;
+    @Nullable private String raw;
+
     // cached values
     private String lastSubPath;
     private MessageField lastSub;

@@ -72,6 +72,7 @@ public class CompiledMessage {
             MessageField messageField = MessageField.of(locale, fieldName);
             messageField.setDefaultValue(defaultValue);
             messageField.setMetadataRaw(metaElement);
+            messageField.setRaw(content);
 
             parts.add(messageField);
             usedFields.add(fieldName);
