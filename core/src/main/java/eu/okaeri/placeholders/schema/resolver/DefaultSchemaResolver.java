@@ -41,7 +41,17 @@ public class DefaultSchemaResolver implements SchemaResolver {
 
         if ((field.getMetadataOptions() != null) && (object instanceof Number) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
             int intValue = new BigDecimal(String.valueOf(object)).intValueExact();
-            return Pluralize.pluralize(field.getLocale(), intValue, field.getMetadataOptions());
+            try {
+                return Pluralize.pluralize(field.getLocale(), intValue, field.getMetadataOptions());
+            }
+            catch (IllegalArgumentException exception) {
+                try {
+                    return Pluralize.pluralize(Locale.ENGLISH, intValue, field.getMetadataOptions());
+                }
+                catch (IllegalArgumentException exception1) {
+                    return field.getMetadataOptions()[0];
+                }
+            }
         }
 
         if ((field.getMetadataOptions() != null) && (object instanceof Boolean) && (field.getMetadataOptions().length == 2)) {
