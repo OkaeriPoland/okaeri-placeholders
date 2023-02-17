@@ -40,7 +40,7 @@ public class DefaultSchemaResolver implements SchemaResolver {
     public String resolve(@NonNull Object object, @NonNull MessageField field) {
 
         if ((field.getMetadataOptions() != null) && (object instanceof Number)) {
-            int intValue = new BigDecimal(String.valueOf(object)).intValueExact();
+            int intValue = new BigDecimal(String.valueOf(object)).intValue();
             try {
                 if (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale())) {
                     return Pluralize.pluralize(field.getLocale(), intValue, field.getMetadataOptions());
