@@ -39,6 +39,11 @@ public class DefaultSchemaResolver implements SchemaResolver {
     @Override
     public String resolve(@NonNull Object object, @NonNull MessageField field) {
 
+        if ((field.getMetadataRaw() != null) && (object instanceof Number) && (field.getMetadataRaw().length() > 1) && (field.getMetadataRaw().charAt(0) == '%')) {
+            double doubleValue = new BigDecimal(String.valueOf(object)).doubleValue();
+            return String.format(field.getLocale(), field.getMetadataRaw(), doubleValue);
+        }
+
         if ((field.getMetadataOptions() != null) && (object instanceof Number)) {
             int intValue = new BigDecimal(String.valueOf(object)).intValue();
             try {
@@ -58,11 +63,6 @@ public class DefaultSchemaResolver implements SchemaResolver {
 
         if ((field.getMetadataOptions() != null) && (object instanceof Boolean) && (field.getMetadataOptions().length == 2)) {
             return ((Boolean) object) ? field.getMetadataOptions()[0] : field.getMetadataOptions()[1];
-        }
-
-        if ((field.getMetadataRaw() != null) && (object instanceof Number) && (field.getMetadataRaw().length() > 1) && (field.getMetadataRaw().charAt(0) == '%')) {
-            double doubleValue = new BigDecimal(String.valueOf(object)).doubleValue();
-            return String.format(field.getLocale(), field.getMetadataRaw(), doubleValue);
         }
 
         if ((field.getMetadataRaw() != null) && (object instanceof Instant)) {
