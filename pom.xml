@@ -7,7 +7,7 @@
     <groupId>eu.okaeri</groupId>
     <artifactId>okaeri-placeholders</artifactId>
     <packaging>pom</packaging>
-    <version>4.0.6</version>
+    <version>4.0.7</version>
 
     <modules>
         <module>core</module>
