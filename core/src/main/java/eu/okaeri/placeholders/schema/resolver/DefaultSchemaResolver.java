@@ -39,10 +39,12 @@ public class DefaultSchemaResolver implements SchemaResolver {
     @Override
     public String resolve(@NonNull Object object, @NonNull MessageField field) {
 
-        if ((field.getMetadataOptions() != null) && (object instanceof Number) && (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale()))) {
+        if ((field.getMetadataOptions() != null) && (object instanceof Number)) {
             int intValue = new BigDecimal(String.valueOf(object)).intValueExact();
             try {
-                return Pluralize.pluralize(field.getLocale(), intValue, field.getMetadataOptions());
+                if (field.getMetadataOptions().length == Pluralize.plurals(field.getLocale())) {
+                    return Pluralize.pluralize(field.getLocale(), intValue, field.getMetadataOptions());
+                }
             }
             catch (IllegalArgumentException exception) {
                 try {
