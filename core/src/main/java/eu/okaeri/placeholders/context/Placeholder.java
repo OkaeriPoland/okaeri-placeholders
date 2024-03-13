@@ -58,7 +58,7 @@ public class Placeholder {
                     }
                     return ("<noresolver:" + field.getName() + "@" + fieldSub.getName() + ">");
                 }
-                object = resolver.resolve(object, fieldSub.getParams(), this.context);
+                object = resolver.resolve(object, fieldSub, this.context);
                 if (fieldSub.hasSub()) {
                     return this.render(object, fieldSub);
                 }
@@ -66,7 +66,7 @@ public class Placeholder {
             else {
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
                 if (resolver != null) {
-                    object = resolver.resolve(object, field.getParams(), this.context);
+                    object = resolver.resolve(object, field, this.context);
                 }
             }
         }
@@ -102,7 +102,7 @@ public class Placeholder {
             throw new RuntimeException("resolver cannot be null: " + fieldSub.getName());
         }
 
-        Object resolved = resolver.resolve(object, fieldSub.getParams(), this.context);
+        Object resolved = resolver.resolve(object, fieldSub, this.context);
         return this.render(resolved, fieldSub);
     }
 }
