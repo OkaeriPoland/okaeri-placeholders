@@ -2,9 +2,12 @@ package eu.okaeri.placeholders;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
-import eu.okaeri.placeholders.message.part.FieldParams;
+import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -91,20 +94,22 @@ public class Placeholders {
         return this;
     }
 
+    @Deprecated
     @SuppressWarnings("unchecked")
     public Object readValue(@NonNull Object from) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, null);
         if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from, FieldParams.empty(null), null);
+            return placeholderResolver.resolve(from, MessageField.unknown(), null);
         }
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass());
     }
 
+    @Deprecated
     @SuppressWarnings("unchecked")
     public Object readValue(@NonNull Object from, @Nullable String param) {
         PlaceholderResolver placeholderResolver = this.getResolver(from, param);
         if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from, FieldParams.empty(param), null);
+            return placeholderResolver.resolve(from, MessageField.unknown(), null);
         }
         throw new IllegalArgumentException("cannot find resolver for " + from.getClass() + ": " + param);
     }

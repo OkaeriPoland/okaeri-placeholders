@@ -2,6 +2,7 @@ package eu.okaeri.placeholders;
 
 import java.time.Duration;
 import java.util.Locale;
+import java.util.Map;
 
 public class DefaultPlaceholderPack implements PlaceholderPack {
 
@@ -61,70 +62,95 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
     public void register(Placeholders placeholders) {
 
         // Duration
-        placeholders.registerPlaceholder(Duration.class, "days", (dur, p, o) -> dur.getSeconds() / 86400L);
-        placeholders.registerPlaceholder(Duration.class, "hours", (dur, p, o) -> dur.toHours() % 24L);
-        placeholders.registerPlaceholder(Duration.class, "minutes", (dur, p, o) -> dur.toMinutes() % 60L);
-        placeholders.registerPlaceholder(Duration.class, "seconds", (dur, p, o) -> dur.getSeconds() % 60L);
-        placeholders.registerPlaceholder(Duration.class, "millis", (dur, p, o) -> dur.getNano() / 1_000_000L);
-        placeholders.registerPlaceholder(Duration.class, "nanos", (dur, p, o) -> (dur.getNano() >= 1_000_000L) ? 0L : dur.getNano());
-        placeholders.registerPlaceholder(Duration.class, (dur, p, o) -> simpleDuration(dur, SimpleDurationAccuracy.valueOf(p.strAt(0, "s"))));
+        placeholders.registerPlaceholder(Duration.class, "days", (dur, a, o) -> dur.getSeconds() / 86400L);
+        placeholders.registerPlaceholder(Duration.class, "hours", (dur, a, o) -> dur.toHours() % 24L);
+        placeholders.registerPlaceholder(Duration.class, "minutes", (dur, a, o) -> dur.toMinutes() % 60L);
+        placeholders.registerPlaceholder(Duration.class, "seconds", (dur, a, o) -> dur.getSeconds() % 60L);
+        placeholders.registerPlaceholder(Duration.class, "millis", (dur, a, o) -> dur.getNano() / 1_000_000L);
+        placeholders.registerPlaceholder(Duration.class, "nanos", (dur, a, o) -> (dur.getNano() >= 1_000_000L) ? 0L : dur.getNano());
+        placeholders.registerPlaceholder(Duration.class, (dur, a, o) -> simpleDuration(dur, SimpleDurationAccuracy.valueOf(a.params().strAt(0, "s"))));
 
         // Enum
-        placeholders.registerPlaceholder(Enum.class, "name", (e, p, o) -> e.name());
-        placeholders.registerPlaceholder(Enum.class, "ordinal", (e, p, o) -> e.ordinal());
-        placeholders.registerPlaceholder(Enum.class, "pretty", (e, p, o) -> capitalizeFully(e.name().replace("_", " ")));
+        placeholders.registerPlaceholder(Enum.class, "name", (e, a, o) -> e.name());
+        placeholders.registerPlaceholder(Enum.class, "ordinal", (e, a, o) -> e.ordinal());
+        placeholders.registerPlaceholder(Enum.class, "pretty", (e, a, o) -> capitalizeFully(e.name().replace("_", " ")));
 
         // Integer
-        placeholders.registerPlaceholder(Integer.class, "divide", (num, p, o) -> num / p.intAt(0));
-        placeholders.registerPlaceholder(Integer.class, "multiply", (num, p, o) -> num * p.intAt(0));
-        placeholders.registerPlaceholder(Integer.class, "minus", (num, p, o) -> num - p.intAt(0));
-        placeholders.registerPlaceholder(Integer.class, "subtract", (num, p, o) -> num - p.intAt(0));
-        placeholders.registerPlaceholder(Integer.class, "plus", (num, p, o) -> num + p.intAt(0));
-        placeholders.registerPlaceholder(Integer.class, "add", (num, p, o) -> num + p.intAt(0));
+        placeholders.registerPlaceholder(Integer.class, "divide", (num, a, o) -> num / a.params().intAt(0));
+        placeholders.registerPlaceholder(Integer.class, "multiply", (num, a, o) -> num * a.params().intAt(0));
+        placeholders.registerPlaceholder(Integer.class, "minus", (num, a, o) -> num - a.params().intAt(0));
+        placeholders.registerPlaceholder(Integer.class, "subtract", (num, a, o) -> num - a.params().intAt(0));
+        placeholders.registerPlaceholder(Integer.class, "plus", (num, a, o) -> num + a.params().intAt(0));
+        placeholders.registerPlaceholder(Integer.class, "add", (num, a, o) -> num + a.params().intAt(0));
 
         // Double
-        placeholders.registerPlaceholder(Double.class, "divide", (num, p, o) -> num / p.doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "multiply", (num, p, o) -> num * p.doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "minus", (num, p, o) -> num - p.doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "subtract", (num, p, o) -> num - p.doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "plus", (num, p, o) -> num + p.doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "add", (num, p, o) -> num + p.doubleAt(0));
+        placeholders.registerPlaceholder(Double.class, "divide", (num, a, o) -> num / a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Double.class, "multiply", (num, a, o) -> num * a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Double.class, "minus", (num, a, o) -> num - a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Double.class, "subtract", (num, a, o) -> num - a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Double.class, "plus", (num, a, o) -> num + a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Double.class, "add", (num, a, o) -> num + a.params().doubleAt(0));
 
         // Float
-        placeholders.registerPlaceholder(Float.class, "divide", (num, p, o) -> num / p.doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "multiply", (num, p, o) -> num * p.doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "minus", (num, p, o) -> num - p.doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "subtract", (num, p, o) -> num - p.doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "plus", (num, p, o) -> num + p.doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "add", (num, p, o) -> num + p.doubleAt(0));
+        placeholders.registerPlaceholder(Float.class, "divide", (num, a, o) -> num / a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Float.class, "multiply", (num, a, o) -> num * a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Float.class, "minus", (num, a, o) -> num - a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Float.class, "subtract", (num, a, o) -> num - a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Float.class, "plus", (num, a, o) -> num + a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Float.class, "add", (num, a, o) -> num + a.params().doubleAt(0));
 
         // Short
-        placeholders.registerPlaceholder(Short.class, "divide", (num, p, o) -> num / p.doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "multiply", (num, p, o) -> num * p.doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "minus", (num, p, o) -> num - p.doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "subtract", (num, p, o) -> num - p.doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "plus", (num, p, o) -> num + p.doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "add", (num, p, o) -> num + p.doubleAt(0));
+        placeholders.registerPlaceholder(Short.class, "divide", (num, a, o) -> num / a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Short.class, "multiply", (num, a, o) -> num * a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Short.class, "minus", (num, a, o) -> num - a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Short.class, "subtract", (num, a, o) -> num - a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Short.class, "plus", (num, a, o) -> num + a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Short.class, "add", (num, a, o) -> num + a.params().doubleAt(0));
 
         // Byte
-        placeholders.registerPlaceholder(Byte.class, "divide", (num, p, o) -> num / p.doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "multiply", (num, p, o) -> num * p.doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "minus", (num, p, o) -> num - p.doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "subtract", (num, p, o) -> num - p.doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "plus", (num, p, o) -> num + p.doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "add", (num, p, o) -> num + p.doubleAt(0));
+        placeholders.registerPlaceholder(Byte.class, "divide", (num, a, o) -> num / a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Byte.class, "multiply", (num, a, o) -> num * a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Byte.class, "minus", (num, a, o) -> num - a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Byte.class, "subtract", (num, a, o) -> num - a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Byte.class, "plus", (num, a, o) -> num + a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Byte.class, "add", (num, a, o) -> num + a.params().doubleAt(0));
 
         // String
-        placeholders.registerPlaceholder(String.class, "toLowerCase", (str, p, o) -> str.toLowerCase(Locale.ROOT));
-        placeholders.registerPlaceholder(String.class, "toUpperCase", (str, p, o) -> str.toUpperCase(Locale.ROOT));
-        placeholders.registerPlaceholder(String.class, "replace", (str, p, o) -> {
-            String search = p.strAt(0, "");
-            String replacement = p.strAt(1, "");
+        placeholders.registerPlaceholder(String.class, "toLowerCase", (str, a, o) -> str.toLowerCase(Locale.ROOT));
+        placeholders.registerPlaceholder(String.class, "toUpperCase", (str, a, o) -> str.toUpperCase(Locale.ROOT));
+        placeholders.registerPlaceholder(String.class, "replace", (str, a, o) -> {
+            String search = a.params().strAt(0, "");
+            String replacement = a.params().strAt(1, "");
             return str.replace(search, replacement);
         });
-        placeholders.registerPlaceholder(String.class, "capitalize", (str, p, o) -> capitalize(str));
-        placeholders.registerPlaceholder(String.class, "capitalizeFully", (str, p, o) -> capitalizeFully(str));
-        placeholders.registerPlaceholder(String.class, "prepend", (str, p, o) -> p.strAt(0, "") + str);
-        placeholders.registerPlaceholder(String.class, "append", (str, p, o) -> str + p.strAt(0, ""));
+        placeholders.registerPlaceholder(String.class, "capitalize", (str, a, o) -> capitalize(str));
+        placeholders.registerPlaceholder(String.class, "capitalizeFully", (str, a, o) -> capitalizeFully(str));
+        placeholders.registerPlaceholder(String.class, "prepend", (str, a, o) -> a.params().strAt(0, "") + str);
+        placeholders.registerPlaceholder(String.class, "append", (str, a, o) -> str + a.params().strAt(0, ""));
+
+        // Map
+        placeholders.registerPlaceholder(Map.class, "localized", (map, a, o) -> {
+
+            if (map.isEmpty()) {
+                return null;
+            }
+
+            Locale locale = a.locale();
+            if (locale == null) {
+                locale = Locale.ENGLISH;
+            }
+
+            Object result = map.get(locale);
+            if (result == null) {
+                result = map.get(Locale.forLanguageTag(locale.getLanguage()));
+            }
+
+            if (result == null) {
+                //noinspection unchecked
+                result = map.get(map.keySet().stream().findFirst().get());
+            }
+
+            return result;
+        });
     }
 }

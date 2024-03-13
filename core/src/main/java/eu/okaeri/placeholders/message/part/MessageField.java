@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 @Data
 @EqualsAndHashCode(exclude = "raw")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class MessageField implements MessageElement {
+public class MessageField implements MessageElement, MessageFieldAccessor {
 
     private static final Pattern PATH_ELEMENT_PATTERN = Pattern.compile("^(?<name>[^\\s(]+)(?:\\((?<params>.*)\\))?$");
 
@@ -29,6 +29,11 @@ public class MessageField implements MessageElement {
     private MessageField lastSub;
     private String[] metadataOptions;
     private FieldParams params;
+
+    @Deprecated
+    public static MessageField unknown() {
+        return MessageField.of("unknown");
+    }
 
     public static MessageField of(@NonNull String source) {
         return of(Locale.ENGLISH, source);
@@ -148,5 +153,20 @@ public class MessageField implements MessageElement {
                 .replace("\\;", ";");
         }
         return options;
+    }
+
+    @Override
+    public Locale locale() {
+        return this.getLocale();
+    }
+
+    @Override
+    public FieldParams params() {
+        return this.getParams();
+    }
+
+    @Override
+    public MessageField unsafe() {
+        return this;
     }
 }

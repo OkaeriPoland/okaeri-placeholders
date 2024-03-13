@@ -39,13 +39,13 @@ public class TestSchema {
     public void test_read_schema_external_1() {
 
         Placeholders placeholders = Placeholders.create()
-            .registerPlaceholder(ExternalItem.class, "type", (e, p, o) -> e.getType())
-            .registerPlaceholder(ExternalItem.class, "amount", (e, p, o) -> e.getAmount())
-            .registerPlaceholder(ExternalItem.class, "damage", (e, p, o) -> e.getDamage())
-            .registerPlaceholder(ExternalItem.class, "data", (e, p, o) -> e.getData())
-            .registerPlaceholder(ExternalItem.class, "meta", (e, p, o) -> e.getMeta())
-            .registerPlaceholder(ExternalMeta.class, "name", (e, p, o) -> e.getName())
-            .registerPlaceholder(ExternalMeta.class, "lore", (e, p, o) -> e.getLore());
+            .registerPlaceholder(ExternalItem.class, "type", (e, a, o) -> e.getType())
+            .registerPlaceholder(ExternalItem.class, "amount", (e, a, o) -> e.getAmount())
+            .registerPlaceholder(ExternalItem.class, "damage", (e, a, o) -> e.getDamage())
+            .registerPlaceholder(ExternalItem.class, "data", (e, a, o) -> e.getData())
+            .registerPlaceholder(ExternalItem.class, "meta", (e, a, o) -> e.getMeta())
+            .registerPlaceholder(ExternalMeta.class, "name", (e, a, o) -> e.getName())
+            .registerPlaceholder(ExternalMeta.class, "lore", (e, a, o) -> e.getLore());
 
         ExternalItem item = new ExternalItem();
         item.setAmount(123);
@@ -68,13 +68,13 @@ public class TestSchema {
     public void test_read_schema_external_2() {
 
         Placeholders placeholders = Placeholders.create()
-            .registerPlaceholder(ExternalItem.class, "type", (e, p, o) -> e.getType())
-            .registerPlaceholder(ExternalItem.class, "amount", (e, p, o) -> e.getAmount())
-            .registerPlaceholder(ExternalItem.class, "damage", (e, p, o) -> e.getDamage())
-            .registerPlaceholder(ExternalItem.class, "data", (e, p, o) -> e.getData())
-            .registerPlaceholder(ExternalItem.class, "meta", (e, p, o) -> e.getMeta())
-            .registerPlaceholder(ExternalMeta.class, "name", (e, p, o) -> e.getName())
-            .registerPlaceholder(ExternalMeta.class, "lore", (e, p, o) -> e.getLore());
+            .registerPlaceholder(ExternalItem.class, "type", (e, a, o) -> e.getType())
+            .registerPlaceholder(ExternalItem.class, "amount", (e, a, o) -> e.getAmount())
+            .registerPlaceholder(ExternalItem.class, "damage", (e, a, o) -> e.getDamage())
+            .registerPlaceholder(ExternalItem.class, "data", (e, a, o) -> e.getData())
+            .registerPlaceholder(ExternalItem.class, "meta", (e, a, o) -> e.getMeta())
+            .registerPlaceholder(ExternalMeta.class, "name", (e, a, o) -> e.getName())
+            .registerPlaceholder(ExternalMeta.class, "lore", (e, a, o) -> e.getLore());
 
         ExternalItem item = new ExternalItem();
         item.setAmount(123);
@@ -94,13 +94,13 @@ public class TestSchema {
     public void test_read_schema_external_3() {
 
         Placeholders placeholders = Placeholders.create()
-            .registerPlaceholder(ExternalItem.class, "type", (e, p, o) -> e.getType())
-            .registerPlaceholder(ExternalItem.class, "amount", (e, p, o) -> e.getAmount())
-            .registerPlaceholder(ExternalItem.class, "damage", (e, p, o) -> e.getDamage())
-            .registerPlaceholder(ExternalItem.class, "data", (e, p, o) -> e.getData())
-            .registerPlaceholder(ExternalItem.class, "meta", (e, p, o) -> e.getMeta())
-            .registerPlaceholder(ExternalMeta.class, "name", (e, p, o) -> e.getName())
-            .registerPlaceholder(ExternalMeta.class, "lore", (e, p, o) -> e.getLore());
+            .registerPlaceholder(ExternalItem.class, "type", (e, a, o) -> e.getType())
+            .registerPlaceholder(ExternalItem.class, "amount", (e, a, o) -> e.getAmount())
+            .registerPlaceholder(ExternalItem.class, "damage", (e, a, o) -> e.getDamage())
+            .registerPlaceholder(ExternalItem.class, "data", (e, a, o) -> e.getData())
+            .registerPlaceholder(ExternalItem.class, "meta", (e, a, o) -> e.getMeta())
+            .registerPlaceholder(ExternalMeta.class, "name", (e, a, o) -> e.getName())
+            .registerPlaceholder(ExternalMeta.class, "lore", (e, a, o) -> e.getLore());
 
         ExternalItem item = new ExternalItem();
         item.setAmount(123);
@@ -123,13 +123,13 @@ public class TestSchema {
     public void test_read_schema_external_4() {
 
         Placeholders placeholders = Placeholders.create()
-            .registerPlaceholder(ExternalItem.class, "type", (e, p, o) -> e.getType())
-            .registerPlaceholder(ExternalItem.class, "amount", (e, p, o) -> e.getAmount())
-            .registerPlaceholder(ExternalItem.class, "damage", (e, p, o) -> e.getDamage())
-            .registerPlaceholder(ExternalItem.class, "data", (e, p, o) -> e.getData())
-            .registerPlaceholder(ExternalItem.class, "meta", (e, p, o) -> e.getMeta())
-            .registerPlaceholder(ExternalMeta.class, "name", (e, p, o) -> e.getName())
-            .registerPlaceholder(ExternalMeta.class, "lore", (e, p, o) -> e.getLore());
+            .registerPlaceholder(ExternalItem.class, "type", (e, a, o) -> e.getType())
+            .registerPlaceholder(ExternalItem.class, "amount", (e, a, o) -> e.getAmount())
+            .registerPlaceholder(ExternalItem.class, "damage", (e, a, o) -> e.getDamage())
+            .registerPlaceholder(ExternalItem.class, "data", (e, a, o) -> e.getData())
+            .registerPlaceholder(ExternalItem.class, "meta", (e, a, o) -> e.getMeta())
+            .registerPlaceholder(ExternalMeta.class, "name", (e, a, o) -> e.getName())
+            .registerPlaceholder(ExternalMeta.class, "lore", (e, a, o) -> e.getLore());
 
         ExternalItem item = new ExternalItem();
         item.setAmount(123);
@@ -152,14 +152,14 @@ public class TestSchema {
     public void test_read_schema_external_5() {
 
         Placeholders placeholders = Placeholders.create()
-            .registerPlaceholder(ExternalItem.class, "type", (e, p, o) -> e.getType())
-            .registerPlaceholder(ExternalItem.class, "amount", (e, p, o) -> e.getAmount())
-            .registerPlaceholder(ExternalItem.class, "damage", (e, p, o) -> e.getDamage())
-            .registerPlaceholder(ExternalItem.class, "data", (e, p, o) -> e.getData())
-            .registerPlaceholder(ExternalItem.class, "meta", (e, p, o) -> e.getMeta())
-            .registerPlaceholder(ExternalMeta.class, "name", (e, p, o) -> e.getName())
-            .registerPlaceholder(ExternalMeta.class, "lore", (e, p, o) -> e.getLore())
-            .registerPlaceholder(ExternalItem.class, "typeEnum", (e, p, o) -> e.getTypeEnum());
+            .registerPlaceholder(ExternalItem.class, "type", (e, a, o) -> e.getType())
+            .registerPlaceholder(ExternalItem.class, "amount", (e, a, o) -> e.getAmount())
+            .registerPlaceholder(ExternalItem.class, "damage", (e, a, o) -> e.getDamage())
+            .registerPlaceholder(ExternalItem.class, "data", (e, a, o) -> e.getData())
+            .registerPlaceholder(ExternalItem.class, "meta", (e, a, o) -> e.getMeta())
+            .registerPlaceholder(ExternalMeta.class, "name", (e, a, o) -> e.getName())
+            .registerPlaceholder(ExternalMeta.class, "lore", (e, a, o) -> e.getLore())
+            .registerPlaceholder(ExternalItem.class, "typeEnum", (e, a, o) -> e.getTypeEnum());
 
         ExternalItem item = new ExternalItem();
         item.setAmount(123);
@@ -183,14 +183,14 @@ public class TestSchema {
     public void test_read_schema_external_7() {
 
         Placeholders placeholders = Placeholders.create(true)
-            .registerPlaceholder(ExternalItem.class, "type", (e, p, o) -> e.getType())
-            .registerPlaceholder(ExternalItem.class, "amount", (e, p, o) -> e.getAmount())
-            .registerPlaceholder(ExternalItem.class, "damage", (e, p, o) -> e.getDamage())
-            .registerPlaceholder(ExternalItem.class, "data", (e, p, o) -> e.getData())
-            .registerPlaceholder(ExternalItem.class, "meta", (e, p, o) -> e.getMeta())
-            .registerPlaceholder(ExternalMeta.class, "name", (e, p, o) -> e.getName())
-            .registerPlaceholder(ExternalMeta.class, "lore", (e, p, o) -> e.getLore())
-            .registerPlaceholder(ExternalItem.class, "typeEnum", (e, p, o) -> e.getTypeEnum());
+            .registerPlaceholder(ExternalItem.class, "type", (e, a, o) -> e.getType())
+            .registerPlaceholder(ExternalItem.class, "amount", (e, a, o) -> e.getAmount())
+            .registerPlaceholder(ExternalItem.class, "damage", (e, a, o) -> e.getDamage())
+            .registerPlaceholder(ExternalItem.class, "data", (e, a, o) -> e.getData())
+            .registerPlaceholder(ExternalItem.class, "meta", (e, a, o) -> e.getMeta())
+            .registerPlaceholder(ExternalMeta.class, "name", (e, a, o) -> e.getName())
+            .registerPlaceholder(ExternalMeta.class, "lore", (e, a, o) -> e.getLore())
+            .registerPlaceholder(ExternalItem.class, "typeEnum", (e, a, o) -> e.getTypeEnum());
 
         ExternalItem item = new ExternalItem();
         item.setAmount(123);
@@ -214,14 +214,14 @@ public class TestSchema {
     public void test_read_schema_external_8() {
 
         Placeholders placeholders = Placeholders.create(true)
-            .registerPlaceholder(ExternalItem.class, "type", (e, p, o) -> e.getType())
-            .registerPlaceholder(ExternalItem.class, "amount", (e, p, o) -> e.getAmount())
-            .registerPlaceholder(ExternalItem.class, "damage", (e, p, o) -> e.getDamage())
-            .registerPlaceholder(ExternalItem.class, "data", (e, p, o) -> e.getData())
-            .registerPlaceholder(ExternalItem.class, "meta", (e, p, o) -> e.getMeta())
-            .registerPlaceholder(ExternalMeta.class, "name", (e, p, o) -> e.getName())
-            .registerPlaceholder(ExternalMeta.class, "lore", (e, p, o) -> e.getLore())
-            .registerPlaceholder(ExternalItem.class, "typeEnum", (e, p, o) -> e.getTypeEnum());
+            .registerPlaceholder(ExternalItem.class, "type", (e, a, o) -> e.getType())
+            .registerPlaceholder(ExternalItem.class, "amount", (e, a, o) -> e.getAmount())
+            .registerPlaceholder(ExternalItem.class, "damage", (e, a, o) -> e.getDamage())
+            .registerPlaceholder(ExternalItem.class, "data", (e, a, o) -> e.getData())
+            .registerPlaceholder(ExternalItem.class, "meta", (e, a, o) -> e.getMeta())
+            .registerPlaceholder(ExternalMeta.class, "name", (e, a, o) -> e.getName())
+            .registerPlaceholder(ExternalMeta.class, "lore", (e, a, o) -> e.getLore())
+            .registerPlaceholder(ExternalItem.class, "typeEnum", (e, a, o) -> e.getTypeEnum());
 
         ExternalItem item = new ExternalItem();
         item.setAmount(123);
@@ -245,14 +245,14 @@ public class TestSchema {
     public void test_read_schema_external_9() {
 
         Placeholders placeholders = Placeholders.create(true)
-            .registerPlaceholder(ExternalItem.class, "type", (e, p, o) -> e.getType())
-            .registerPlaceholder(ExternalItem.class, "amount", (e, p, o) -> e.getAmount())
-            .registerPlaceholder(ExternalItem.class, "damage", (e, p, o) -> e.getDamage())
-            .registerPlaceholder(ExternalItem.class, "data", (e, p, o) -> e.getData())
-            .registerPlaceholder(ExternalItem.class, "meta", (e, p, o) -> e.getMeta())
-            .registerPlaceholder(ExternalMeta.class, "name", (e, p, o) -> e.getName())
-            .registerPlaceholder(ExternalMeta.class, "lore", (e, p, o) -> e.getLore())
-            .registerPlaceholder(ExternalItem.class, "typeEnum", (e, p, o) -> e.getTypeEnum());
+            .registerPlaceholder(ExternalItem.class, "type", (e, a, o) -> e.getType())
+            .registerPlaceholder(ExternalItem.class, "amount", (e, a, o) -> e.getAmount())
+            .registerPlaceholder(ExternalItem.class, "damage", (e, a, o) -> e.getDamage())
+            .registerPlaceholder(ExternalItem.class, "data", (e, a, o) -> e.getData())
+            .registerPlaceholder(ExternalItem.class, "meta", (e, a, o) -> e.getMeta())
+            .registerPlaceholder(ExternalMeta.class, "name", (e, a, o) -> e.getName())
+            .registerPlaceholder(ExternalMeta.class, "lore", (e, a, o) -> e.getLore())
+            .registerPlaceholder(ExternalItem.class, "typeEnum", (e, a, o) -> e.getTypeEnum());
 
         ExternalItem item = new ExternalItem();
         item.setAmount(123);

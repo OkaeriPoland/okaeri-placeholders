@@ -4,6 +4,7 @@ import eu.okaeri.placeholders.context.Placeholder;
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.part.FieldParams;
+import eu.okaeri.placeholders.message.part.MessageFieldAccessor;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -33,29 +34,31 @@ public class ReflectResolver implements PlaceholderResolver {
     }
 
     @Override
-    public Object resolve(@NotNull Object object, @NotNull FieldParams params, @Nullable PlaceholderContext context) {
+    public Object resolve(@NotNull Object object, @NonNull MessageFieldAccessor accessor, @Nullable PlaceholderContext context) {
 
         Class<?> clazz = object.getClass();
-        String name = params.getField();
+        String name = accessor.params().getField();
 
         Object[] resolved = new Object[0];
         if (object instanceof Class) {
-            resolved = this.resolve(object, (Class<?>) object, params, context);
+            resolved = this.resolve(object, (Class<?>) object, accessor, context);
         }
 
         if (resolved.length == 0) {
-            resolved = this.resolve(object, clazz, params, context);
+            resolved = this.resolve(object, clazz, accessor, context);
         }
 
         if (resolved.length > 0) {
             return resolved[0];
         }
 
-        throw new RuntimeException("Cannot reflect " + params + " for " + object + " [" + clazz + "]");
+        throw new RuntimeException("Cannot reflect " + accessor + " for " + object + " [" + clazz + "]");
     }
 
     @SneakyThrows
-    private Object[] resolve(@NonNull Object object, @NonNull Class<?> clazz, @NonNull FieldParams params, @Nullable PlaceholderContext context) {
+    private Object[] resolve(@NonNull Object object, @NonNull Class<?> clazz, @NonNull MessageFieldAccessor accessor, @Nullable PlaceholderContext context) {
+
+        FieldParams params = accessor.params();
 
         // field
         Field field = this.getField(clazz, params.getField());
