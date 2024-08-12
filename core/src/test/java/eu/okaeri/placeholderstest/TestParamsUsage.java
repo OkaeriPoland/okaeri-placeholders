@@ -192,4 +192,57 @@ public class TestParamsUsage {
         assertEquals("", sub.getParams().strAt(0));
         assertArrayEquals(new String[]{""}, sub.getParams().strArr());
     }
+
+    @Test
+    public void test_params_10() {
+        CompiledMessage message = CompiledMessage.of("?? {player.papi(okapibridge_player.name)} ???");
+
+        assertEquals(3, message.getParts().size());
+        assertEquals(MessageStatic.of("?? "), message.getParts().get(0));
+
+        MessageField field = (MessageField) message.getParts().get(1);
+        assertEquals("player.papi", field.getLastSubPath());
+        assertNotNull(field.getSub());
+
+        MessageField sub = field.getSub();
+        assertArrayEquals(new String[]{"okapibridge_player.name"}, sub.getParams().strArr());
+
+        assertEquals(MessageStatic.of(" ???"), message.getParts().get(2));
+    }
+
+    @Test
+    public void test_params_11() {
+        CompiledMessage message = CompiledMessage.of("?? {player.papi(okapibridge_player.papi(okapibridge_player.name))} ???");
+
+        assertEquals(3, message.getParts().size());
+        assertEquals(MessageStatic.of("?? "), message.getParts().get(0));
+
+        MessageField field = (MessageField) message.getParts().get(1);
+        assertEquals("player.papi", field.getLastSubPath());
+        assertNotNull(field.getSub());
+
+        MessageField sub = field.getSub();
+        assertArrayEquals(new String[]{"okapibridge_player.papi(okapibridge_player.name)"}, sub.getParams().strArr());
+
+        assertEquals(MessageStatic.of(" ???"), message.getParts().get(2));
+    }
+
+    @Test
+    public void test_params_12() {
+        CompiledMessage message = CompiledMessage.of("yikes  {a.b.c(1,2).f.g(33(),.4,.()5)}");
+
+        assertEquals(2, message.getParts().size());
+        assertEquals(MessageStatic.of("yikes  "), message.getParts().get(0));
+
+        MessageField field = (MessageField) message.getParts().get(1);
+        assertEquals("a.b.c.f.g", field.getLastSubPath());
+
+        assertNotNull(field.getSub());
+        assertNotNull(field.getSub().getSub());
+        assertArrayEquals(new String[]{"1", "2"}, field.getSub().getSub().getParams().strArr());
+
+        assertNotNull(field.getSub().getSub().getSub());
+        assertNotNull(field.getSub().getSub().getSub().getSub());
+        assertArrayEquals(new String[]{"33()", ".4", ".()5"}, field.getSub().getSub().getSub().getSub().getParams().strArr());
+    }
 }
