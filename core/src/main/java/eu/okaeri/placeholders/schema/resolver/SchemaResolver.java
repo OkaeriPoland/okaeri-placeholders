@@ -9,5 +9,6 @@ public interface SchemaResolver {
 
     String resolve(Object object, MessageField field);
 
+    @Deprecated
     String resolve(Object object);
 }
