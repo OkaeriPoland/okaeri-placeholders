@@ -12,6 +12,7 @@
     <modules>
         <module>core</module>
         <module>bukkit</module>
+        <module>bukkit-placeholderapi</module>
         <module>bungee</module>
         <module>reflect</module>
     </modules>
