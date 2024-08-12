@@ -11,7 +11,7 @@ Add dependency to the `dependencies` section:
 <dependency>
   <groupId>eu.okaeri</groupId>
   <artifactId>okaeri-placeholders-bungee</artifactId>
-  <version>5.0.1</version>
+  <version>5.1.0</version>
 </dependency>
 ```
 
@@ -19,7 +19,7 @@ Add dependency to the `dependencies` section:
 
 Add dependency to the `maven` section:
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-bungee:5.0.1'
+implementation 'eu.okaeri:okaeri-placeholders-bungee:5.1.0'
 ```
 
 Note: It is most of the time (especially when description states that variable can be null)
