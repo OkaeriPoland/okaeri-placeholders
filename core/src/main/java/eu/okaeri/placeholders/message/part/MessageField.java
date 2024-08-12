@@ -3,32 +3,30 @@ package eu.okaeri.placeholders.message.part;
 import lombok.*;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Data
 @EqualsAndHashCode(exclude = "raw")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MessageField implements MessageElement, MessageFieldAccessor {
 
-    private static final Pattern PATH_ELEMENT_PATTERN = Pattern.compile("^(?<name>[^\\s(]+)(?:\\((?<params>.*)\\))?$");
+    private static final MessageFieldTokenizer TOKENIZER = new MessageFieldTokenizer();
 
     private final Locale locale;
     private final String name;
     private final String source;
-    @Nullable private final MessageField sub;
+    private final @Nullable MessageField sub;
 
-    @Nullable private String defaultValue;
-    @Nullable private String metadataRaw;
-    @Nullable private String paramsRaw;
-    @Nullable private String raw;
+    private @Nullable String defaultValue;
+    private @Nullable String metadataRaw;
+    private @Nullable String raw;
+    private @Getter FieldParams params;
 
     // cached values
     private String lastSubPath;
     private MessageField lastSub;
     private String[] metadataOptions;
-    private FieldParams params;
 
     @Deprecated
     public static MessageField unknown() {
@@ -41,23 +39,13 @@ public class MessageField implements MessageElement, MessageFieldAccessor {
 
     public static MessageField of(@NonNull Locale locale, @NonNull String source) {
 
-        String[] parts = source.split("\\.");
+        List<FieldParams> parts = TOKENIZER.tokenize(source);
         MessageField field = null;
 
-        for (int i = parts.length - 1; i >= 0; i--) {
-
-            String pathElement = parts[i];
-            Matcher matcher = PATH_ELEMENT_PATTERN.matcher(pathElement);
-
-            if (!matcher.find()) {
-                throw new RuntimeException("invalid field path element: " + pathElement);
-            }
-
-            String fieldRealName = matcher.group("name");
-            String fieldParams = matcher.group("params");
-
-            field = new MessageField(locale, fieldRealName, source, field);
-            field.setParamsRaw(fieldParams);
+        for (int i = parts.size() - 1; i >= 0; i--) {
+            FieldParams pathElement = parts.get(i);
+            field = new MessageField(locale, pathElement.getField(), source, field);
+            field.setParams(pathElement);
         }
 
         if (field != null) { // load caches
@@ -132,27 +120,7 @@ public class MessageField implements MessageElement, MessageFieldAccessor {
         if (this.metadataRaw == null) {
             return;
         }
-        this.metadataOptions = splitPartsWithEscape(this.metadataRaw);
-    }
-
-    public FieldParams getParams() {
-        if (this.paramsRaw == null) {
-            this.params = FieldParams.empty(this.name);
-        }
-        if (this.params == null) {
-            this.params = FieldParams.of(this.name, splitPartsWithEscape(this.paramsRaw));
-        }
-        return this.params;
-    }
-
-    private static String[] splitPartsWithEscape(String text) {
-        String[] options = text.split("(?<!\\\\)(?:;|,)");
-        for (int i = 0; i < options.length; i++) {
-            options[i] = options[i]
-                .replace("\\,", ",")
-                .replace("\\;", ";");
-        }
-        return options;
+        this.metadataOptions = TOKENIZER.tokenizeArgs(this.metadataRaw).toArray(new String[0]);
     }
 
     @Override
