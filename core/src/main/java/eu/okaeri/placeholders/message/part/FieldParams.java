@@ -22,6 +22,10 @@ public class FieldParams {
         return new FieldParams(field, new String[]{});
     }
 
+    public int length() {
+        return this.params.length;
+    }
+
     public String[] strArr() {
         return this.params;
     }
