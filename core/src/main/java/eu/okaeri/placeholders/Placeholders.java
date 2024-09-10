@@ -119,29 +119,40 @@ public class Placeholders {
         Class<?> fromClass = from.getClass();
         Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(fromClass);
 
-        if (resolverMap == null) {
+        if (resolverMap != null) {
+            PlaceholderResolver resolver = resolverMap.get(param);
+            if (resolver != null) {
+                return resolver;
+            }
+        }
 
-            for (Class<?> potentialType : this.resolversOrdered) {
-                if (potentialType.isAssignableFrom(fromClass)) {
+        PlaceholderResolver resolver = this.findResolverOrNull(from, param);
+        if (resolver != null) {
+            return resolver;
+        }
 
-                    resolverMap = this.resolvers.get(potentialType);
-                    PlaceholderResolver resolver = resolverMap.get(param);
+        return this.fallbackResolver;
+    }
 
-                    if (resolver != null) {
-                        return resolver;
-                    }
-                }
+    public PlaceholderResolver findResolverOrNull(@NonNull Object from, @Nullable String param) {
+
+        for (Class<?> potentialType : this.resolversOrdered) {
+
+            if (!potentialType.isAssignableFrom(from.getClass())) {
+                continue;
             }
 
-            return this.fallbackResolver;
+            Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(potentialType);
+            PlaceholderResolver resolver = resolverMap.get(param);
+
+            if (resolver == null) {
+                continue;
+            }
+
+            return resolver;
         }
 
-        PlaceholderResolver resolver = resolverMap.get(param);
-        if (resolver == null) {
-            return this.fallbackResolver;
-        }
-
-        return resolver;
+        return null;
     }
 
     public int getResolversCount() {
