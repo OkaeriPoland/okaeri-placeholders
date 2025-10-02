@@ -4,6 +4,7 @@ import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+import eu.okaeri.pluralize.Pluralize;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -176,5 +177,24 @@ public class Placeholders {
             resolvers.put(entry.getKey(), map);
         }
         return resolvers;
+    }
+
+    public static String pluralize(@NonNull Locale locale, int count, @NonNull String... options) {
+        if (options.length == 0) {
+            return String.valueOf(count);
+        }
+        try {
+            if (options.length == Pluralize.plurals(locale)) {
+                return Pluralize.pluralize(locale, count, options);
+            }
+        }
+        catch (IllegalArgumentException exception) {
+            try {
+                return Pluralize.pluralize(Locale.ENGLISH, count, options);
+            }
+            catch (IllegalArgumentException ignored) {
+            }
+        }
+        return options[0];
     }
 }

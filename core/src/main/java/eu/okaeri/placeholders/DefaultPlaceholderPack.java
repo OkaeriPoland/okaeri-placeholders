@@ -62,13 +62,83 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
     public void register(Placeholders placeholders) {
 
         // Duration
+        placeholders.registerPlaceholder(Duration.class, (dur, a, o) -> simpleDuration(dur, SimpleDurationAccuracy.valueOf(a.params().strAt(0, "s"))));
         placeholders.registerPlaceholder(Duration.class, "days", (dur, a, o) -> dur.getSeconds() / 86400L);
         placeholders.registerPlaceholder(Duration.class, "hours", (dur, a, o) -> dur.toHours() % 24L);
         placeholders.registerPlaceholder(Duration.class, "minutes", (dur, a, o) -> dur.toMinutes() % 60L);
         placeholders.registerPlaceholder(Duration.class, "seconds", (dur, a, o) -> dur.getSeconds() % 60L);
         placeholders.registerPlaceholder(Duration.class, "millis", (dur, a, o) -> dur.getNano() / 1_000_000L);
         placeholders.registerPlaceholder(Duration.class, "nanos", (dur, a, o) -> (dur.getNano() >= 1_000_000L) ? 0L : dur.getNano());
-        placeholders.registerPlaceholder(Duration.class, (dur, a, o) -> simpleDuration(dur, SimpleDurationAccuracy.valueOf(a.params().strAt(0, "s"))));
+        placeholders.registerPlaceholder(Duration.class, "format", (dur, a, o) -> {
+
+            String format = String.join(",", a.params().getParams());
+            if (format.isEmpty()) {
+                return dur.toString();
+            }
+
+            boolean negative = dur.isNegative();
+            Duration abs = dur.abs();
+
+            long days = abs.getSeconds() / 86400L;
+            long hours = abs.toHours() % 24L;
+            long minutes = abs.toMinutes() % 60L;
+            long seconds = abs.getSeconds() % 60L;
+            long millis = abs.toMillis() % 1000L;
+            long nanos = (abs.getNano() >= 1_000_000L) ? 0L : abs.getNano();
+
+            StringBuilder out = new StringBuilder();
+            long lastValue = 0;
+
+            for (int i = 0; i < format.length(); i++) {
+                char c = format.charAt(i);
+                // unit blocks [h], (m), etc.
+                if ((c == '[') || (c == '(')) {
+                    char closing = (c == '[') ? ']' : ')';
+                    int end = format.indexOf(closing, i);
+                    if (end != -1) {
+                        String unit = format.substring(i + 1, end);
+                        long value = 0;
+                        if ("d".equals(unit)) value = days;
+                        else if ("h".equals(unit)) value = hours;
+                        else if ("m".equals(unit)) value = minutes;
+                        else if ("s".equals(unit)) value = seconds;
+                        else if ("ms".equals(unit)) value = millis;
+                        else if ("ns".equals(unit)) value = nanos;
+                        boolean optional = (c == '[');
+                        if (!optional || (value > 0)) {
+                            out.append(value);
+                        }
+                        lastValue = value;
+                        i = end;
+                        continue;
+                    }
+                }
+                // pluralization blocks <...>
+                if (c == '<') {
+                    int end = format.indexOf('>', i);
+                    if (end != -1) {
+                        boolean optional = (format.charAt(i - 1) == ']');
+                        if (!optional || (lastValue > 0)) {
+                            String inside = format.substring(i + 1, end);
+                            String[] forms = inside.split(",");
+                            String chosen = Placeholders.pluralize(a.locale(), (int) lastValue, forms);
+                            out.append(chosen);
+                        }
+                        i = end;
+                        continue;
+                    }
+                }
+
+                // additional characters
+                out.append(c);
+            }
+
+            if (negative) {
+                return "-" + out.toString().trim();
+            }
+
+            return out.toString().trim();
+        });
 
         // Enum
         placeholders.registerPlaceholder(Enum.class, "name", (e, a, o) -> e.name());

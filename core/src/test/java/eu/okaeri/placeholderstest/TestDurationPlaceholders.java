@@ -144,4 +144,28 @@ public class TestDurationPlaceholders {
         this.test(Duration.ZERO, "0ms", "{d(ms)}");
         this.test(Duration.ZERO, "0ns", "{d(ns)}");
     }
+
+    @Test
+    public void test_duration_format() {
+
+        Duration d0 = Duration.ofMinutes(5);
+        this.test(d0, "5 minutes", "{d.format((m)< minute, minutes>)}");
+
+        Duration d1 = Duration.ofHours(1).plusMinutes(5);
+        this.test(d1, "1 hour 5 minutes", "{d.format([h]< hour, hours> (m)< minute, minutes>)}");
+
+        Duration d2 = Duration.ofHours(2).plusMinutes(1);
+        this.test(d2, "2 hours 1 minute", "{d.format([h]< hour, hours> (m)< minute, minutes>)}");
+
+        Duration d3 = Duration.ofSeconds(30);
+        this.test(d3, "30 seconds", "{d.format([m]< minute, minutes> (s)< second, seconds>)}");
+
+        Duration d4 = Duration.ofDays(1).plusHours(2);
+        this.test(d4, "1d2h", "{d.format([d]d(h)h)}");
+        this.test(d4, "1d 2h", "{d.format([d]d (h)h)}");
+        this.test(d4, "1 d, 2 h", "{d.format([d] d, (h) h)}");
+
+        Duration d5 = Duration.ofDays(-1);
+        this.test(d5, "-1d", "{d.format([d]<d>}");
+    }
 }
