@@ -42,6 +42,12 @@ public class Placeholder {
 
     @Nullable
     @SuppressWarnings("unchecked")
+    public Object resolveValue(@NonNull MessageField field) {
+        return this.resolveValue(this.value, field);
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
     private String render(@Nullable Object object, @NonNull MessageField field) {
 
         if (object == null) {
@@ -84,6 +90,61 @@ public class Placeholder {
         }
 
         return "<norenderer:" + field.getLastSubPath() + "(" + object.getClass().getSimpleName() + ")>";
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    private Object resolveValue(@Nullable Object object, @NonNull MessageField field) {
+
+        if (object == null) {
+            return null;
+        }
+
+        if (this.placeholders != null) {
+            if (field.getSub() != null) {
+                MessageField fieldSub = field.getSub();
+                PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
+                if (resolver == null) {
+                    if (object.getClass().getAnnotation(eu.okaeri.placeholders.schema.annotation.Placeholder.class) != null) {
+                        return this.resolveValueUsingPlaceholderSchema(object, field);
+                    }
+                    return null;
+                }
+                object = resolver.resolve(object, fieldSub, this.context);
+                if (fieldSub.hasSub()) {
+                    return this.resolveValue(object, fieldSub);
+                }
+            }
+            else {
+                PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
+                if (resolver != null) {
+                    object = resolver.resolve(object, field, this.context);
+                }
+            }
+        }
+
+        return object;
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    private Object resolveValueUsingPlaceholderSchema(@NonNull Object object, @NonNull MessageField field) {
+
+        SchemaMeta meta = SchemaMeta.of(object.getClass());
+        if (field.getSub() == null) {
+            return object;
+        }
+
+        MessageField fieldSub = field.getSub();
+        Map<String, PlaceholderResolver> placeholders = meta.getPlaceholders();
+        PlaceholderResolver resolver = placeholders.get(fieldSub.getName());
+
+        if (resolver == null) {
+            return null;
+        }
+
+        Object resolved = resolver.resolve(object, fieldSub, this.context);
+        return this.resolveValue(resolved, fieldSub);
     }
 
     @SuppressWarnings("unchecked")
