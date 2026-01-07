@@ -324,4 +324,80 @@ class AdventureMessageRendererTest {
             assertThat(LEGACY.serialize(result)).isEqualTo("Hello world");
         }
     }
+
+    @Nested
+    @DisplayName("Legacy metadata syntax (#)")
+    class LegacyMetadataSyntax {
+
+        @Test
+        void shouldApplyPrintfFormat() {
+            var message = CompiledMessage.of("Value: {%.2f#value}");
+            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("value", 3.14159);
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(LEGACY.serialize(result)).isEqualTo("Value: 3.14");
+        }
+
+        @Test
+        void shouldApplyPluralization() {
+            var message = CompiledMessage.of("{apple,apples#count}");
+            var context1 = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("count", 1);
+            var context5 = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("count", 5);
+
+            var result1 = AdventureMessageRendererTest.this.renderer.render(message, context1);
+            var result5 = AdventureMessageRendererTest.this.renderer.render(message, context5);
+
+            assertThat(LEGACY.serialize(result1)).isEqualTo("apple");
+            assertThat(LEGACY.serialize(result5)).isEqualTo("apples");
+        }
+
+        @Test
+        void shouldApplyBooleanFormat() {
+            var message = CompiledMessage.of("Status: {yes,no#active}");
+            var contextTrue = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("active", true);
+            var contextFalse = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("active", false);
+
+            var resultTrue = AdventureMessageRendererTest.this.renderer.render(message, contextTrue);
+            var resultFalse = AdventureMessageRendererTest.this.renderer.render(message, contextFalse);
+
+            assertThat(LEGACY.serialize(resultTrue)).isEqualTo("Status: yes");
+            assertThat(LEGACY.serialize(resultFalse)).isEqualTo("Status: no");
+        }
+    }
+
+    @Nested
+    @DisplayName("Default value syntax (|)")
+    class DefaultValueSyntax {
+
+        @Test
+        void shouldUseDefaultWhenMissing() {
+            var message = CompiledMessage.of("Hello {name|Guest}!");
+            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message);
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(LEGACY.serialize(result)).isEqualTo("Hello Guest!");
+        }
+
+        @Test
+        void shouldUseValueWhenPresent() {
+            var message = CompiledMessage.of("Hello {name|Guest}!");
+            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "World");
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(LEGACY.serialize(result)).isEqualTo("Hello World!");
+        }
+
+        @Test
+        void shouldUseDefaultWhenNull() {
+            var message = CompiledMessage.of("Value: {value|none}");
+            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("value", null);
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(LEGACY.serialize(result)).isEqualTo("Value: none");
+        }
+    }
 }

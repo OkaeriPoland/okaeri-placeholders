@@ -434,6 +434,17 @@ class PlaceholderContextTest {
             assertThat(values.get("name.toUpperCase")).isEqualTo("HELLO");
         }
 
+        @Test
+        @ExtendWith(PlaceholdersExtension.class)
+        void shouldApplyPrintfFormatViaResolverChain(Placeholders placeholders) {
+            var message = CompiledMessage.of("{%.2f#value}");
+            var values = placeholders.contextOf(message)
+                .with("value", 3.14159)
+                .renderFieldValues();
+
+            assertThat(values.get("%.2f#value")).isEqualTo("3.14");
+        }
+
         // Helper class for type preservation tests
         @Value
         static class CustomValue {

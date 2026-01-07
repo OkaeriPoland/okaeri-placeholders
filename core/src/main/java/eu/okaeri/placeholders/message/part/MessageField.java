@@ -19,14 +19,12 @@ public class MessageField implements MessageElement, MessageFieldAccessor {
     private final @Nullable MessageField sub;
 
     private @Nullable String defaultValue;
-    private @Nullable String metadataRaw;
     private @Nullable String raw;
     private @Getter FieldParams params;
 
     // cached values
     private String lastSubPath;
     private MessageField lastSub;
-    private String[] metadataOptions;
 
     @Deprecated
     public static MessageField unknown() {
@@ -108,25 +106,6 @@ public class MessageField implements MessageElement, MessageFieldAccessor {
             this.lastSubPath = lastSubPath(this);
         }
         return this.lastSubPath;
-    }
-
-    public void setMetadataRaw(@Nullable String metadataRaw) {
-        this.metadataRaw = metadataRaw;
-        MessageField field = this;
-        while (field.getSub() != null) {
-            MessageField sub = field.getSub();
-            sub.setMetadataRaw(metadataRaw);
-            sub.updateMetadataOptionsCache();
-            field = sub;
-        }
-        this.updateMetadataOptionsCache();
-    }
-
-    public void updateMetadataOptionsCache() {
-        if (this.metadataRaw == null) {
-            return;
-        }
-        this.metadataOptions = TOKENIZER.tokenizeArgs(this.metadataRaw).toArray(new String[0]);
     }
 
     @Override

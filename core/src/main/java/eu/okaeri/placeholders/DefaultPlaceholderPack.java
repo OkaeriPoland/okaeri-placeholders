@@ -2,33 +2,33 @@ package eu.okaeri.placeholders;
 
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 import java.util.Map;
 
 public class DefaultPlaceholderPack implements PlaceholderPack {
 
     private static Number asIntIfWhole(double value) {
-        if (value == Math.floor(value) && !Double.isInfinite(value)) {
+        if ((value == Math.floor(value)) && !Double.isInfinite(value)) {
             return (int) value;
         }
         return value;
     }
 
     private static String capitalize(String text) {
-        if (text == null || text.isEmpty()) {
+        if ((text == null) || text.isEmpty()) {
             return text;
         }
         return text.substring(0, 1).toUpperCase(Locale.ROOT) + text.substring(1);
     }
 
     private static String capitalizeFully(String text) {
-        if (text == null || text.isEmpty()) {
+        if ((text == null) || text.isEmpty()) {
             return text;
         }
         String[] words = text.split(" ");
@@ -71,7 +71,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         long nanos = (duration.getNano() >= 1_000_000L) ? 0L : duration.getNano();
         if ((accuracy.ordinal() <= 0) && (nanos > 0)) builder.append(nanos).append("ns");
 
-        return (builder.toString().isEmpty() || "-".equals(builder.toString()))
+        return (builder.toString().isEmpty() || "-".contentEquals(builder))
             ? simpleDuration(duration, SimpleDurationAccuracy.values()[accuracy.ordinal() - 1])
             : builder.toString();
     }
@@ -264,6 +264,14 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
             return Placeholders.pluralize(a.locale(), num.intValue(), forms);
         });
 
+        // Number - printf-style formatting
+        // Usage: {value.format("%.2f")} or {%.2f#value} (legacy syntax transforms to this)
+        placeholders.registerPlaceholder(Number.class, "format", (num, a, o) -> {
+            String pattern = a.params().strAt(0, "%.2f");
+            double doubleValue = new BigDecimal(String.valueOf(num)).doubleValue();
+            return String.format((a.locale() != null) ? a.locale() : Locale.ROOT, pattern, doubleValue);
+        });
+
         // Boolean - formatting
         // Usage: {status.bool("yes", "no")} or {status.format("yes", "no")}
         placeholders.registerPlaceholder(Boolean.class, "bool", (bool, a, o) ->
@@ -288,7 +296,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         placeholders.registerPlaceholder(Instant.class, "format", (inst, a, o) -> {
             String pattern = a.params().strAt(0, "yyyy-MM-dd'T'HH:mm:ss");
             String zoneId = a.params().strAt(1, "UTC");
-            Locale locale = a.locale() != null ? a.locale() : Locale.ROOT;
+            Locale locale = (a.locale() != null) ? a.locale() : Locale.ROOT;
             return DateTimeFormatter.ofPattern(pattern)
                 .withLocale(locale)
                 .withZone(ZoneId.of(zoneId))
@@ -303,6 +311,27 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         placeholders.registerPlaceholder(Instant.class, "ldt", (inst, a, o) ->
             formatInstant(inst, DateTimeFormatter::ofLocalizedDateTime, a.params().strAt(0, "short"), a.params().strAt(1, "UTC"), a.locale()));
 
+        // Object - legacy metadata resolver (internal, underscore-prefixed)
+        // Handles {yes,no#active} and {apple,apples#count} transformed to {active._meta("yes","no")}
+        // Runtime type detection: Boolean -> bool format, Number -> pluralization
+        placeholders.registerPlaceholder(Object.class, "_meta", (obj, a, ctx) -> {
+            String[] options = a.params().strArr();
+
+            // Boolean: 2 options + Boolean type -> bool format
+            if ((obj instanceof Boolean) && (options.length == 2)) {
+                return ((Boolean) obj) ? options[0] : options[1];
+            }
+
+            // Number: pluralization
+            if (obj instanceof Number) {
+                int value = ((Number) obj).intValue();
+                return Placeholders.pluralize(a.locale(), value, options);
+            }
+
+            // Fallback: return first option or stringified value
+            return (options.length > 0) ? options[0] : String.valueOf(obj);
+        });
+
         // =====================
         // Global Functions ($.)
         // =====================
@@ -312,7 +341,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         placeholders.registerGlobalFunction("env", (gf, a, ctx) -> {
             String varName = a.params().strAt(0, "");
             String value = System.getenv(varName);
-            return value != null ? value : "";
+            return (value != null) ? value : "";
         });
 
         // $.now() - current timestamp
@@ -349,7 +378,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         placeholders.registerGlobalFunction("random", (gf, a, ctx) -> {
             int min = a.params().intAt(0, 0);
             int max = a.params().intAt(1, 100);
-            return min + (int) (Math.random() * (max - min + 1));
+            return min + (int) (Math.random() * ((max - min) + 1));
         });
 
         // $.concat(a, b, c, ...) - concatenate values
@@ -375,7 +404,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         if (value instanceof Number) return ((Number) value).doubleValue() != 0;
         if (value instanceof String) {
             String s = (String) value;
-            return !s.isEmpty() && !s.equalsIgnoreCase("false") && !s.equals("0");
+            return !s.isEmpty() && !"false".equalsIgnoreCase(s) && !"0".equals(s);
         }
         return true; // Non-null objects are truthy
     }
@@ -400,7 +429,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
             zone = ZoneId.of("UTC");
         }
 
-        Locale effectiveLocale = locale != null ? locale : Locale.ROOT;
+        Locale effectiveLocale = (locale != null) ? locale : Locale.ROOT;
         return factory.create(style)
             .withLocale(effectiveLocale)
             .withZone(zone)

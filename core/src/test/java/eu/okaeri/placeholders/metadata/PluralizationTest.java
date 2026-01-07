@@ -1,7 +1,6 @@
 package eu.okaeri.placeholders.metadata;
 
 import eu.okaeri.placeholders.Placeholders;
-import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.fixture.PlaceholdersExtension;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +16,7 @@ import java.util.Locale;
 import static org.assertj.core.api.Assertions.*;
 
 @DisplayName("Pluralization metadata")
+@ExtendWith(PlaceholdersExtension.class)
 class PluralizationTest {
 
     @Nested
@@ -24,9 +24,9 @@ class PluralizationTest {
     class EnglishPluralization {
 
         @Test
-        void shouldUseSingularForOne() {
+        void shouldUseSingularForOne(Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.ENGLISH, "{apple,apples#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", 1)
                 .apply();
 
@@ -34,9 +34,9 @@ class PluralizationTest {
         }
 
         @Test
-        void shouldUsePluralForZero() {
+        void shouldUsePluralForZero(Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.ENGLISH, "{apple,apples#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", 0)
                 .apply();
 
@@ -44,9 +44,9 @@ class PluralizationTest {
         }
 
         @Test
-        void shouldUsePluralForMultiple() {
+        void shouldUsePluralForMultiple(Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.ENGLISH, "{apple,apples#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", 5)
                 .apply();
 
@@ -54,9 +54,9 @@ class PluralizationTest {
         }
 
         @Test
-        void shouldUsePluralForNegative() {
+        void shouldUsePluralForNegative(Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.ENGLISH, "{apple,apples#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", -1)
                 .apply();
 
@@ -73,9 +73,9 @@ class PluralizationTest {
             "100, apples",
             "-5, apples"
         })
-        void shouldPluralizeCorrectly(int count, String expected) {
+        void shouldPluralizeCorrectly(int count, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.ENGLISH, "{apple,apples#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", count)
                 .apply();
 
@@ -90,9 +90,9 @@ class PluralizationTest {
         private static final Locale PL = Locale.forLanguageTag("pl");
 
         @Test
-        void shouldUseSingularForOne() {
+        void shouldUseSingularForOne(Placeholders placeholders) {
             var message = CompiledMessage.of(PL, "{psa,psy,psów#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", 1)
                 .apply();
 
@@ -100,34 +100,34 @@ class PluralizationTest {
         }
 
         @Test
-        void shouldUseFewFormForTwoToFour() {
+        void shouldUseFewFormForTwoToFour(Placeholders placeholders) {
             var message = CompiledMessage.of(PL, "{psa,psy,psów#count}");
 
-            assertThat(PlaceholderContext.of(message).with("count", 2).apply()).isEqualTo("psy");
-            assertThat(PlaceholderContext.of(message).with("count", 3).apply()).isEqualTo("psy");
-            assertThat(PlaceholderContext.of(message).with("count", 4).apply()).isEqualTo("psy");
+            assertThat(placeholders.contextOf(message).with("count", 2).apply()).isEqualTo("psy");
+            assertThat(placeholders.contextOf(message).with("count", 3).apply()).isEqualTo("psy");
+            assertThat(placeholders.contextOf(message).with("count", 4).apply()).isEqualTo("psy");
         }
 
         @Test
-        void shouldUseManyFormForFiveAndAbove() {
+        void shouldUseManyFormForFiveAndAbove(Placeholders placeholders) {
             var message = CompiledMessage.of(PL, "{psa,psy,psów#count}");
 
-            assertThat(PlaceholderContext.of(message).with("count", 5).apply()).isEqualTo("psów");
-            assertThat(PlaceholderContext.of(message).with("count", 11).apply()).isEqualTo("psów");
-            assertThat(PlaceholderContext.of(message).with("count", 16).apply()).isEqualTo("psów");
+            assertThat(placeholders.contextOf(message).with("count", 5).apply()).isEqualTo("psów");
+            assertThat(placeholders.contextOf(message).with("count", 11).apply()).isEqualTo("psów");
+            assertThat(placeholders.contextOf(message).with("count", 16).apply()).isEqualTo("psów");
         }
 
         @Test
-        void shouldHandleSpecialCases() {
+        void shouldHandleSpecialCases(Placeholders placeholders) {
             var message = CompiledMessage.of(PL, "{psa,psy,psów#count}");
 
             // 22, 23, 24 use the "few" form again
-            assertThat(PlaceholderContext.of(message).with("count", 22).apply()).isEqualTo("psy");
-            assertThat(PlaceholderContext.of(message).with("count", 23).apply()).isEqualTo("psy");
-            assertThat(PlaceholderContext.of(message).with("count", 24).apply()).isEqualTo("psy");
+            assertThat(placeholders.contextOf(message).with("count", 22).apply()).isEqualTo("psy");
+            assertThat(placeholders.contextOf(message).with("count", 23).apply()).isEqualTo("psy");
+            assertThat(placeholders.contextOf(message).with("count", 24).apply()).isEqualTo("psy");
 
             // But 25 uses "many" form
-            assertThat(PlaceholderContext.of(message).with("count", 25).apply()).isEqualTo("psów");
+            assertThat(placeholders.contextOf(message).with("count", 25).apply()).isEqualTo("psów");
         }
 
         @ParameterizedTest
@@ -144,9 +144,9 @@ class PluralizationTest {
             "25, psów",
             "-1, psów"
         })
-        void shouldPluralizeCorrectly(int count, String expected) {
+        void shouldPluralizeCorrectly(int count, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of(PL, "{psa,psy,psów#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", count)
                 .apply();
 
@@ -154,11 +154,11 @@ class PluralizationTest {
         }
 
         @Test
-        void shouldHandleTwentyOne() {
+        void shouldHandleTwentyOne(Placeholders placeholders) {
             // Note: 21 in Polish uses "one" form according to CLDR rules
             // But the library/JDK version may have different behavior
             var message = CompiledMessage.of(PL, "{psa,psy,psów#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", 21)
                 .apply();
 
@@ -181,9 +181,9 @@ class PluralizationTest {
             "22, яблока",
             "25, яблок"
         })
-        void shouldPluralizeCorrectly(int count, String expected) {
+        void shouldPluralizeCorrectly(int count, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of(RU, "{яблоко,яблока,яблок#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", count)
                 .apply();
 
@@ -191,10 +191,10 @@ class PluralizationTest {
         }
 
         @Test
-        void shouldHandleTwentyOne() {
+        void shouldHandleTwentyOne(Placeholders placeholders) {
             // Note: 21 in Russian uses "one" form according to CLDR rules
             var message = CompiledMessage.of(RU, "{яблоко,яблока,яблок#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", 21)
                 .apply();
 
@@ -210,9 +210,9 @@ class PluralizationTest {
         private static final Locale FR = Locale.FRENCH;
 
         @Test
-        void shouldUseSingularForZeroInFrench() {
+        void shouldUseSingularForZeroInFrench(Placeholders placeholders) {
             var message = CompiledMessage.of(FR, "{pomme,pommes#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", 0)
                 .apply();
 
@@ -227,9 +227,9 @@ class PluralizationTest {
             "2, pommes",
             "5, pommes"
         })
-        void shouldPluralizeCorrectly(int count, String expected) {
+        void shouldPluralizeCorrectly(int count, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of(FR, "{pomme,pommes#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", count)
                 .apply();
 
@@ -248,9 +248,9 @@ class PluralizationTest {
             "2, Äpfel",
             "5, Äpfel"
         })
-        void shouldPluralizeCorrectly(int count, String expected) {
+        void shouldPluralizeCorrectly(int count, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.GERMAN, "{Apfel,Äpfel#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", count)
                 .apply();
 
@@ -263,9 +263,9 @@ class PluralizationTest {
     class InContext {
 
         @Test
-        void shouldWorkWithSurroundingText() {
+        void shouldWorkWithSurroundingText(Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.ENGLISH, "I would like {amount} {apple,apples#amount}.");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("amount", 1)
                 .apply();
 
@@ -273,9 +273,9 @@ class PluralizationTest {
         }
 
         @Test
-        void shouldHandleMultiplePlurals() {
+        void shouldHandleMultiplePlurals(Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.ENGLISH, "{a} {apple,apples#a} and {b} {banana,bananas#b}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("a", 1)
                 .with("b", 3)
                 .apply();
@@ -290,9 +290,9 @@ class PluralizationTest {
 
         @ParameterizedTest
         @ValueSource(ints = {100, 1000, 1_000_000})
-        void shouldHandleLargeNumbers(int count) {
+        void shouldHandleLargeNumbers(int count, Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.ENGLISH, "{apple,apples#count}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("count", count)
                 .apply();
 
@@ -302,7 +302,6 @@ class PluralizationTest {
 
     @Nested
     @DisplayName("Method-style .plural() syntax")
-    @ExtendWith(PlaceholdersExtension.class)
     class MethodStylePlural {
 
         @Test

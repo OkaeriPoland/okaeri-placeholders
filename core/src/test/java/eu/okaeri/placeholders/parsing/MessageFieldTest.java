@@ -211,45 +211,6 @@ class MessageFieldTest {
     }
 
     @Nested
-    @DisplayName("Metadata propagation")
-    class MetadataPropagation {
-
-        @Test
-        void shouldSetMetadataOnSimpleField() {
-            var field = MessageField.of("count");
-            field.setMetadataRaw("apple,apples");
-
-            assertThat(field.getMetadataRaw()).isEqualTo("apple,apples");
-            assertThat(field.getMetadataOptions()).containsExactly("apple", "apples");
-        }
-
-        @Test
-        void shouldPropagateMetadataToSubFields() {
-            var field = MessageField.of("player.kills");
-            field.setMetadataRaw("kill,kills");
-
-            assertThat(field.getMetadataRaw()).isEqualTo("kill,kills");
-            assertThat(field.getSub().getMetadataRaw()).isEqualTo("kill,kills");
-        }
-
-        @Test
-        void shouldParseMetadataOptions() {
-            var field = MessageField.of("time");
-            field.setMetadataRaw("ldt,medium,Europe/Paris");
-
-            assertThat(field.getMetadataOptions()).containsExactly("ldt", "medium", "Europe/Paris");
-        }
-
-        @Test
-        void shouldHandleEmptyMetadata() {
-            var field = MessageField.of("name");
-            field.setMetadataRaw(null);
-
-            assertThat(field.getMetadataOptions()).isNull();
-        }
-    }
-
-    @Nested
     @DisplayName("Unicode support")
     class UnicodeSupport {
 

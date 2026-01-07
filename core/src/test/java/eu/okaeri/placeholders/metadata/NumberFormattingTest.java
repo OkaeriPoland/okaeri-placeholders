@@ -1,10 +1,12 @@
 package eu.okaeri.placeholders.metadata;
 
-import eu.okaeri.placeholders.context.PlaceholderContext;
+import eu.okaeri.placeholders.Placeholders;
+import eu.okaeri.placeholders.fixture.PlaceholdersExtension;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -18,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
  * so only %f, %e, %g format specifiers work. %d will throw an error.
  */
 @DisplayName("Number formatting metadata")
+@ExtendWith(PlaceholdersExtension.class)
 class NumberFormattingTest {
 
     @Nested
@@ -25,9 +28,9 @@ class NumberFormattingTest {
     class DecimalFormatting {
 
         @Test
-        void shouldFormatWithTwoDecimalPlaces() {
+        void shouldFormatWithTwoDecimalPlaces(Placeholders placeholders) {
             var message = CompiledMessage.of("{%.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 0.2)
                 .apply();
 
@@ -35,9 +38,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldFormatWithZeroDecimalPlaces() {
+        void shouldFormatWithZeroDecimalPlaces(Placeholders placeholders) {
             var message = CompiledMessage.of("{%.0f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 3.7)
                 .apply();
 
@@ -45,9 +48,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldFormatWithFourDecimalPlaces() {
+        void shouldFormatWithFourDecimalPlaces(Placeholders placeholders) {
             var message = CompiledMessage.of("{%.4f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 0.1)
                 .apply();
 
@@ -63,9 +66,9 @@ class NumberFormattingTest {
             "0.6, %.0f, 1",
             "0.2, %.0f, 0"
         })
-        void shouldFormatDecimals(double input, String format, String expected) {
+        void shouldFormatDecimals(double input, String format, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of("{" + format + "#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", input)
                 .apply();
 
@@ -78,10 +81,10 @@ class NumberFormattingTest {
     class IntegerFormatting {
 
         @Test
-        void shouldFormatIntegerAsFloat() {
+        void shouldFormatIntegerAsFloat(Placeholders placeholders) {
             // Note: %d doesn't work - library converts all numbers to doubles
             var message = CompiledMessage.of("{%.0f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 42)
                 .apply();
 
@@ -89,9 +92,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldFormatIntegerToFloatWithDecimals() {
+        void shouldFormatIntegerToFloatWithDecimals(Placeholders placeholders) {
             var message = CompiledMessage.of("{%.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 1)
                 .apply();
 
@@ -104,9 +107,9 @@ class NumberFormattingTest {
     class PaddingAndAlignment {
 
         @Test
-        void shouldPadWithZeros() {
+        void shouldPadWithZeros(Placeholders placeholders) {
             var message = CompiledMessage.of("{%08.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 42.0)
                 .apply();
 
@@ -114,9 +117,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldPadWithSpaces() {
+        void shouldPadWithSpaces(Placeholders placeholders) {
             var message = CompiledMessage.of("{%8.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 42.0)
                 .apply();
 
@@ -124,9 +127,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldLeftAlign() {
+        void shouldLeftAlign(Placeholders placeholders) {
             var message = CompiledMessage.of("{%-8.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 42.0)
                 .apply();
 
@@ -139,9 +142,9 @@ class NumberFormattingTest {
     class SignHandling {
 
         @Test
-        void shouldShowPlusSign() {
+        void shouldShowPlusSign(Placeholders placeholders) {
             var message = CompiledMessage.of("{%+.0f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 42)
                 .apply();
 
@@ -149,9 +152,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldShowMinusForNegative() {
+        void shouldShowMinusForNegative(Placeholders placeholders) {
             var message = CompiledMessage.of("{%+.0f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", -42)
                 .apply();
 
@@ -159,9 +162,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldShowPlusOnFloat() {
+        void shouldShowPlusOnFloat(Placeholders placeholders) {
             var message = CompiledMessage.of("{%+.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 3.14)
                 .apply();
 
@@ -174,9 +177,9 @@ class NumberFormattingTest {
     class GroupingSeparator {
 
         @Test
-        void shouldGroupThousands() {
+        void shouldGroupThousands(Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.US, "{%,.0f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 1234567)
                 .apply();
 
@@ -184,9 +187,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldGroupThousandsWithDecimals() {
+        void shouldGroupThousandsWithDecimals(Placeholders placeholders) {
             var message = CompiledMessage.of(Locale.US, "{%,.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 1234567.89)
                 .apply();
 
@@ -199,9 +202,9 @@ class NumberFormattingTest {
     class InContext {
 
         @Test
-        void shouldWorkWithSurroundingText() {
+        void shouldWorkWithSurroundingText(Placeholders placeholders) {
             var message = CompiledMessage.of("Value: {%.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 3.14159)
                 .apply();
 
@@ -209,9 +212,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldHandleMultipleFormattedNumbers() {
+        void shouldHandleMultipleFormattedNumbers(Placeholders placeholders) {
             var message = CompiledMessage.of("A: {%.1f#a}, B: {%.0f#b}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("a", 1.5)
                 .with("b", 42)
                 .apply();
@@ -225,9 +228,9 @@ class NumberFormattingTest {
     class EdgeCases {
 
         @Test
-        void shouldHandleZero() {
+        void shouldHandleZero(Placeholders placeholders) {
             var message = CompiledMessage.of("{%.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 0.0)
                 .apply();
 
@@ -235,9 +238,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldHandleNegative() {
+        void shouldHandleNegative(Placeholders placeholders) {
             var message = CompiledMessage.of("{%.2f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", -3.14)
                 .apply();
 
@@ -245,9 +248,9 @@ class NumberFormattingTest {
         }
 
         @Test
-        void shouldHandleRounding() {
+        void shouldHandleRounding(Placeholders placeholders) {
             var message = CompiledMessage.of("{%.1f#value}");
-            var result = PlaceholderContext.of(message)
+            var result = placeholders.contextOf(message)
                 .with("value", 2.55)
                 .apply();
 

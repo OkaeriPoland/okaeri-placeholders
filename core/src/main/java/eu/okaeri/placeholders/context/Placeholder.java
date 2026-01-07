@@ -3,7 +3,6 @@ package eu.okaeri.placeholders.context;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.schema.meta.SchemaMeta;
-import eu.okaeri.placeholders.schema.resolver.DefaultSchemaResolver;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import lombok.*;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +13,8 @@ import java.util.Map;
 @ToString(exclude = "context")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Placeholder {
+
+    private static final Class<eu.okaeri.placeholders.schema.annotation.Placeholder> PLACEHOLDER_SCHEMA = eu.okaeri.placeholders.schema.annotation.Placeholder.class;
 
     private final Object value;
     private Placeholders placeholders;
@@ -85,7 +86,7 @@ public class Placeholder {
                 MessageField fieldSub = field.getSub();
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
                 if (resolver == null) {
-                    if (object.getClass().getAnnotation(eu.okaeri.placeholders.schema.annotation.Placeholder.class) != null) {
+                    if (object.getClass().getAnnotation(PLACEHOLDER_SCHEMA) != null) {
                         return this.resolveValueUsingPlaceholderSchema(object, field);
                     }
                     return null; // No resolver found
@@ -157,7 +158,7 @@ public class Placeholder {
                 MessageField fieldSub = field.getSub();
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
                 if (resolver == null) {
-                    if (object.getClass().getAnnotation(eu.okaeri.placeholders.schema.annotation.Placeholder.class) != null) {
+                    if (object.getClass().getAnnotation(PLACEHOLDER_SCHEMA) != null) {
                         return this.renderUsingPlaceholderSchema(object, field);
                     }
                     return ("<noresolver:" + field.getName() + "@" + fieldSub.getName() + ">");
@@ -179,15 +180,11 @@ public class Placeholder {
             return null;
         }
 
-        if (DefaultSchemaResolver.INSTANCE.supports(object.getClass())) {
-            return DefaultSchemaResolver.INSTANCE.resolve(object, field);
-        }
-
-        if (object.getClass().getAnnotation(eu.okaeri.placeholders.schema.annotation.Placeholder.class) != null) {
+        if (object.getClass().getAnnotation(PLACEHOLDER_SCHEMA) != null) {
             return this.renderUsingPlaceholderSchema(object, field);
         }
 
-        return "<norenderer:" + field.getLastSubPath() + "(" + object.getClass().getSimpleName() + ")>";
+        return this.objectToString(object);
     }
 
     @SuppressWarnings("unchecked")
@@ -208,5 +205,15 @@ public class Placeholder {
 
         Object resolved = resolver.resolve(object, fieldSub, this.context);
         return this.render(resolved, fieldSub);
+    }
+
+    private String objectToString(@NonNull Object object) {
+        if (object instanceof Enum) {
+            return ((Enum<?>) object).name();
+        }
+        if ((object instanceof Float) || (object instanceof Double)) {
+            return String.format("%.2f", object);
+        }
+        return object.toString();
     }
 }

@@ -190,44 +190,76 @@ class CompiledMessageTest {
     }
 
     @Nested
-    @DisplayName("Metadata parsing")
-    class MetadataParsing {
+    @DisplayName("Legacy metadata transformation")
+    class LegacyMetadataTransformation {
 
         @Test
-        void shouldParseFieldWithMetadata() {
+        void shouldTransformPluralMetadataToMethodCall() {
+            // {apple,apples#count} → {count._meta("apple","apples")}
             var message = CompiledMessage.of("{apple,apples#count}");
             var field = (MessageField) message.getParts().get(1);
 
-            assertThat(field.getMetadataRaw()).isEqualTo("apple,apples");
             assertThat(field.getName()).isEqualTo("count");
+            assertThat(field.getSub()).isNotNull();
+            assertThat(field.getSub().getName()).isEqualTo("_meta");
+            assertThat(field.getSub().getParams().strArr()).containsExactly("apple", "apples");
         }
 
         @Test
-        void shouldParseFieldWithMetadataAndDefault() {
+        void shouldTransformMetadataWithDefault() {
+            // {yes,no#active|unknown} → {active._meta("yes","no")|unknown}
             var message = CompiledMessage.of("{yes,no#active|unknown}");
             var field = (MessageField) message.getParts().get(1);
 
-            assertThat(field.getMetadataRaw()).isEqualTo("yes,no");
             assertThat(field.getName()).isEqualTo("active");
+            assertThat(field.getSub().getName()).isEqualTo("_meta");
             assertThat(field.getDefaultValue()).isEqualTo("unknown");
         }
 
         @Test
-        void shouldParsePrintfStyleMetadata() {
+        void shouldTransformPrintfMetadataToFormatCall() {
+            // {%.2f#value} → {value.format("%.2f")}
             var message = CompiledMessage.of("{%.2f#value}");
             var field = (MessageField) message.getParts().get(1);
 
-            assertThat(field.getMetadataRaw()).isEqualTo("%.2f");
             assertThat(field.getName()).isEqualTo("value");
+            assertThat(field.getSub()).isNotNull();
+            assertThat(field.getSub().getName()).isEqualTo("format");
+            assertThat(field.getSub().getParams().strArr()).containsExactly("%.2f");
         }
 
         @Test
-        void shouldParseDateTimeMetadata() {
+        void shouldTransformDateTimeMetadataToMethodCall() {
+            // {ldt,medium,Europe/Paris#time} → {time.ldt("medium","Europe/Paris")}
             var message = CompiledMessage.of("{ldt,medium,Europe/Paris#time}");
             var field = (MessageField) message.getParts().get(1);
 
-            assertThat(field.getMetadataRaw()).isEqualTo("ldt,medium,Europe/Paris");
             assertThat(field.getName()).isEqualTo("time");
+            assertThat(field.getSub()).isNotNull();
+            assertThat(field.getSub().getName()).isEqualTo("ldt");
+            assertThat(field.getSub().getParams().strArr()).containsExactly("medium", "Europe/Paris");
+        }
+
+        @Test
+        void shouldTransformLocalizedTimeToMethodCall() {
+            // {lt,short#time} → {time.lt("short")}
+            var message = CompiledMessage.of("{lt,short#time}");
+            var field = (MessageField) message.getParts().get(1);
+
+            assertThat(field.getName()).isEqualTo("time");
+            assertThat(field.getSub().getName()).isEqualTo("lt");
+            assertThat(field.getSub().getParams().strArr()).containsExactly("short");
+        }
+
+        @Test
+        void shouldTransformPatternDateTimeToMethodCall() {
+            // {p,yyyy-MM-dd#date} → {date.format("yyyy-MM-dd")}
+            var message = CompiledMessage.of("{p,yyyy-MM-dd#date}");
+            var field = (MessageField) message.getParts().get(1);
+
+            assertThat(field.getName()).isEqualTo("date");
+            assertThat(field.getSub().getName()).isEqualTo("format");
+            assertThat(field.getSub().getParams().strArr()).containsExactly("yyyy-MM-dd");
         }
     }
 
