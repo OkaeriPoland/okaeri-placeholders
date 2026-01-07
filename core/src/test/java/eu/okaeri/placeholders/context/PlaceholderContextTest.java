@@ -3,14 +3,13 @@ package eu.okaeri.placeholders.context;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.fixture.PlaceholdersExtension;
 import eu.okaeri.placeholders.message.CompiledMessage;
-import eu.okaeri.placeholders.message.part.MessageField;
+import lombok.Value;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 
@@ -330,6 +329,115 @@ class PlaceholderContextTest {
             var returned = ctx.with("name", "value");
 
             assertThat(returned).isSameAs(ctx);
+        }
+    }
+
+    @Nested
+    @DisplayName("renderFieldValues method")
+    class RenderFieldValues {
+
+        @Test
+        void shouldReturnTypedValuesKeyedByRaw() {
+            var message = CompiledMessage.of("Hello {name}!");
+            var values = PlaceholderContext.of(message)
+                .with("name", "World")
+                .renderFieldValues();
+
+            assertThat(values).hasSize(1);
+            assertThat(values.get("name")).isEqualTo("World");
+        }
+
+        @Test
+        void shouldReturnEmptyMapForStaticMessage() {
+            var message = CompiledMessage.of("No placeholders here");
+            var values = PlaceholderContext.of(message)
+                .renderFieldValues();
+
+            assertThat(values).isEmpty();
+        }
+
+        @Test
+        void shouldPreserveIntegerType() {
+            var message = CompiledMessage.of("Count: {count}");
+            var values = PlaceholderContext.of(message)
+                .with("count", 42)
+                .renderFieldValues();
+
+            assertThat(values.get("count")).isInstanceOf(Integer.class);
+            assertThat(values.get("count")).isEqualTo(42);
+        }
+
+        @Test
+        void shouldPreserveCustomObjectType() {
+            var customObject = new CustomValue("test");
+            var message = CompiledMessage.of("Value: {obj}");
+            var values = PlaceholderContext.of(message)
+                .with("obj", customObject)
+                .renderFieldValues();
+
+            assertThat(values.get("obj")).isSameAs(customObject);
+        }
+
+        @Test
+        void shouldRenderMultipleFieldsWithTypes() {
+            var message = CompiledMessage.of("{str} {num} {bool}");
+            var values = PlaceholderContext.of(message)
+                .with("str", "hello")
+                .with("num", 123)
+                .with("bool", true)
+                .renderFieldValues();
+
+            assertThat(values).hasSize(3);
+            assertThat(values.get("str")).isEqualTo("hello");
+            assertThat(values.get("num")).isEqualTo(123);
+            assertThat(values.get("bool")).isEqualTo(true);
+        }
+
+        @Test
+        void shouldHandleDefaultForMissingField() {
+            var message = CompiledMessage.of("{name|Anonymous}");
+            var values = PlaceholderContext.of(message)
+                .renderFieldValues();
+
+            assertThat(values.get("name|Anonymous")).isEqualTo("Anonymous");
+        }
+
+        @Test
+        void shouldUseProvidedValueOverDefault() {
+            var message = CompiledMessage.of("{name|Anonymous}");
+            var values = PlaceholderContext.of(message)
+                .with("name", "Steve")
+                .renderFieldValues();
+
+            assertThat(values.get("name|Anonymous")).isEqualTo("Steve");
+        }
+
+        @Test
+        void shouldDeduplicateSameFieldInMessage() {
+            var message = CompiledMessage.of("{name} and {name}");
+            var values = PlaceholderContext.of(message)
+                .with("name", "Alice")
+                .renderFieldValues();
+
+            assertThat(values).hasSize(1);
+            assertThat(values.get("name")).isEqualTo("Alice");
+        }
+
+        @Test
+        @ExtendWith(PlaceholdersExtension.class)
+        void shouldApplyResolverChain(Placeholders placeholders) {
+            var message = CompiledMessage.of("{name.toUpperCase}");
+            var values = placeholders.contextOf(message)
+                .with("name", "hello")
+                .renderFieldValues();
+
+            assertThat(values.get("name.toUpperCase")).isEqualTo("HELLO");
+        }
+
+        // Helper class for type preservation tests
+        @Value
+        static class CustomValue {
+            String value;
         }
     }
 }

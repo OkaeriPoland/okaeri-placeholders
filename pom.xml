@@ -15,6 +15,7 @@
         <module>bukkit-placeholderapi</module>
         <module>bungee</module>
         <module>reflect</module>
+        <module>adventure</module>
     </modules>
 
     <properties>

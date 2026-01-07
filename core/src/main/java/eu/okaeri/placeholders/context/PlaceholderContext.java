@@ -3,11 +3,13 @@ package eu.okaeri.placeholders.context;
 import eu.okaeri.placeholders.GlobalFunctions;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.message.CompiledMessage;
+import eu.okaeri.placeholders.message.MessageRenderer;
+import eu.okaeri.placeholders.message.StringMessageRenderer;
 import eu.okaeri.placeholders.message.part.MessageElement;
 import eu.okaeri.placeholders.message.part.MessageField;
-import eu.okaeri.placeholders.message.part.MessageStatic;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.Value;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -86,38 +88,140 @@ public class PlaceholderContext {
             return Collections.emptyMap();
         }
 
-        // prepare for fields
         String state = message.getRaw();
-        List<MessageElement> parts = message.getParts();
+        Map<MessageField, ResolvedField> resolved = this.resolveFieldsInternal(message);
         Map<MessageField, String> rendered = new LinkedHashMap<>();
 
-        // render field parts
+        for (Map.Entry<MessageField, ResolvedField> entry : resolved.entrySet()) {
+            MessageField originalField = entry.getKey();
+            ResolvedField rf = entry.getValue();
+
+            // Use placeholder.render() for proper formatting (printf, plural, bool, etc.)
+            String render = rf.placeholder.render(rf.transformedField);
+            if (render == null) {
+                if (rf.transformedField.getDefaultValue() != null) {
+                    render = rf.transformedField.getDefaultValue();
+                } else if (this.failMode == FailMode.FAIL_FAST) {
+                    throw new IllegalArgumentException("rendered null for placeholder '" + originalField.getName() + "' for message '" + state + "'");
+                } else if (this.failMode == FailMode.FAIL_SAFE) {
+                    render = "<null:" + rf.transformedField.getLastSubPath() + ">";
+                } else {
+                    throw new RuntimeException("unknown fail mode: " + this.failMode);
+                }
+            }
+
+            rendered.put(originalField, render);
+        }
+
+        return rendered;
+    }
+
+    /**
+     * Renders field values preserving their types (not converting to String).
+     * Returns Map keyed by field raw expression for easy lookup.
+     * <p>
+     * This is useful for typed composition with external systems like MiniMessage
+     * that need to handle values differently based on their type (e.g., Component vs String).
+     *
+     * @return Map of field raw expressions to their resolved typed values
+     */
+    public Map<String, Object> renderFieldValues() {
+        return this.renderFieldValues(this.message);
+    }
+
+    /**
+     * Renders field values preserving their types (not converting to String).
+     * Returns Map keyed by field raw expression for easy lookup.
+     *
+     * @param message The message to render fields for
+     * @return Map of field raw expressions to their resolved typed values
+     */
+    public Map<String, Object> renderFieldValues(@NonNull CompiledMessage message) {
+
+        // someone is trying to apply message on the specific non-shareable context
+        if ((message != this.message) && (this.message != null)) {
+            throw new IllegalArgumentException("cannot apply another message for context created with prepacked message: " +
+                "if you intended to use this context as shared please use empty context from #create(), " +
+                "if you're just trying to send a message use of(message)");
+        }
+
+        // no fields, no need for processing
+        if (!message.isWithFields()) {
+            return Collections.emptyMap();
+        }
+
+        String state = message.getRaw();
+        Map<MessageField, ResolvedField> resolved = this.resolveFieldsInternal(message);
+        Map<String, Object> rendered = new LinkedHashMap<>();
+
+        for (Map.Entry<MessageField, ResolvedField> entry : resolved.entrySet()) {
+            MessageField originalField = entry.getKey();
+            ResolvedField rf = entry.getValue();
+
+            // Resolve typed value (not String)
+            Object value = rf.placeholder.resolveValue(rf.transformedField);
+
+            // Handle null result
+            if (value == null) {
+                if (rf.transformedField.getDefaultValue() != null) {
+                    rendered.put(originalField.getRaw(), rf.transformedField.getDefaultValue());
+                } else if (this.failMode == FailMode.FAIL_FAST) {
+                    throw new IllegalArgumentException("resolved null for placeholder '" + originalField.getName() + "' for message '" + state + "'");
+                } else if (this.failMode == FailMode.FAIL_SAFE) {
+                    rendered.put(originalField.getRaw(), "<null:" + rf.transformedField.getLastSubPath() + ">");
+                } else {
+                    throw new RuntimeException("unknown fail mode: " + this.failMode);
+                }
+                continue;
+            }
+
+            rendered.put(originalField.getRaw(), value);
+        }
+
+        return rendered;
+    }
+
+    /**
+     * Helper class holding a resolved placeholder and its potentially transformed field.
+     */
+    @Value
+    private static class ResolvedField {
+        Placeholder placeholder;
+        MessageField transformedField;
+    }
+
+    /**
+     * Core field resolution returning placeholder + transformed field pairs.
+     * Handles global function fallback, .or() fallback, and missing placeholder cases.
+     */
+    private Map<MessageField, ResolvedField> resolveFieldsInternal(@NonNull CompiledMessage message) {
+
+        String state = message.getRaw();
+        List<MessageElement> parts = message.getParts();
+        Map<MessageField, ResolvedField> resolved = new LinkedHashMap<>();
+
         for (MessageElement part : parts) {
 
             if (!(part instanceof MessageField)) {
                 continue;
             }
 
-            MessageField field = (MessageField) part;
-            MessageField originalField = field;  // Keep reference to original for map key
+            MessageField originalField = (MessageField) part;
+            MessageField field = originalField;
             String name = field.getName();
-            String alreadyRendered = rendered.get(field);
 
-            if (alreadyRendered != null) {
+            // Skip if already resolved (duplicate field in message)
+            if (resolved.containsKey(originalField)) {
                 continue;
             }
 
             Placeholder placeholder = this.fields.get(name);
 
             // Fallback: if field not found, try as a global function via $ context
-            // This allows {now()} or {now} instead of {$.now()}
-            if (placeholder == null && this.placeholders != null) {
+            if ((placeholder == null) && (this.placeholders != null)) {
                 Placeholder globalFunctions = this.fields.get(Placeholders.GLOBAL_FUNCTIONS_KEY);
                 if (globalFunctions != null) {
-                    // Check if this function exists on GlobalFunctions
                     if (this.placeholders.getResolver(GlobalFunctions.class, name) != null) {
-                        // Transform field to be a sub-field of $ so rendering works correctly
-                        // e.g., {now()} becomes equivalent to {$.now()}
                         String transformedSource = Placeholders.GLOBAL_FUNCTIONS_KEY + "." + field.getSource();
                         MessageField transformedField = MessageField.of(field.getLocale(), transformedSource);
                         transformedField.setDefaultValue(field.getDefaultValue());
@@ -127,14 +231,13 @@ public class PlaceholderContext {
                 }
             }
 
-            // If field is missing but has a method call (sub with params like .or()), try with null value
-            // This allows methods like .or() to provide fallbacks for missing/null fields
-            // Only apply to method calls (with params), not plain field access like player.inventory.name
-            if (placeholder == null && field.hasSub() && field.getSub().getParams() != null && field.getSub().getParams().length() > 0) {
+            // If field is missing but has a method call (like .or()), try with null value
+            if ((placeholder == null) && field.hasSub() && (field.getSub().getParams() != null) && (field.getSub().getParams().length() > 0)) {
                 placeholder = Placeholder.of(this.placeholders, null, this);
             }
 
-            if (placeholder == null || (placeholder.getValue() == null && !field.hasSub())) {
+            // Handle missing placeholder
+            if ((placeholder == null) || ((placeholder.getValue() == null) && !field.hasSub())) {
                 if (field.getDefaultValue() != null) {
                     placeholder = Placeholder.of(null, field.getDefaultValue(), this);
                 } else if (this.failMode == FailMode.FAIL_FAST) {
@@ -146,53 +249,21 @@ public class PlaceholderContext {
                 }
             }
 
-            String render = placeholder.render(field);
-            if (render == null) {
-                if (field.getDefaultValue() != null) {
-                    render = field.getDefaultValue();
-                } else if (this.failMode == FailMode.FAIL_FAST) {
-                    throw new IllegalArgumentException("rendered null for placeholder '" + name + "' for message '" + state + "'");
-                } else if (this.failMode == FailMode.FAIL_SAFE) {
-                    render = "<null:" + field.getLastSubPath() + ">";
-                } else {
-                    throw new RuntimeException("unknown fail mode: " + this.failMode);
-                }
-            }
-
-            rendered.put(originalField, render);  // Use original field as key for lookup in apply()
+            resolved.put(originalField, new ResolvedField(placeholder, field));
         }
 
-        return rendered;
+        return resolved;
     }
 
     public String apply() {
         return this.apply(this.message);
     }
 
+    public <T> T apply(@NonNull MessageRenderer<T> renderer) {
+        return renderer.render(this.message, this);
+    }
+
     public String apply(@NonNull CompiledMessage message) {
-
-        List<MessageElement> parts = message.getParts();
-        Map<MessageField, String> rendered = this.renderFields(message);
-
-        // build message
-        StringBuilder builder = new StringBuilder();
-        for (MessageElement part : parts) {
-
-            if (part instanceof MessageStatic) {
-                builder.append(((MessageStatic) part).getValue());
-                continue;
-            }
-
-            if (part instanceof MessageField) {
-                MessageField field = (MessageField) part;
-                String render = rendered.get(field);
-                builder.append(render);
-                continue;
-            }
-
-            throw new IllegalArgumentException("unknown message part: " + part);
-        }
-
-        return builder.toString();
+        return StringMessageRenderer.INSTANCE.render(message, this);
     }
 }

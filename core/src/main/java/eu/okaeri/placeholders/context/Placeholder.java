@@ -59,7 +59,24 @@ public class Placeholder {
     @Nullable
     @SuppressWarnings("unchecked")
     private Object resolveValue(@Nullable Object object, @NonNull MessageField field) {
+
+        // Handle null case: if there's a sub-field (method like .or()), try to resolve it
+        // This allows methods registered on Object.class to provide fallbacks for null values
         if (object == null) {
+            if ((this.placeholders != null) && (field.getSub() != null)) {
+                MessageField fieldSub = field.getSub();
+                // Try to find a resolver for Object.class (e.g., .or() method)
+                PlaceholderResolver resolver = this.placeholders.getResolver(Object.class, fieldSub.getName());
+                if (resolver != null) {
+                    object = resolver.resolve(null, fieldSub, this.context);
+                    // Advance field to fieldSub so we don't re-process the same method below
+                    field = fieldSub;
+                    if (field.hasSub()) {
+                        return this.resolveValue(object, field);
+                    }
+                    return object;
+                }
+            }
             return null;
         }
 
@@ -115,7 +132,7 @@ public class Placeholder {
         // Handle null case: if there's a sub-field (method like .or()), try to resolve it
         // This allows methods registered on Object.class to provide fallbacks for null values
         if (object == null) {
-            if (this.placeholders != null && field.getSub() != null) {
+            if ((this.placeholders != null) && (field.getSub() != null)) {
                 MessageField fieldSub = field.getSub();
                 // Try to find a resolver for Object.class (e.g., .or() method)
                 PlaceholderResolver resolver = this.placeholders.getResolver(Object.class, fieldSub.getName());
@@ -135,7 +152,7 @@ public class Placeholder {
             }
         }
 
-        if (this.placeholders != null && object != null) {
+        if ((this.placeholders != null) && (object != null)) {
             if (field.getSub() != null) {
                 MessageField fieldSub = field.getSub();
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, fieldSub.getName());
