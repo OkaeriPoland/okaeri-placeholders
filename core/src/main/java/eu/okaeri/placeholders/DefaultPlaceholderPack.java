@@ -6,14 +6,30 @@ import java.util.Map;
 
 public class DefaultPlaceholderPack implements PlaceholderPack {
 
+    private static Number asIntIfWhole(double value) {
+        if (value == Math.floor(value) && !Double.isInfinite(value)) {
+            return (int) value;
+        }
+        return value;
+    }
+
     private static String capitalize(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
         return text.substring(0, 1).toUpperCase(Locale.ROOT) + text.substring(1);
     }
 
     private static String capitalizeFully(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
         String[] words = text.split(" ");
         StringBuilder buf = new StringBuilder();
         for (String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
             buf.append(Character.toUpperCase(word.charAt(0)));
             buf.append(word.substring(1).toLowerCase(Locale.ROOT)).append(" ");
         }
@@ -154,36 +170,36 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
         placeholders.registerPlaceholder(Integer.class, "add", (num, a, o) -> num + a.params().intAt(0));
 
         // Double
-        placeholders.registerPlaceholder(Double.class, "divide", (num, a, o) -> num / a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "multiply", (num, a, o) -> num * a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "minus", (num, a, o) -> num - a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "subtract", (num, a, o) -> num - a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "plus", (num, a, o) -> num + a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Double.class, "add", (num, a, o) -> num + a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Double.class, "divide", (num, a, o) -> asIntIfWhole(num / a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Double.class, "multiply", (num, a, o) -> asIntIfWhole(num * a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Double.class, "minus", (num, a, o) -> asIntIfWhole(num - a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Double.class, "subtract", (num, a, o) -> asIntIfWhole(num - a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Double.class, "plus", (num, a, o) -> asIntIfWhole(num + a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Double.class, "add", (num, a, o) -> asIntIfWhole(num + a.params().doubleAt(0)));
 
         // Float
-        placeholders.registerPlaceholder(Float.class, "divide", (num, a, o) -> num / a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "multiply", (num, a, o) -> num * a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "minus", (num, a, o) -> num - a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "subtract", (num, a, o) -> num - a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "plus", (num, a, o) -> num + a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Float.class, "add", (num, a, o) -> num + a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Float.class, "divide", (num, a, o) -> asIntIfWhole(num / a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Float.class, "multiply", (num, a, o) -> asIntIfWhole(num * a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Float.class, "minus", (num, a, o) -> asIntIfWhole(num - a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Float.class, "subtract", (num, a, o) -> asIntIfWhole(num - a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Float.class, "plus", (num, a, o) -> asIntIfWhole(num + a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Float.class, "add", (num, a, o) -> asIntIfWhole(num + a.params().doubleAt(0)));
 
         // Short
-        placeholders.registerPlaceholder(Short.class, "divide", (num, a, o) -> num / a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "multiply", (num, a, o) -> num * a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "minus", (num, a, o) -> num - a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "subtract", (num, a, o) -> num - a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "plus", (num, a, o) -> num + a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Short.class, "add", (num, a, o) -> num + a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Short.class, "divide", (num, a, o) -> asIntIfWhole(num / a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Short.class, "multiply", (num, a, o) -> asIntIfWhole(num * a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Short.class, "minus", (num, a, o) -> asIntIfWhole(num - a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Short.class, "subtract", (num, a, o) -> asIntIfWhole(num - a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Short.class, "plus", (num, a, o) -> asIntIfWhole(num + a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Short.class, "add", (num, a, o) -> asIntIfWhole(num + a.params().doubleAt(0)));
 
         // Byte
-        placeholders.registerPlaceholder(Byte.class, "divide", (num, a, o) -> num / a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "multiply", (num, a, o) -> num * a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "minus", (num, a, o) -> num - a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "subtract", (num, a, o) -> num - a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "plus", (num, a, o) -> num + a.params().doubleAt(0));
-        placeholders.registerPlaceholder(Byte.class, "add", (num, a, o) -> num + a.params().doubleAt(0));
+        placeholders.registerPlaceholder(Byte.class, "divide", (num, a, o) -> asIntIfWhole(num / a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Byte.class, "multiply", (num, a, o) -> asIntIfWhole(num * a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Byte.class, "minus", (num, a, o) -> asIntIfWhole(num - a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Byte.class, "subtract", (num, a, o) -> asIntIfWhole(num - a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Byte.class, "plus", (num, a, o) -> asIntIfWhole(num + a.params().doubleAt(0)));
+        placeholders.registerPlaceholder(Byte.class, "add", (num, a, o) -> asIntIfWhole(num + a.params().doubleAt(0)));
 
         // String
         placeholders.registerPlaceholder(String.class, "toLowerCase", (str, a, o) -> str.toLowerCase(Locale.ROOT));
