@@ -232,4 +232,144 @@ class InstantPlaceholdersTest {
             assertThat(result).contains("12/31/99");
         }
     }
+
+    @Nested
+    @DisplayName("Method-style .time() syntax")
+    class MethodStyleTime {
+
+        @Test
+        void shouldFormatTimeWithDefaultStyle(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"short\",\"UTC\")}"))
+                .with("time", Y2K)
+                .apply();
+
+            assertThat(result).contains(":00");
+        }
+
+        @Test
+        void shouldFormatMediumTime(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"medium\",\"UTC\")}"))
+                .with("time", Y2K)
+                .apply();
+
+            assertThat(result).contains("12:00:00");
+        }
+
+        @Test
+        void shouldFormatTimeWithTimezone(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"short\",\"Europe/Paris\")}"))
+                .with("time", EPOCH)
+                .apply();
+
+            assertThat(result).contains("1:00");
+        }
+    }
+
+    @Nested
+    @DisplayName("Method-style .date() syntax")
+    class MethodStyleDate {
+
+        @Test
+        void shouldFormatShortDate(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"short\",\"Europe/Paris\")}"))
+                .with("time", EPOCH)
+                .apply();
+
+            assertThat(result).isEqualTo("1/1/70");
+        }
+
+        @Test
+        void shouldFormatMediumDate(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"medium\",\"Europe/Paris\")}"))
+                .with("time", EPOCH)
+                .apply();
+
+            assertThat(result).isEqualTo("Jan 1, 1970");
+        }
+
+        @Test
+        void shouldFormatLongDate(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"long\",\"Europe/Paris\")}"))
+                .with("time", EPOCH)
+                .apply();
+
+            assertThat(result).isEqualTo("January 1, 1970");
+        }
+    }
+
+    @Nested
+    @DisplayName("Method-style .datetime() syntax")
+    class MethodStyleDateTime {
+
+        @Test
+        void shouldFormatShortDateTime(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"short\",\"Europe/Paris\")}"))
+                .with("time", EPOCH)
+                .apply();
+
+            assertThat(result).contains("1/1/70");
+            assertThat(result).contains(":00");
+        }
+
+        @Test
+        void shouldFormatMediumDateTime(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"medium\",\"Europe/Paris\")}"))
+                .with("time", EPOCH)
+                .apply();
+
+            assertThat(result).contains("Jan");
+            assertThat(result).contains("1970");
+        }
+
+        @Test
+        void shouldFormatLongDateTime(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"long\",\"Europe/Paris\")}"))
+                .with("time", EPOCH)
+                .apply();
+
+            assertThat(result).contains("January");
+            assertThat(result).contains("1970");
+        }
+    }
+
+    @Nested
+    @DisplayName("Method-style .format() with custom pattern")
+    class MethodStyleFormat {
+
+        @Test
+        void shouldFormatWithCustomPattern(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd\",\"UTC\")}"))
+                .with("time", Y2K)
+                .apply();
+
+            assertThat(result).isEqualTo("2000-01-01");
+        }
+
+        @Test
+        void shouldFormatWithTimePattern(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"HH:mm:ss\",\"UTC\")}"))
+                .with("time", Y2K)
+                .apply();
+
+            assertThat(result).isEqualTo("12:00:00");
+        }
+
+        @Test
+        void shouldFormatWithFullPattern(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd HH:mm:ss\",\"UTC\")}"))
+                .with("time", Y2K)
+                .apply();
+
+            assertThat(result).isEqualTo("2000-01-01 12:00:00");
+        }
+
+        @Test
+        void shouldRespectTimezone(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd HH:mm\",\"Europe/Paris\")}"))
+                .with("time", EPOCH)
+                .apply();
+
+            assertThat(result).isEqualTo("1970-01-01 01:00");
+        }
+    }
 }

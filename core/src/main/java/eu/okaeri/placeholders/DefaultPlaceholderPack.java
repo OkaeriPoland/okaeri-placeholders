@@ -1,6 +1,13 @@
 package eu.okaeri.placeholders;
 
+import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 import java.util.Map;
 
@@ -238,5 +245,165 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
 
             return result;
         });
+
+        // Object - or (default/fallback with field ref support)
+        // Usage: {player.name.or("Anonymous")} or {player.name.or(player.nickname)}
+        placeholders.registerPlaceholder(Object.class, "or", (obj, a, ctx) -> {
+            // If current value is non-null, return it
+            if (obj != null) {
+                return obj;
+            }
+            // Otherwise resolve the fallback argument (may be field ref or literal)
+            return a.params().resolveArg(0, a.locale(), ctx);
+        });
+
+        // Number - pluralization
+        // Usage: {amount.plural("apple", "apples")}
+        placeholders.registerPlaceholder(Number.class, "plural", (num, a, o) -> {
+            String[] forms = a.params().strArr();
+            return Placeholders.pluralize(a.locale(), num.intValue(), forms);
+        });
+
+        // Boolean - formatting
+        // Usage: {status.bool("yes", "no")} or {status.format("yes", "no")}
+        placeholders.registerPlaceholder(Boolean.class, "bool", (bool, a, o) ->
+            bool ? a.params().strAt(0, "true") : a.params().strAt(1, "false"));
+        placeholders.registerPlaceholder(Boolean.class, "format", (bool, a, o) ->
+            bool ? a.params().strAt(0, "true") : a.params().strAt(1, "false"));
+
+        // Instant - datetime formatting (readable names)
+        // Usage: {time.time("medium", "UTC")} - localized time
+        placeholders.registerPlaceholder(Instant.class, "time", (inst, a, o) ->
+            formatInstant(inst, DateTimeFormatter::ofLocalizedTime, a.params().strAt(0, "short"), a.params().strAt(1, "UTC"), a.locale()));
+
+        // Usage: {time.date("long", "Europe/Paris")} - localized date
+        placeholders.registerPlaceholder(Instant.class, "date", (inst, a, o) ->
+            formatInstant(inst, DateTimeFormatter::ofLocalizedDate, a.params().strAt(0, "short"), a.params().strAt(1, "UTC"), a.locale()));
+
+        // Usage: {time.datetime("medium", "UTC")} - localized datetime
+        placeholders.registerPlaceholder(Instant.class, "datetime", (inst, a, o) ->
+            formatInstant(inst, DateTimeFormatter::ofLocalizedDateTime, a.params().strAt(0, "short"), a.params().strAt(1, "UTC"), a.locale()));
+
+        // Usage: {time.format("yyyy-MM-dd HH:mm", "UTC")} - pattern-based format
+        placeholders.registerPlaceholder(Instant.class, "format", (inst, a, o) -> {
+            String pattern = a.params().strAt(0, "yyyy-MM-dd'T'HH:mm:ss");
+            String zoneId = a.params().strAt(1, "UTC");
+            Locale locale = a.locale() != null ? a.locale() : Locale.ROOT;
+            return DateTimeFormatter.ofPattern(pattern)
+                .withLocale(locale)
+                .withZone(ZoneId.of(zoneId))
+                .format(inst);
+        });
+
+        // Short aliases for backward compatibility
+        placeholders.registerPlaceholder(Instant.class, "lt", (inst, a, o) ->
+            formatInstant(inst, DateTimeFormatter::ofLocalizedTime, a.params().strAt(0, "short"), a.params().strAt(1, "UTC"), a.locale()));
+        placeholders.registerPlaceholder(Instant.class, "ld", (inst, a, o) ->
+            formatInstant(inst, DateTimeFormatter::ofLocalizedDate, a.params().strAt(0, "short"), a.params().strAt(1, "UTC"), a.locale()));
+        placeholders.registerPlaceholder(Instant.class, "ldt", (inst, a, o) ->
+            formatInstant(inst, DateTimeFormatter::ofLocalizedDateTime, a.params().strAt(0, "short"), a.params().strAt(1, "UTC"), a.locale()));
+
+        // =====================
+        // Global Functions ($.)
+        // =====================
+
+        // $.env(VAR) - environment variable
+        // Usage: {$.env(HOME)} or {$.env("PATH")}
+        placeholders.registerGlobalFunction("env", (gf, a, ctx) -> {
+            String varName = a.params().strAt(0, "");
+            String value = System.getenv(varName);
+            return value != null ? value : "";
+        });
+
+        // $.now() - current timestamp
+        // Usage: {$.now()} or {$.now().datetime("medium", "UTC")}
+        placeholders.registerGlobalFunction("now", (gf, a, ctx) -> Instant.now());
+
+        // $.coalesce(a, b, c, ...) or $.or(a, b, c, ...) - first non-null value
+        // Usage: {$.coalesce(player.nickname, player.name, "Anonymous")}
+        // Usage: {or(a, b, "default")} - short syntax, preferred over chained .or()
+        PlaceholderResolver<GlobalFunctions> coalesceResolver = (gf, a, ctx) -> {
+            for (int i = 0; i < a.params().length(); i++) {
+                Object val = a.params().resolveArg(i, a.locale(), ctx);
+                if (val != null) {
+                    return val;
+                }
+            }
+            return null;
+        };
+        placeholders.registerGlobalFunction("coalesce", coalesceResolver);
+        placeholders.registerGlobalFunction("or", coalesceResolver);  // alias
+
+        // $.if(condition, thenValue, elseValue) - conditional
+        // Usage: {$.if(player.online, "Online", "Offline")}
+        placeholders.registerGlobalFunction("if", (gf, a, ctx) -> {
+            Object condition = a.params().resolveArg(0, a.locale(), ctx);
+            boolean isTrue = isTruthy(condition);
+            return isTrue
+                ? a.params().resolveArg(1, a.locale(), ctx)
+                : a.params().resolveArg(2, a.locale(), ctx);
+        });
+
+        // $.random(min, max) - random integer in range
+        // Usage: {$.random(1, 100)}
+        placeholders.registerGlobalFunction("random", (gf, a, ctx) -> {
+            int min = a.params().intAt(0, 0);
+            int max = a.params().intAt(1, 100);
+            return min + (int) (Math.random() * (max - min + 1));
+        });
+
+        // $.concat(a, b, c, ...) - concatenate values
+        // Usage: {$.concat(first, " ", last)}
+        placeholders.registerGlobalFunction("concat", (gf, a, ctx) -> {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < a.params().length(); i++) {
+                Object val = a.params().resolveArg(i, a.locale(), ctx);
+                if (val != null) {
+                    sb.append(val);
+                }
+            }
+            return sb.toString();
+        });
+    }
+
+    /**
+     * Determines if a value is "truthy" for conditional purposes.
+     */
+    private static boolean isTruthy(Object value) {
+        if (value == null) return false;
+        if (value instanceof Boolean) return (Boolean) value;
+        if (value instanceof Number) return ((Number) value).doubleValue() != 0;
+        if (value instanceof String) {
+            String s = (String) value;
+            return !s.isEmpty() && !s.equalsIgnoreCase("false") && !s.equals("0");
+        }
+        return true; // Non-null objects are truthy
+    }
+
+    @FunctionalInterface
+    private interface FormatterFactory {
+        DateTimeFormatter create(FormatStyle style);
+    }
+
+    private static String formatInstant(Instant instant, FormatterFactory factory, String styleStr, String zoneStr, Locale locale) {
+        FormatStyle style;
+        try {
+            style = FormatStyle.valueOf(styleStr.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            style = FormatStyle.SHORT;
+        }
+
+        ZoneId zone;
+        try {
+            zone = ZoneId.of(zoneStr);
+        } catch (Exception e) {
+            zone = ZoneId.of("UTC");
+        }
+
+        Locale effectiveLocale = locale != null ? locale : Locale.ROOT;
+        return factory.create(style)
+            .withLocale(effectiveLocale)
+            .withZone(zone)
+            .format(instant);
     }
 }

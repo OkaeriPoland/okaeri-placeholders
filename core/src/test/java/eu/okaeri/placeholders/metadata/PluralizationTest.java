@@ -1,10 +1,13 @@
 package eu.okaeri.placeholders.metadata;
 
+import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.context.PlaceholderContext;
+import eu.okaeri.placeholders.fixture.PlaceholdersExtension;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -294,6 +297,90 @@ class PluralizationTest {
                 .apply();
 
             assertThat(result).isEqualTo("apples");
+        }
+    }
+
+    @Nested
+    @DisplayName("Method-style .plural() syntax")
+    @ExtendWith(PlaceholdersExtension.class)
+    class MethodStylePlural {
+
+        @Test
+        void shouldUseSingularForOne(Placeholders placeholders) {
+            var message = CompiledMessage.of(Locale.ENGLISH, "{count.plural(\"apple\",\"apples\")}");
+            var result = placeholders.contextOf(message)
+                .with("count", 1)
+                .apply();
+
+            assertThat(result).isEqualTo("apple");
+        }
+
+        @Test
+        void shouldUsePluralForZero(Placeholders placeholders) {
+            var message = CompiledMessage.of(Locale.ENGLISH, "{count.plural(\"apple\",\"apples\")}");
+            var result = placeholders.contextOf(message)
+                .with("count", 0)
+                .apply();
+
+            assertThat(result).isEqualTo("apples");
+        }
+
+        @Test
+        void shouldUsePluralForMultiple(Placeholders placeholders) {
+            var message = CompiledMessage.of(Locale.ENGLISH, "{count.plural(\"apple\",\"apples\")}");
+            var result = placeholders.contextOf(message)
+                .with("count", 5)
+                .apply();
+
+            assertThat(result).isEqualTo("apples");
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "0, apples",
+            "1, apple",
+            "2, apples",
+            "5, apples",
+            "10, apples",
+            "-5, apples"
+        })
+        void shouldPluralizeCorrectly(int count, String expected, Placeholders placeholders) {
+            var message = CompiledMessage.of(Locale.ENGLISH, "{count.plural(\"apple\",\"apples\")}");
+            var result = placeholders.contextOf(message)
+                .with("count", count)
+                .apply();
+
+            assertThat(result).isEqualTo(expected);
+        }
+
+        @Test
+        void shouldHandlePolishThreeForms(Placeholders placeholders) {
+            var pl = Locale.forLanguageTag("pl");
+            var message = CompiledMessage.of(pl, "{count.plural(\"psa\",\"psy\",\"psów\")}");
+
+            assertThat(placeholders.contextOf(message).with("count", 1).apply()).isEqualTo("psa");
+            assertThat(placeholders.contextOf(message).with("count", 2).apply()).isEqualTo("psy");
+            assertThat(placeholders.contextOf(message).with("count", 5).apply()).isEqualTo("psów");
+        }
+
+        @Test
+        void shouldWorkWithSingleQuotes(Placeholders placeholders) {
+            var message = CompiledMessage.of(Locale.ENGLISH, "{count.plural('item','items')}");
+            var result = placeholders.contextOf(message)
+                .with("count", 1)
+                .apply();
+
+            assertThat(result).isEqualTo("item");
+        }
+
+        @Test
+        void shouldWorkWithSurroundingText(Placeholders placeholders) {
+            var message = CompiledMessage.of(Locale.ENGLISH, "I have {count} {count.plural(\"apple\",\"apples\")}.");
+            var result = placeholders.contextOf(message)
+                .with("count", 3)
+                .apply();
+
+            assertThat(result).isEqualTo("I have 3 apples.");
         }
     }
 }

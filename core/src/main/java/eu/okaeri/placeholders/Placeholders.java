@@ -16,6 +16,12 @@ import java.util.*;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Placeholders {
 
+    /**
+     * The key used for global functions in the placeholder context.
+     * Global functions are accessible via {$.functionName(args)} syntax.
+     */
+    public static final String GLOBAL_FUNCTIONS_KEY = "$";
+
     private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new LinkedHashMap<>();
     private List<Class<?>> resolversOrdered = new ArrayList<>();
     @Getter private PlaceholderResolver fallbackResolver = null;
@@ -95,6 +101,27 @@ public class Placeholders {
         return this;
     }
 
+    /**
+     * Registers a global function accessible via {$.name(args)} syntax.
+     * <p>
+     * This is a convenience method equivalent to:
+     * {@code registerPlaceholder(GlobalFunctions.class, name, resolver)}
+     * <p>
+     * Example:
+     * <pre>
+     * placeholders.registerGlobalFunction("env", (gf, field, ctx) ->
+     *     System.getenv(field.params().strAt(0, "")));
+     * // Usage: {$.env(HOME)}
+     * </pre>
+     *
+     * @param name     The function name (without $. prefix)
+     * @param resolver The resolver that implements the function
+     * @return This instance for chaining
+     */
+    public Placeholders registerGlobalFunction(@NonNull String name, @NonNull PlaceholderResolver<GlobalFunctions> resolver) {
+        return this.registerPlaceholder(GlobalFunctions.class, name, resolver);
+    }
+
     @Deprecated
     @SuppressWarnings("unchecked")
     public Object readValue(@NonNull Object from) {
@@ -133,6 +160,37 @@ public class Placeholders {
         }
 
         return this.fallbackResolver;
+    }
+
+    /**
+     * Gets a resolver for a specific class type and parameter.
+     * This is useful for looking up resolvers when the actual object is null
+     * (e.g., for methods like .or() that handle null values).
+     */
+    public PlaceholderResolver getResolver(@NonNull Class<?> fromClass, @Nullable String param) {
+
+        Map<String, PlaceholderResolver> resolverMap = this.resolvers.get(fromClass);
+
+        if (resolverMap != null) {
+            PlaceholderResolver resolver = resolverMap.get(param);
+            if (resolver != null) {
+                return resolver;
+            }
+        }
+
+        // Check parent classes in order
+        for (Class<?> potentialType : this.resolversOrdered) {
+            if (!potentialType.isAssignableFrom(fromClass)) {
+                continue;
+            }
+            resolverMap = this.resolvers.get(potentialType);
+            PlaceholderResolver resolver = resolverMap.get(param);
+            if (resolver != null) {
+                return resolver;
+            }
+        }
+
+        return null;
     }
 
     public PlaceholderResolver findResolverOrNull(@NonNull Object from, @Nullable String param) {

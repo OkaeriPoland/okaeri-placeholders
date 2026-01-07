@@ -52,22 +52,49 @@ implementation 'eu.okaeri:okaeri-placeholders-[platform]:5.1.2'
 Hello World!
 # with simple placeholder
 Hello {who}!
-# with simple placeholder and fallback value
+# with simple placeholder and fallback value (shorthand for .or("unknown"))
 Hello {who|unknown}!
 # with subfields
 Hello {who.name}!
 # with subfields and fallback value
 Hello {who.name|unknown}!
-# with pluralization for 143 locales (okaeri-pluralize)
+
+# pluralization for 143 locales (okaeri-pluralize)
 I would like {amount} {apple,apples#amount}.
-# with boolean translation
+I would like {amount} {amount.plural("apple","apples")}.
+
+# boolean translation
 Active: {yes,no#status}
-# with number formatting
+Active: {status.bool("yes","no")}
+
+# number formatting
 Value: {%.2f#value}
-# with duration (e.g. "1d12h", supports precision, see: (h))
+Value: {value.format("%.2f")}
+
+# duration (e.g. "1d12h", supports precision, see: (h))
 Remaining time: {duration(h)}
-# with instant (time, datetime, date, pattern - localized - optional timezone)
+
+# instant/datetime formatting (localized, optional timezone)
 Time: {ldt,medium,Europe/Paris#time}
+Time: {time.datetime("medium","Europe/Paris")}
+Date: {time.date("medium","UTC")}
+Time only: {time.time("short","UTC")}
+Custom pattern: {time.format("yyyy-MM-dd HH:mm","UTC")}
+
+# default values with .or() - supports field references and chaining
+Hello {name.or("Anonymous")}!
+Display: {nickname.or(name)}
+Fallback chain: {a.or(b).or(c).or("default")}
+
+# global functions
+Environment: {env(HOME)}
+Current time: {now()}
+Formatted: {now().format("yyyy-MM-dd","UTC")}
+First non-null: {or(nickname,name,"Anonymous")}
+Conditional: {if(active,"online","offline")}
+Random number: {random(1,100)}
+Concatenation: {concat("Hello ",name,"!")}
+# note: explicit $.func() and .func() also work: {$.now()}, {.now()}
 ```
 
 ## Example

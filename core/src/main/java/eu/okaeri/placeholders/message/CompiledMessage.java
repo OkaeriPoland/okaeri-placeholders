@@ -1,8 +1,10 @@
 package eu.okaeri.placeholders.message;
 
+import eu.okaeri.placeholders.message.part.FieldParams;
 import eu.okaeri.placeholders.message.part.MessageElement;
 import eu.okaeri.placeholders.message.part.MessageField;
 import eu.okaeri.placeholders.message.part.MessageStatic;
+import eu.okaeri.placeholders.message.part.ParsedArg;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
@@ -78,6 +80,10 @@ public class CompiledMessage {
             usedFields.add(fieldName);
             usedFields.add(fieldName.split("(\\.|\\()", 2)[0]);
 
+            // Also extract potential field references from method arguments
+            // This allows fast mode to work with field refs in args like {$.coalesce(a,b,c)}
+            extractFieldRefsFromArgs(messageField, usedFields);
+
             lastIndex = matcher.end();
             fieldsLength += matcher.group().length();
         }
@@ -125,5 +131,32 @@ public class CompiledMessage {
 
     public boolean isWithFields() {
         return !this.usedFields.isEmpty();
+    }
+
+    /**
+     * Extracts potential field references from method arguments in a MessageField chain.
+     * For example, in {$.coalesce(a,b,"literal")}, this extracts "a" and "b" as potential fields.
+     * Quoted arguments are ignored as they are explicit literals.
+     */
+    private static void extractFieldRefsFromArgs(MessageField field, Set<String> usedFields) {
+        MessageField current = field;
+        while (current != null) {
+            FieldParams params = current.getParams();
+            if (params != null && params.getParsedParams() != null) {
+                for (ParsedArg arg : params.getParsedParams()) {
+                    // Only unquoted args (FIELD_REF_OR_LITERAL) could be field references
+                    if (arg.mayBeFieldRef()) {
+                        String value = arg.getValue();
+                        if (value != null && !value.isEmpty()) {
+                            // Add the root field name (before any dots)
+                            String rootField = value.split("\\.", 2)[0];
+                            usedFields.add(rootField);
+                            usedFields.add(value);
+                        }
+                    }
+                }
+            }
+            current = current.getSub();
+        }
     }
 }

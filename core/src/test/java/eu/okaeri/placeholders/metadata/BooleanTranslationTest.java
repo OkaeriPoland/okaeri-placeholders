@@ -1,10 +1,13 @@
 package eu.okaeri.placeholders.metadata;
 
+import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.context.PlaceholderContext;
+import eu.okaeri.placeholders.fixture.PlaceholdersExtension;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -199,6 +202,87 @@ class BooleanTranslationTest {
 
             assertThat(PlaceholderContext.of(message).with("value", true).apply()).isEqualTo("ja");
             assertThat(PlaceholderContext.of(message).with("value", false).apply()).isEqualTo("nein");
+        }
+    }
+
+    @Nested
+    @DisplayName("Method-style .bool() syntax")
+    @ExtendWith(PlaceholdersExtension.class)
+    class MethodStyleBool {
+
+        @Test
+        void shouldTranslateTrueToFirstOption(Placeholders placeholders) {
+            var message = CompiledMessage.of("{status.bool(\"yes\",\"no\")}");
+            var result = placeholders.contextOf(message)
+                .with("status", true)
+                .apply();
+
+            assertThat(result).isEqualTo("yes");
+        }
+
+        @Test
+        void shouldTranslateFalseToSecondOption(Placeholders placeholders) {
+            var message = CompiledMessage.of("{status.bool(\"yes\",\"no\")}");
+            var result = placeholders.contextOf(message)
+                .with("status", false)
+                .apply();
+
+            assertThat(result).isEqualTo("no");
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "true, enabled",
+            "false, disabled"
+        })
+        void shouldTranslateEnabledDisabled(boolean value, String expected, Placeholders placeholders) {
+            var message = CompiledMessage.of("{value.bool(\"enabled\",\"disabled\")}");
+            var result = placeholders.contextOf(message)
+                .with("value", value)
+                .apply();
+
+            assertThat(result).isEqualTo(expected);
+        }
+
+        @Test
+        void shouldWorkWithSingleQuotes(Placeholders placeholders) {
+            var message = CompiledMessage.of("{active.bool('on','off')}");
+            var result = placeholders.contextOf(message)
+                .with("active", true)
+                .apply();
+
+            assertThat(result).isEqualTo("on");
+        }
+
+        @Test
+        void shouldWorkWithFormatAlias(Placeholders placeholders) {
+            var message = CompiledMessage.of("{active.format(\"on\",\"off\")}");
+            var result = placeholders.contextOf(message)
+                .with("active", false)
+                .apply();
+
+            assertThat(result).isEqualTo("off");
+        }
+
+        @Test
+        void shouldWorkWithSurroundingText(Placeholders placeholders) {
+            var message = CompiledMessage.of("Status: {active.bool(\"online\",\"offline\")}");
+            var result = placeholders.contextOf(message)
+                .with("active", true)
+                .apply();
+
+            assertThat(result).isEqualTo("Status: online");
+        }
+
+        @Test
+        void shouldHandleMultipleBooleans(Placeholders placeholders) {
+            var message = CompiledMessage.of("A: {a.bool(\"yes\",\"no\")}, B: {b.bool(\"yes\",\"no\")}");
+            var result = placeholders.contextOf(message)
+                .with("a", true)
+                .with("b", false)
+                .apply();
+
+            assertThat(result).isEqualTo("A: yes, B: no");
         }
     }
 }

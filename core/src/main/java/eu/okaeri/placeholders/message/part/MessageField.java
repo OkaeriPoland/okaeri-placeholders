@@ -39,6 +39,12 @@ public class MessageField implements MessageElement, MessageFieldAccessor {
 
     public static MessageField of(@NonNull Locale locale, @NonNull String source) {
 
+        // Transform shorthand .func() syntax to $.func()
+        // This allows {.now()} instead of {$.now()}
+        if (source.startsWith(".")) {
+            source = eu.okaeri.placeholders.Placeholders.GLOBAL_FUNCTIONS_KEY + source;
+        }
+
         List<FieldParams> parts = TOKENIZER.tokenize(source);
         MessageField field = null;
 

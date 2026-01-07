@@ -1,5 +1,6 @@
 package eu.okaeri.placeholders.context;
 
+import eu.okaeri.placeholders.GlobalFunctions;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.part.MessageElement;
@@ -27,7 +28,9 @@ public class PlaceholderContext {
     }
 
     public static PlaceholderContext create(@NonNull FailMode failMode) {
-        return new PlaceholderContext(null, failMode);
+        PlaceholderContext context = new PlaceholderContext(null, failMode);
+        context.fields.put(Placeholders.GLOBAL_FUNCTIONS_KEY, Placeholder.of(null, GlobalFunctions.INSTANCE, context));
+        return context;
     }
 
     public static PlaceholderContext of(@NonNull CompiledMessage message) {
@@ -41,6 +44,7 @@ public class PlaceholderContext {
     public static PlaceholderContext of(@Nullable Placeholders placeholders, @NonNull CompiledMessage message, @NonNull FailMode failMode) {
         PlaceholderContext context = new PlaceholderContext(message, failMode);
         context.setPlaceholders(placeholders);
+        context.fields.put(Placeholders.GLOBAL_FUNCTIONS_KEY, Placeholder.of(placeholders, GlobalFunctions.INSTANCE, context));
         return context;
     }
 
@@ -95,6 +99,7 @@ public class PlaceholderContext {
             }
 
             MessageField field = (MessageField) part;
+            MessageField originalField = field;  // Keep reference to original for map key
             String name = field.getName();
             String alreadyRendered = rendered.get(field);
 
@@ -103,7 +108,33 @@ public class PlaceholderContext {
             }
 
             Placeholder placeholder = this.fields.get(name);
-            if ((placeholder == null) || (placeholder.getValue() == null)) {
+
+            // Fallback: if field not found, try as a global function via $ context
+            // This allows {now()} or {now} instead of {$.now()}
+            if (placeholder == null && this.placeholders != null) {
+                Placeholder globalFunctions = this.fields.get(Placeholders.GLOBAL_FUNCTIONS_KEY);
+                if (globalFunctions != null) {
+                    // Check if this function exists on GlobalFunctions
+                    if (this.placeholders.getResolver(GlobalFunctions.class, name) != null) {
+                        // Transform field to be a sub-field of $ so rendering works correctly
+                        // e.g., {now()} becomes equivalent to {$.now()}
+                        String transformedSource = Placeholders.GLOBAL_FUNCTIONS_KEY + "." + field.getSource();
+                        MessageField transformedField = MessageField.of(field.getLocale(), transformedSource);
+                        transformedField.setDefaultValue(field.getDefaultValue());
+                        field = transformedField;
+                        placeholder = globalFunctions;
+                    }
+                }
+            }
+
+            // If field is missing but has a method call (sub with params like .or()), try with null value
+            // This allows methods like .or() to provide fallbacks for missing/null fields
+            // Only apply to method calls (with params), not plain field access like player.inventory.name
+            if (placeholder == null && field.hasSub() && field.getSub().getParams() != null && field.getSub().getParams().length() > 0) {
+                placeholder = Placeholder.of(this.placeholders, null, this);
+            }
+
+            if (placeholder == null || (placeholder.getValue() == null && !field.hasSub())) {
                 if (field.getDefaultValue() != null) {
                     placeholder = Placeholder.of(null, field.getDefaultValue(), this);
                 } else if (this.failMode == FailMode.FAIL_FAST) {
@@ -128,7 +159,7 @@ public class PlaceholderContext {
                 }
             }
 
-            rendered.put(field, render);
+            rendered.put(originalField, render);  // Use original field as key for lookup in apply()
         }
 
         return rendered;
