@@ -244,6 +244,41 @@ class MessageFieldTokenizerTest {
         }
 
         @Test
+        void shouldHandleNestedParenthesesInArgs() {
+            // or(secondary.replace(_,-)) should keep nested parens intact
+            var result = tokenizer.tokenize("primary.or(secondary.replace(_,-))");
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).getField()).isEqualTo("primary");
+            assertThat(result.get(1).getField()).isEqualTo("or");
+            assertThat(result.get(1).getParams()).containsExactly("secondary.replace(_,-)");
+        }
+
+        @Test
+        void shouldHandleDeepNestedParenthesesInArgs() {
+            // 3 levels: $.if(cond, a.or(b.replace(x,y)), fallback)
+            // $ and if are separate tokens ($ is the global functions container)
+            // Tokenizer preserves spaces - trimming happens at field resolution time
+            var result = tokenizer.tokenize("$.if(active, primary.or(secondary.replace(_,-)), fallback)");
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).getField()).isEqualTo("$");
+            assertThat(result.get(1).getField()).isEqualTo("if");
+            assertThat(result.get(1).getParams()).containsExactly("active", " primary.or(secondary.replace(_,-))", " fallback");
+        }
+
+        @Test
+        void shouldHandleDeepNestedParenthesesInArgsWithoutSpaces() {
+            // Same as above but without spaces after commas
+            var result = tokenizer.tokenize("$.if(active,primary.or(secondary.replace(_,-)),fallback)");
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).getField()).isEqualTo("$");
+            assertThat(result.get(1).getField()).isEqualTo("if");
+            assertThat(result.get(1).getParams()).containsExactly("active", "primary.or(secondary.replace(_,-))", "fallback");
+        }
+
+        @Test
         void shouldHandlePipeInArgs() {
             var result = tokenizer.tokenize("method(|)");
 

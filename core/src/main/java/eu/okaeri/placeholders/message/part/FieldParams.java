@@ -156,7 +156,7 @@ public class FieldParams {
 
         // Try as field reference first
         if (context != null && arg.mayBeFieldRef()) {
-            String fieldPath = arg.getValue();
+            String fieldPath = arg.getValue().trim();  // Trim for field resolution (allows spaces after commas)
 
             // Parse the field path and try to resolve
             MessageField field = MessageField.of(locale != null ? locale : Locale.ROOT, fieldPath);

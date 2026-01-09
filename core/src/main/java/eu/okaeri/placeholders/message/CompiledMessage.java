@@ -256,6 +256,7 @@ public class CompiledMessage {
      * Extracts potential field references from method arguments in a MessageField chain.
      * For example, in {$.coalesce(a,b,"literal")}, this extracts "a" and "b" as potential fields.
      * Quoted arguments are ignored as they are explicit literals.
+     * Recursively extracts from nested method calls like {$.if(cond, a.or(b.method()), c)}.
      */
     private static void extractFieldRefsFromArgs(MessageField field, Set<String> usedFields) {
         MessageField current = field;
@@ -266,11 +267,21 @@ public class CompiledMessage {
                     // Only unquoted args (FIELD_REF_OR_LITERAL) could be field references
                     if (arg.mayBeFieldRef()) {
                         String value = arg.getValue();
+                        if (value != null) {
+                            value = value.trim();  // Trim for field resolution (allows spaces after commas)
+                        }
                         if ((value != null) && !value.isEmpty()) {
-                            // Add the root field name (before any dots)
-                            String rootField = value.split("\\.", 2)[0];
+                            // Add the root field name (before any dots or parens)
+                            String rootField = value.split("[.(/]", 2)[0];
                             usedFields.add(rootField);
                             usedFields.add(value);
+
+                            // Recursively extract from nested method calls
+                            // e.g., "a.or(b.replace(x,y))" should also extract "b"
+                            if (value.contains("(")) {
+                                MessageField nestedField = MessageField.of(field.getLocale(), value);
+                                extractFieldRefsFromArgs(nestedField, usedFields);
+                            }
                         }
                     }
                 }

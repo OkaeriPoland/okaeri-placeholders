@@ -180,6 +180,69 @@ class CompositionTest {
 
             assertThat(result).isEqualTo("ALICE");
         }
+
+        @Test
+        void shouldApplyMethodInsideOrParam(Placeholders placeholders) {
+            // Test method call INSIDE .or() param: {name.or(fallback.toUpperCase)}
+            var message = CompiledMessage.of("{name.or(fallback.toUpperCase)}");
+            var result = placeholders.contextOf(message)
+                .with("name", null)
+                .with("fallback", "alice")
+                .apply();
+
+            assertThat(result).isEqualTo("ALICE");
+        }
+
+        @Test
+        void shouldApplyChainedMethodsInsideOrParam(Placeholders placeholders) {
+            // Test chained methods INSIDE .or() param: {name.or(fallback.toLowerCase.capitalize)}
+            var message = CompiledMessage.of("{name.or(fallback.toLowerCase.capitalize)}");
+            var result = placeholders.contextOf(message)
+                .with("name", null)
+                .with("fallback", "HELLO WORLD")
+                .apply();
+
+            assertThat(result).isEqualTo("Hello world");
+        }
+
+        @Test
+        void shouldApplyMethodWithParamsInsideOrParam(Placeholders placeholders) {
+            // Test method with () args INSIDE .or() param: {name.or(fallback.replace(a,b))}
+            var message = CompiledMessage.of("{name.or(fallback.replace(o,0))}");
+            var result = placeholders.contextOf(message)
+                .with("name", null)
+                .with("fallback", "hello")
+                .apply();
+
+            assertThat(result).isEqualTo("hell0");
+        }
+
+        @Test
+        void shouldHandleTwoLevelsOfNestedParens(Placeholders placeholders) {
+            // 2 levels: {$.if(cond, value.replace(a,b), fallback)}
+            var message = CompiledMessage.of("{$.if(active, name.replace(_,-), fallback)}");
+            var result = placeholders.contextOf(message)
+                .with("active", true)
+                .with("name", "hello_world")
+                .with("fallback", "default")
+                .apply();
+
+            assertThat(result).isEqualTo("hello-world");
+        }
+
+        @Test
+        void shouldHandleThreeLevelsOfNestedParens(Placeholders placeholders) {
+            // 3 levels: {$.if(cond, a.or(b.replace(x,y)), fallback)}
+            var message = CompiledMessage.of("{$.if(active, primary.or(secondary.replace(_,-)), fallback)}");
+            var result = placeholders.contextOf(message)
+                .with("active", true)
+                .with("primary", null)
+                .with("secondary", "hello_world")
+                .with("fallback", "default")
+                .apply();
+
+            assertThat(result).isEqualTo("hello-world");
+        }
     }
 
     @Nested
