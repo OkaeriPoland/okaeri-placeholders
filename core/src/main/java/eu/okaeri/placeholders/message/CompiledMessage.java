@@ -6,7 +6,9 @@ import eu.okaeri.placeholders.ast.node.Call;
 import eu.okaeri.placeholders.ast.node.Ref;
 import eu.okaeri.placeholders.ast.node.WithDefault;
 import eu.okaeri.placeholders.ast.parser.ExpressionParser;
-import eu.okaeri.placeholders.message.part.*;
+import eu.okaeri.placeholders.message.part.ExpressionPart;
+import eu.okaeri.placeholders.message.part.MessageElement;
+import eu.okaeri.placeholders.message.part.MessageStatic;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
@@ -32,21 +34,12 @@ public class CompiledMessage {
     }
 
     public static CompiledMessage of(@NonNull Locale locale, @NonNull String raw, @NonNull List<MessageElement> parts) {
-
         Set<String> usedFields = new HashSet<>();
         for (MessageElement part : parts) {
-
-            if (!(part instanceof MessageField)) {
-                continue;
+            if (part instanceof ExpressionPart) {
+                extractUsedFieldsFromAst(((ExpressionPart) part).getAst(), usedFields);
             }
-
-            MessageField field = (MessageField) part;
-            String fieldName = field.getName();
-
-            usedFields.add(fieldName);
-            usedFields.add(fieldName.split("(\\.|\\()", 2)[0]);
         }
-
         return new CompiledMessage(raw, parts, usedFields, locale);
     }
 
@@ -57,45 +50,6 @@ public class CompiledMessage {
     public static CompiledMessage of(@NonNull Locale locale, @NonNull String source) {
         // Use AST-based parsing
         return ofAst(locale, source);
-    }
-
-    /**
-     * Parses field content into [fieldName, defaultValue].
-     * Legacy # metadata syntax is transformed to method calls.
-     */
-    private static String[] parseFieldToArray(@NonNull String raw) {
-
-        String[] arr = new String[2];
-
-        // Transform legacy # metadata to method call syntax
-        int commentIndex = raw.indexOf("#");
-        if (commentIndex != -1) {
-            String metadata = raw.substring(0, commentIndex);
-            String fieldPart = raw.substring(commentIndex + 1);
-
-            // Extract default value from field part BEFORE transforming
-            // {yes,no#active|unknown} → field="active", default="unknown", metadata="yes,no"
-            int fallbackInField = fieldPart.lastIndexOf("|");
-            int argsEndInField = fieldPart.lastIndexOf(")");
-            if ((fallbackInField != -1) && (fallbackInField > argsEndInField)) {
-                arr[1] = fieldPart.substring(fallbackInField + 1);
-                fieldPart = fieldPart.substring(0, fallbackInField);
-            }
-
-            // Transform: active → active._meta("yes","no")
-            raw = transformLegacyMetadata(fieldPart, metadata);
-        } else {
-            // No metadata - just extract default value
-            int fallbackIndex = raw.lastIndexOf("|");
-            int argumentsEndIndex = raw.lastIndexOf(")");
-            if ((fallbackIndex != -1) && (fallbackIndex > argumentsEndIndex)) {
-                arr[1] = raw.substring(fallbackIndex + 1);
-                raw = raw.substring(0, fallbackIndex);
-            }
-        }
-
-        arr[0] = raw;
-        return arr;
     }
 
     /**
@@ -207,44 +161,6 @@ public class CompiledMessage {
 
     public boolean isWithFields() {
         return !this.usedFields.isEmpty();
-    }
-
-    /**
-     * Extracts potential field references from method arguments in a MessageField chain.
-     * For example, in {$.coalesce(a,b,"literal")}, this extracts "a" and "b" as potential fields.
-     * Quoted arguments are ignored as they are explicit literals.
-     * Recursively extracts from nested method calls like {$.if(cond, a.or(b.method()), c)}.
-     */
-    private static void extractFieldRefsFromArgs(MessageField field, Set<String> usedFields) {
-        MessageField current = field;
-        while (current != null) {
-            FieldParams params = current.getParams();
-            if ((params != null) && (params.getParsedParams() != null)) {
-                for (ParsedArg arg : params.getParsedParams()) {
-                    // Only unquoted args (FIELD_REF_OR_LITERAL) could be field references
-                    if (arg.mayBeFieldRef()) {
-                        String value = arg.getValue();
-                        if (value != null) {
-                            value = value.trim();  // Trim for field resolution (allows spaces after commas)
-                        }
-                        if ((value != null) && !value.isEmpty()) {
-                            // Add the root field name (before any dots or parens)
-                            String rootField = value.split("[.(/]", 2)[0];
-                            usedFields.add(rootField);
-                            usedFields.add(value);
-
-                            // Recursively extract from nested method calls
-                            // e.g., "a.or(b.replace(x,y))" should also extract "b"
-                            if (value.contains("(")) {
-                                MessageField nestedField = MessageField.of(field.getLocale(), value);
-                                extractFieldRefsFromArgs(nestedField, usedFields);
-                            }
-                        }
-                    }
-                }
-            }
-            current = current.getSub();
-        }
     }
 
     // === AST-based parsing ===
