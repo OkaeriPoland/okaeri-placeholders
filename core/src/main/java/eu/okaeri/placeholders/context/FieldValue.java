@@ -15,24 +15,24 @@ import org.jetbrains.annotations.Nullable;
 @Data
 @ToString(exclude = "context")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class Placeholder {
+public class FieldValue {
 
     private final Object value;
     private Placeholders placeholders;
     private PlaceholderContext context;
 
-    public static Placeholder of(@Nullable Object value) {
-        return new Placeholder(value);
+    public static FieldValue of(@Nullable Object value) {
+        return new FieldValue(value);
     }
 
-    public static Placeholder of(@Nullable Placeholders placeholders, @Nullable Object value) {
+    public static FieldValue of(@Nullable Placeholders placeholders, @Nullable Object value) {
         return of(placeholders, value, null);
     }
 
-    public static Placeholder of(@Nullable Placeholders placeholders, @Nullable Object value, @Nullable PlaceholderContext context) {
-        Placeholder placeholder = new Placeholder(value);
-        placeholder.setPlaceholders(placeholders);
-        placeholder.setContext(context);
-        return placeholder;
+    public static FieldValue of(@Nullable Placeholders placeholders, @Nullable Object value, @Nullable PlaceholderContext context) {
+        FieldValue fieldValue = new FieldValue(value);
+        fieldValue.setPlaceholders(placeholders);
+        fieldValue.setContext(context);
+        return fieldValue;
     }
 }

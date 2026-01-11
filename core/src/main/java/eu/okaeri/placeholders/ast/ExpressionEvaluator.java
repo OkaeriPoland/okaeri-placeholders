@@ -1,13 +1,10 @@
-package eu.okaeri.placeholders.ast.bridge;
+package eu.okaeri.placeholders.ast;
 
 import eu.okaeri.placeholders.Placeholders;
-import eu.okaeri.placeholders.ast.AstNode;
-import eu.okaeri.placeholders.ast.EvaluationContext;
-import eu.okaeri.placeholders.ast.EvaluationResult;
 import eu.okaeri.placeholders.ast.node.*;
 import eu.okaeri.placeholders.ast.visitor.AstVisitor;
 import eu.okaeri.placeholders.context.PlaceholderContext;
-import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+import eu.okaeri.placeholders.resolver.PlaceholderResolver;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
@@ -17,16 +14,14 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Evaluates AST expressions using the existing Placeholders resolver infrastructure.
+ * Evaluates AST expressions using the Placeholders resolver infrastructure.
  * <p>
- * This class bridges the new AST-based parsing with the existing PlaceholderResolver
- * interface, allowing all existing resolvers to work unchanged.
- * <p>
- * The evaluation is demand-driven: values are only resolved when accessed.
- * This eliminates the need for fast mode (usedFields tracking).
+ * This bridges AST-based parsing with PlaceholderResolver, allowing all existing
+ * resolvers to work unchanged. Evaluation is demand-driven: values are only
+ * resolved when accessed.
  */
 @RequiredArgsConstructor
-public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationContext {
+public class ExpressionEvaluator implements AstVisitor<Object>, EvaluationContext {
 
     private final Map<String, Object> values;
     private final Placeholders placeholders;
@@ -36,15 +31,15 @@ public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationCont
     /**
      * Creates an evaluator with values and placeholder resolvers.
      */
-    public static PlaceholdersEvaluator of(Map<String, Object> values, Placeholders placeholders, Locale locale) {
-        return new PlaceholdersEvaluator(values, placeholders, locale, null);
+    public static ExpressionEvaluator of(Map<String, Object> values, Placeholders placeholders, Locale locale) {
+        return new ExpressionEvaluator(values, placeholders, locale, null);
     }
 
     /**
-     * Creates an evaluator with values, resolvers, and legacy context (for resolver compatibility).
+     * Creates an evaluator with values, resolvers, and context.
      */
-    public static PlaceholdersEvaluator of(Map<String, Object> values, Placeholders placeholders, Locale locale, PlaceholderContext legacyContext) {
-        return new PlaceholdersEvaluator(values, placeholders, locale, legacyContext);
+    public static ExpressionEvaluator of(Map<String, Object> values, Placeholders placeholders, Locale locale, PlaceholderContext context) {
+        return new ExpressionEvaluator(values, placeholders, locale, context);
     }
 
     // === AstVisitor implementation ===
@@ -60,33 +55,26 @@ public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationCont
         Object target = node.getTarget().accept(this);
         String name = node.getName();
 
-        // If no placeholders instance, can't resolve methods
         if (this.placeholders == null) {
             return null;
         }
 
-        // Find resolver
         PlaceholderResolver resolver;
         if (target != null) {
             resolver = this.placeholders.getResolver(target, name);
         } else {
-            // For null target, try Object.class (e.g., .or() method)
             resolver = this.placeholders.getResolver(Object.class, name);
         }
 
         if (resolver == null) {
-            // Try fallback resolver
             resolver = this.placeholders.getFallbackResolver();
             if (resolver == null) {
                 return null;
             }
         }
 
-        // Create bridge accessor for old resolver interface
-        AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of(name, node.getArgs(), node.isHasParens(), this);
-
-        // Invoke resolver
-        return resolver.resolve(target, accessor, this.legacyContext);
+        FieldParams params = FieldParams.of(name, node.getArgs(), node.isHasParens(), this);
+        return resolver.resolve(target, params, this.legacyContext);
     }
 
     @Override
@@ -142,25 +130,21 @@ public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationCont
      */
     @SuppressWarnings("unchecked")
     public EvaluationResult evaluateToResult(AstNode ast, String expression) {
-        // Check if root field is missing (for reporting purposes)
         String rootField = this.getRootFieldName(ast);
         boolean rootMissing = (rootField != null) && !this.values.containsKey(rootField);
 
-        // Evaluate the expression (this allows .or() and other methods to handle null/missing)
         Object result = ast.accept(this);
 
-        // Apply default renderer if available (for types like Duration)
-        // Exclude fallback resolver - it's for method calls, not default rendering
+        // Apply default renderer if available
         if ((result != null) && (this.placeholders != null)) {
             PlaceholderResolver resolver = this.placeholders.getResolver(result, null);
             if ((resolver != null) && (resolver != this.placeholders.getFallbackResolver())) {
-                AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of("", Collections.emptyList(), this);
-                result = resolver.resolve(result, accessor, this.legacyContext);
+                FieldParams params = FieldParams.of("", Collections.emptyList(), this);
+                result = resolver.resolve(result, params, this.legacyContext);
             }
         }
 
         if (result == null) {
-            // Distinguish between "field missing" and "field exists but resolved to null"
             if (rootMissing) {
                 return new EvaluationResult.MissingValue(rootField, expression);
             }
@@ -170,10 +154,6 @@ public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationCont
         return new EvaluationResult.Value(result, expression);
     }
 
-    /**
-     * Extracts the root field name from an AST node.
-     * For example: {player.name} → "player", {value} → "value"
-     */
     @Nullable
     private String getRootFieldName(AstNode node) {
         if (node instanceof Ref) {

@@ -1,6 +1,6 @@
 package eu.okaeri.placeholders.fixture;
 
-import eu.okaeri.placeholders.schema.annotation.Placeholder;
+import eu.okaeri.placeholders.resolver.annotation.Placeholder;
 
 /**
  * Test classes with @Placeholder annotation for schema resolution tests.

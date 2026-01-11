@@ -1,7 +1,7 @@
-package eu.okaeri.placeholders.schema;
+package eu.okaeri.placeholders.registry;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
-import eu.okaeri.placeholders.message.part.FieldParams;
+import eu.okaeri.placeholders.ast.FieldParams;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Locale;

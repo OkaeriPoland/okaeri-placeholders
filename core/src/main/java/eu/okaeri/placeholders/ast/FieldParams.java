@@ -1,51 +1,78 @@
-package eu.okaeri.placeholders.ast.bridge;
+package eu.okaeri.placeholders.ast;
 
-import eu.okaeri.placeholders.ast.AstNode;
-import eu.okaeri.placeholders.ast.EvaluationContext;
 import eu.okaeri.placeholders.ast.node.NumberLiteral;
 import eu.okaeri.placeholders.ast.node.Ref;
 import eu.okaeri.placeholders.ast.node.StringLiteral;
 import eu.okaeri.placeholders.context.PlaceholderContext;
-import eu.okaeri.placeholders.message.part.FieldParams;
-import eu.okaeri.placeholders.message.part.ParsedArg;
+import lombok.Getter;
+import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Bridge class that provides FieldParams-like access to AST arguments.
+ * Provides access to method call parameters for placeholder resolution.
  * <p>
- * This allows existing PlaceholderResolver implementations to work with the new
- * AST-based system without modification. The AST nodes are evaluated on-demand
- * when arguments are accessed.
+ * This is passed to {@link eu.okaeri.placeholders.resolver.PlaceholderResolver#resolve}
+ * and provides:
+ * <ul>
+ *   <li>The method/field name being accessed</li>
+ *   <li>Arguments passed to the method call</li>
+ *   <li>The locale for formatting</li>
+ * </ul>
+ * <p>
+ * AST argument nodes are evaluated on-demand when accessed, enabling
+ * lazy evaluation and field reference resolution.
  */
-public class AstFieldParams extends FieldParams {
+public class FieldParams {
 
+    @Getter
+    private final String field;
     private final List<AstNode> args;
     private final boolean hasParens;
     private final EvaluationContext ctx;
 
-    private AstFieldParams(String fieldName, List<AstNode> args, boolean hasParens, EvaluationContext ctx) {
-        super(fieldName, new String[0], new ParsedArg[0]);
+    private FieldParams(String field, List<AstNode> args, boolean hasParens, EvaluationContext ctx) {
+        this.field = field;
         this.args = args;
         this.hasParens = hasParens;
         this.ctx = ctx;
     }
 
     /**
-     * Creates AstFieldParams wrapping AST argument nodes.
+     * Creates params for a method call with parentheses.
      */
-    public static AstFieldParams of(String fieldName, List<AstNode> args, boolean hasParens, EvaluationContext ctx) {
-        return new AstFieldParams(fieldName, args, hasParens, ctx);
+    public static FieldParams of(String field, List<AstNode> args, EvaluationContext ctx) {
+        return new FieldParams(field, args, true, ctx);
     }
 
-    @Override
+    /**
+     * Creates params with explicit parentheses flag.
+     *
+     * @param hasParens true for method calls like foo(), false for field access like foo.bar
+     */
+    public static FieldParams of(String field, List<AstNode> args, boolean hasParens, EvaluationContext ctx) {
+        return new FieldParams(field, args, hasParens, ctx);
+    }
+
+    /**
+     * The locale for this evaluation context.
+     */
+    public Locale getLocale() {
+        return this.ctx.locale();
+    }
+
+    /**
+     * Number of arguments.
+     */
     public int length() {
         return this.args.size();
     }
 
-    @Override
+    /**
+     * All arguments as strings.
+     */
     public String[] strArr() {
         String[] arr = new String[this.args.size()];
         for (int i = 0; i < this.args.size(); i++) {
@@ -54,7 +81,9 @@ public class AstFieldParams extends FieldParams {
         return arr;
     }
 
-    @Override
+    /**
+     * All arguments as integers.
+     */
     public int[] intArr() {
         int[] arr = new int[this.args.size()];
         for (int i = 0; i < this.args.size(); i++) {
@@ -63,7 +92,9 @@ public class AstFieldParams extends FieldParams {
         return arr;
     }
 
-    @Override
+    /**
+     * All arguments as doubles.
+     */
     public double[] doubleArr() {
         double[] arr = new double[this.args.size()];
         for (int i = 0; i < this.args.size(); i++) {
@@ -72,24 +103,21 @@ public class AstFieldParams extends FieldParams {
         return arr;
     }
 
-    @Override
     public String strAt(int pos) {
         return this.strAt(pos, "");
     }
 
-    @Override
     public String strAt(int pos, String def) {
         if (pos >= this.args.size()) return def;
 
         AstNode arg = this.args.get(pos);
         Object result = this.ctx.evaluate(arg);
 
-        // If result is non-null, use it
         if (result != null) {
             return result.toString();
         }
 
-        // Fallback for unresolved refs: use the identifier name itself as the string value
+        // Fallback for unresolved refs: use the identifier name as the string value
         // This enables backward compat: {s.replace(_,-)} where - is not a field but a literal
         if (arg instanceof Ref) {
             return ((Ref) arg).getName();
@@ -98,77 +126,80 @@ public class AstFieldParams extends FieldParams {
         return def;
     }
 
-    @Override
     public double doubleAt(int pos) {
         return this.doubleAt(pos, 0);
     }
 
-    @Override
     public double doubleAt(int pos, double def) {
         if (pos >= this.args.size()) return def;
         return this.ctx.evaluateDouble(this.args.get(pos), def);
     }
 
-    @Override
     public int intAt(int pos) {
         return this.intAt(pos, 0);
     }
 
-    @Override
     public int intAt(int pos, int def) {
         if (pos >= this.args.size()) return def;
         return this.ctx.evaluateInt(this.args.get(pos), def);
     }
 
-    @Override
+    /**
+     * Gets the parsed argument at the specified position.
+     */
+    @Nullable
     public ParsedArg parsedAt(int pos) {
-        // For AST args, we create a synthetic ParsedArg on-demand
         if (pos >= this.args.size()) return null;
         Object value = this.ctx.evaluate(this.args.get(pos));
         String strValue = (value != null) ? value.toString() : null;
-        // All AST args are effectively field refs (evaluated on demand)
         return ParsedArg.fieldRefOrLiteral(strValue);
     }
 
     /**
-     * Resolves an argument at the specified position by evaluating the AST node.
-     * This is the core method used by global functions like coalesce, if, etc.
+     * Resolves an argument by evaluating the AST node.
      * <p>
      * Resolution logic:
-     * - String literals return their value directly
-     * - For Ref nodes:
-     * - If the field exists in context (even if null), return the evaluated value
-     * - If the field doesn't exist, fall back to the ref name (backward compat for literals)
-     * - Other expressions are evaluated normally
+     * <ul>
+     *   <li>String literals return their value directly</li>
+     *   <li>For Ref nodes: if field exists in context, return evaluated value;
+     *       otherwise fall back to ref name (backward compat for literals)</li>
+     *   <li>Other expressions are evaluated normally</li>
+     * </ul>
      */
-    @Override
     @Nullable
     public Object resolveArg(int pos, @Nullable Locale locale, @Nullable PlaceholderContext context) {
         if (pos >= this.args.size()) return null;
 
         AstNode arg = this.args.get(pos);
 
-        // String literals return their value directly
         if (arg instanceof StringLiteral) {
             return ((StringLiteral) arg).getValue();
         }
 
-        // For Ref nodes, check if field exists in context
         if (arg instanceof Ref) {
             String refName = ((Ref) arg).getName();
-            // If field exists in context (even if null), return evaluated value
             if (this.ctx.hasValue(refName)) {
                 return this.ctx.evaluate(arg);
             }
-            // Field not found - treat ref name as literal string (backward compat)
             return refName;
         }
 
-        // For other expressions (Call, etc.), evaluate normally
         return this.ctx.evaluate(arg);
     }
 
-    @Override
+    /**
+     * Resolves an argument as a String, with a default value.
+     */
+    @NonNull
+    public String resolveStrAt(int pos, @NonNull String def, @Nullable Locale locale, @Nullable PlaceholderContext context) {
+        Object resolved = this.resolveArg(pos, locale, context);
+        if (resolved == null) return def;
+        return String.valueOf(resolved);
+    }
+
+    /**
+     * Raw parameters for backward compatibility.
+     */
     public String[] getParams() {
         // For backward compatibility with ReflectResolver:
         // - Empty args with parens (foo()) → return [""] to indicate no-arg method call
@@ -180,20 +211,9 @@ public class AstFieldParams extends FieldParams {
             }
             return new String[0];
         }
-        // Return raw-format strings for ReflectResolver compatibility
-        // ReflectResolver uses raw format to detect types: 'a' → String, 123 → int, etc.
         return this.rawStrArr();
     }
 
-    /**
-     * Returns arguments in raw format for backward compatibility with ReflectResolver.
-     * <ul>
-     *   <li>StringLiteral → 'value' (single-quoted)</li>
-     *   <li>NumberLiteral → number as string</li>
-     *   <li>Ref → identifier name</li>
-     *   <li>Other → evaluated string</li>
-     * </ul>
-     */
     private String[] rawStrArr() {
         String[] arr = new String[this.args.size()];
         for (int i = 0; i < this.args.size(); i++) {
@@ -202,27 +222,23 @@ public class AstFieldParams extends FieldParams {
         return arr;
     }
 
-    /**
-     * Converts an AST node to its raw string representation for ReflectResolver.
-     */
     private String toRawString(AstNode node) {
         if (node instanceof StringLiteral) {
-            // Return with single quotes so ReflectResolver detects as String type
             return "'" + ((StringLiteral) node).getValue() + "'";
         }
         if (node instanceof NumberLiteral) {
-            Number num = ((NumberLiteral) node).getValue();
-            return num.toString();
+            return ((NumberLiteral) node).getValue().toString();
         }
         if (node instanceof Ref) {
             return ((Ref) node).getName();
         }
-        // For complex expressions, evaluate and return as string
         Object result = this.ctx.evaluate(node);
         return (result != null) ? result.toString() : "";
     }
 
-    @Override
+    /**
+     * All parsed parameters.
+     */
     public ParsedArg[] getParsedParams() {
         ParsedArg[] arr = new ParsedArg[this.args.size()];
         for (int i = 0; i < this.args.size(); i++) {

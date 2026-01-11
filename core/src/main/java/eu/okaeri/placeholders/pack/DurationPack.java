@@ -2,7 +2,7 @@ package eu.okaeri.placeholders.pack;
 
 import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.Placeholders;
-import eu.okaeri.placeholders.schema.Registry;
+import eu.okaeri.placeholders.registry.Registry;
 
 import java.time.Duration;
 import java.util.Locale;

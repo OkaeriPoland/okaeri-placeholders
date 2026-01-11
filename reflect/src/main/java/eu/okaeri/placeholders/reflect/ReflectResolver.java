@@ -1,15 +1,15 @@
 package eu.okaeri.placeholders.reflect;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
-import eu.okaeri.placeholders.message.part.FieldParams;
-import eu.okaeri.placeholders.message.part.MessageFieldAccessor;
+import eu.okaeri.placeholders.ast.FieldParams;
+import eu.okaeri.placeholders.ast.FieldParams;
 import eu.okaeri.placeholders.reflect.argument.ArgumentParser;
 import eu.okaeri.placeholders.reflect.argument.ParsedArgument;
 import eu.okaeri.placeholders.reflect.exception.ReflectException;
 import eu.okaeri.placeholders.reflect.invoke.FieldInvoker;
 import eu.okaeri.placeholders.reflect.invoke.MethodInvoker;
 import eu.okaeri.placeholders.reflect.lookup.MemberLookup;
-import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+import eu.okaeri.placeholders.resolver.PlaceholderResolver;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +36,7 @@ public class ReflectResolver implements PlaceholderResolver {
     private final MemberLookup lookup = new MemberLookup();
 
     @Override
-    public Object resolve(@NotNull Object object, @NonNull MessageFieldAccessor accessor, @Nullable PlaceholderContext context) {
+    public Object resolve(@NotNull Object object, @NonNull FieldParams accessor, @Nullable PlaceholderContext context) {
         Class<?> clazz = object.getClass();
 
         // Try static resolution if object is a Class
@@ -54,7 +54,7 @@ public class ReflectResolver implements PlaceholderResolver {
         }
 
         // Nothing found
-        throw ReflectException.memberNotFound(clazz, accessor.params().getField());
+        throw ReflectException.memberNotFound(clazz, accessor.getField());
     }
 
     /**
@@ -67,10 +67,9 @@ public class ReflectResolver implements PlaceholderResolver {
      * @return The resolved value, or null if not found
      */
     @Nullable
-    private Object resolveOn(@NonNull Object target, @NonNull Class<?> clazz, @NonNull MessageFieldAccessor accessor, @Nullable PlaceholderContext context) {
-        FieldParams params = accessor.params();
-        String name = params.getField();
-        String[] rawArgs = params.getParams();
+    private Object resolveOn(@NonNull Object target, @NonNull Class<?> clazz, @NonNull FieldParams accessor, @Nullable PlaceholderContext context) {
+        String name = accessor.getField();
+        String[] rawArgs = accessor.getParams();
 
         // Field access: no params at all
         if (rawArgs.length == 0) {

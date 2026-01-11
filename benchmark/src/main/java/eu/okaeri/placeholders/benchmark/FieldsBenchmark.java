@@ -2,8 +2,7 @@ package eu.okaeri.placeholders.benchmark;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
-import eu.okaeri.placeholders.schema.PlaceholderSchema;
-import eu.okaeri.placeholders.schema.annotation.Placeholder;
+import eu.okaeri.placeholders.resolver.annotation.Placeholder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.openjdk.jmh.annotations.*;
@@ -130,7 +129,7 @@ public class FieldsBenchmark {
 
 @Data
 @Placeholder
-class Item implements PlaceholderSchema {
+class Item {
     private String type;
     private int amount;
     private short damage;
@@ -140,14 +139,14 @@ class Item implements PlaceholderSchema {
 
 @Data
 @Placeholder
-class Meta implements PlaceholderSchema {
+class Meta {
     private String name;
     private String lore;
 }
 
 @Data
 @Placeholder
-class Inventory implements PlaceholderSchema {
+class Inventory {
     private Item helmet;
     private Item chestplate;
     private Item leggings;

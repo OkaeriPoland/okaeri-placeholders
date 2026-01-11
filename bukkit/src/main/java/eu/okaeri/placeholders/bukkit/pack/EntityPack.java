@@ -1,7 +1,7 @@
 package eu.okaeri.placeholders.bukkit.pack;
 
 import eu.okaeri.placeholders.PlaceholderPack;
-import eu.okaeri.placeholders.schema.Registry;
+import eu.okaeri.placeholders.registry.Registry;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;

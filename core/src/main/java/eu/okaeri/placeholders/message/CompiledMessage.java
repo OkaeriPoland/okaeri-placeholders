@@ -6,9 +6,6 @@ import eu.okaeri.placeholders.ast.node.Call;
 import eu.okaeri.placeholders.ast.node.Ref;
 import eu.okaeri.placeholders.ast.node.WithDefault;
 import eu.okaeri.placeholders.ast.parser.ExpressionParser;
-import eu.okaeri.placeholders.message.part.ExpressionPart;
-import eu.okaeri.placeholders.message.part.MessageElement;
-import eu.okaeri.placeholders.message.part.MessageStatic;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
@@ -231,7 +228,7 @@ public class CompiledMessage {
                     // Found complete placeholder
                     // Add static text before placeholder
                     if (start > lastIndex) {
-                        parts.add(MessageStatic.of(source.substring(lastIndex, start)));
+                        parts.add(StaticPart.of(source.substring(lastIndex, start)));
                     }
 
                     // Extract and parse placeholder content
@@ -273,7 +270,7 @@ public class CompiledMessage {
 
         // Add remaining static text
         if (lastIndex < length) {
-            parts.add(MessageStatic.of(source.substring(lastIndex)));
+            parts.add(StaticPart.of(source.substring(lastIndex)));
         }
 
         return new CompiledMessage(

@@ -2,7 +2,7 @@ package eu.okaeri.placeholders.bungee;
 
 import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.Placeholders;
-import eu.okaeri.placeholders.schema.Registry;
+import eu.okaeri.placeholders.registry.Registry;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;

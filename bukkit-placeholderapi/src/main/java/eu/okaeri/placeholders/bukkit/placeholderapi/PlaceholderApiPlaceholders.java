@@ -3,7 +3,7 @@ package eu.okaeri.placeholders.bukkit.placeholderapi;
 import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.bukkit.BukkitPlaceholders;
-import eu.okaeri.placeholders.message.part.FieldParams;
+import eu.okaeri.placeholders.ast.FieldParams;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -47,9 +47,8 @@ public final class PlaceholderApiPlaceholders implements PlaceholderPack {
     public void register(Placeholders placeholders) {
         placeholders.register(Player.class, "papi", (from, field, context) -> {
 
-            FieldParams params = field.params();
-            String viewerField = (params.length() > 1) ? params.strAt(0) : this.viewerField();
-            String text = (params.length() > 1) ? params.strAt(1) : params.strAt(0);
+            String viewerField = (field.length() > 1) ? field.strAt(0) : this.viewerField();
+            String text = (field.length() > 1) ? field.strAt(1) : field.strAt(0);
             text = PlaceholderAPI.setPlaceholders(from, "%" + text + "%");
 
             if (context != null) {

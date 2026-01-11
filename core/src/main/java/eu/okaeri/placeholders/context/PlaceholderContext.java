@@ -3,14 +3,14 @@ package eu.okaeri.placeholders.context;
 import eu.okaeri.placeholders.GlobalFunctions;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.ast.EvaluationResult;
-import eu.okaeri.placeholders.ast.bridge.PlaceholdersEvaluator;
+import eu.okaeri.placeholders.ast.ExpressionEvaluator;
 import eu.okaeri.placeholders.exception.MissingFieldException;
 import eu.okaeri.placeholders.exception.NullValueException;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.MessageRenderer;
 import eu.okaeri.placeholders.message.StringMessageRenderer;
-import eu.okaeri.placeholders.message.part.ExpressionPart;
-import eu.okaeri.placeholders.message.part.MessageElement;
+import eu.okaeri.placeholders.message.ExpressionPart;
+import eu.okaeri.placeholders.message.MessageElement;
 import lombok.Data;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +63,7 @@ import java.util.Map;
 @Data
 public class PlaceholderContext {
 
-    private final Map<String, Placeholder> fields = new LinkedHashMap<>();
+    private final Map<String, FieldValue> fields = new LinkedHashMap<>();
     private final CompiledMessage message;
     private final FailMode failMode;
     private Placeholders placeholders;
@@ -91,7 +91,7 @@ public class PlaceholderContext {
      */
     public static PlaceholderContext create(@NonNull FailMode failMode) {
         PlaceholderContext context = new PlaceholderContext(null, failMode);
-        context.fields.put(Placeholders.GLOBAL_FUNCTIONS_KEY, Placeholder.of(null, GlobalFunctions.INSTANCE, context));
+        context.fields.put(Placeholders.GLOBAL_FUNCTIONS_KEY, FieldValue.of(null, GlobalFunctions.INSTANCE, context));
         return context;
     }
 
@@ -132,7 +132,7 @@ public class PlaceholderContext {
     public static PlaceholderContext of(@Nullable Placeholders placeholders, @NonNull CompiledMessage message, @NonNull FailMode failMode) {
         PlaceholderContext context = new PlaceholderContext(message, failMode);
         context.setPlaceholders(placeholders);
-        context.fields.put(Placeholders.GLOBAL_FUNCTIONS_KEY, Placeholder.of(placeholders, GlobalFunctions.INSTANCE, context));
+        context.fields.put(Placeholders.GLOBAL_FUNCTIONS_KEY, FieldValue.of(placeholders, GlobalFunctions.INSTANCE, context));
         return context;
     }
 
@@ -147,7 +147,7 @@ public class PlaceholderContext {
      * @return This context for chaining
      */
     public PlaceholderContext with(@NonNull String field, @Nullable Object value) {
-        this.fields.put(field, Placeholder.of(this.placeholders, value, this));
+        this.fields.put(field, FieldValue.of(this.placeholders, value, this));
         return this;
     }
 
@@ -250,7 +250,7 @@ public class PlaceholderContext {
         }
 
         Map<String, EvaluationResult> results = new LinkedHashMap<>();
-        PlaceholdersEvaluator evaluator = this.createEvaluator(message);
+        ExpressionEvaluator evaluator = this.createEvaluator(message);
 
         // Handle AST-based ExpressionPart parts
         for (MessageElement part : message.getParts()) {
@@ -338,7 +338,7 @@ public class PlaceholderContext {
      */
     private Map<String, Object> buildValuesMap() {
         Map<String, Object> values = new HashMap<>();
-        for (Map.Entry<String, Placeholder> entry : this.fields.entrySet()) {
+        for (Map.Entry<String, FieldValue> entry : this.fields.entrySet()) {
             values.put(entry.getKey(), entry.getValue().getValue());
         }
         return values;
@@ -353,10 +353,10 @@ public class PlaceholderContext {
      * @param message The compiled message (used for locale)
      * @return A configured evaluator ready to evaluate AST nodes
      */
-    public PlaceholdersEvaluator createEvaluator(@NonNull CompiledMessage message) {
+    public ExpressionEvaluator createEvaluator(@NonNull CompiledMessage message) {
         Map<String, Object> values = this.buildValuesMap();
         Locale locale = (message.getLocale() != null) ? message.getLocale() : Locale.ENGLISH;
-        return PlaceholdersEvaluator.of(values, this.placeholders, locale, this);
+        return ExpressionEvaluator.of(values, this.placeholders, locale, this);
     }
 
     /**

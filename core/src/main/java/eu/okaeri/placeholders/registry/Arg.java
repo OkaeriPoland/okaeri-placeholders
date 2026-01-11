@@ -1,4 +1,4 @@
-package eu.okaeri.placeholders.schema;
+package eu.okaeri.placeholders.registry;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
 

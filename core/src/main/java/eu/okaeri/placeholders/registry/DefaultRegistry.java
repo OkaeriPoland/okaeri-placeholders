@@ -1,9 +1,9 @@
-package eu.okaeri.placeholders.schema;
+package eu.okaeri.placeholders.registry;
 
 import eu.okaeri.placeholders.GlobalFunctions;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.context.PlaceholderContext;
-import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+import eu.okaeri.placeholders.resolver.PlaceholderResolver;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
@@ -76,7 +76,7 @@ public class DefaultRegistry implements Registry {
         @Override
         public TypeMethods<T> add(String name, BiFunction<T, Params, Object> resolver) {
             this.placeholders.register(this.type, name, (PlaceholderResolver<T>) (value, field, ctx) -> {
-                Params params = DefaultParams.of(field.params(), field.locale(), ctx);
+                Params params = DefaultParams.of(field, field.getLocale(), ctx);
                 return resolver.apply(value, params);
             });
             return this;
@@ -85,7 +85,7 @@ public class DefaultRegistry implements Registry {
         @Override
         public TypeMethods<T> add(String name, TriFunction<T, Params, PlaceholderContext, Object> resolver) {
             this.placeholders.register(this.type, name, (PlaceholderResolver<T>) (value, field, ctx) -> {
-                Params params = DefaultParams.of(field.params(), field.locale(), ctx);
+                Params params = DefaultParams.of(field, field.getLocale(), ctx);
                 return resolver.apply(value, params, ctx);
             });
             return this;
@@ -100,7 +100,7 @@ public class DefaultRegistry implements Registry {
         @Override
         public TypeMethods<T> self(BiFunction<T, Params, Object> resolver) {
             this.placeholders.register(this.type, (PlaceholderResolver<T>) (value, field, ctx) -> {
-                Params params = DefaultParams.of(field.params(), field.locale(), ctx);
+                Params params = DefaultParams.of(field, field.getLocale(), ctx);
                 return resolver.apply(value, params);
             });
             return this;
@@ -109,7 +109,7 @@ public class DefaultRegistry implements Registry {
         @Override
         public TypeMethods<T> self(TriFunction<T, Params, PlaceholderContext, Object> resolver) {
             this.placeholders.register(this.type, (PlaceholderResolver<T>) (value, field, ctx) -> {
-                Params params = DefaultParams.of(field.params(), field.locale(), ctx);
+                Params params = DefaultParams.of(field, field.getLocale(), ctx);
                 return resolver.apply(value, params, ctx);
             });
             return this;
@@ -157,7 +157,7 @@ public class DefaultRegistry implements Registry {
         @Override
         public GlobalMethods add(String name, Function<Params, Object> resolver) {
             this.placeholders.register(name, (gf, field, ctx) -> {
-                Params params = DefaultParams.of(field.params(), field.locale(), ctx);
+                Params params = DefaultParams.of(field, field.getLocale(), ctx);
                 return resolver.apply(params);
             });
             return this;
@@ -166,7 +166,7 @@ public class DefaultRegistry implements Registry {
         @Override
         public GlobalMethods add(String name, BiFunction<Params, PlaceholderContext, Object> resolver) {
             this.placeholders.register(name, (gf, field, ctx) -> {
-                Params params = DefaultParams.of(field.params(), field.locale(), ctx);
+                Params params = DefaultParams.of(field, field.getLocale(), ctx);
                 return resolver.apply(params, ctx);
             });
             return this;

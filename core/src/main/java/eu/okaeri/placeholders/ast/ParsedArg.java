@@ -1,4 +1,4 @@
-package eu.okaeri.placeholders.message.part;
+package eu.okaeri.placeholders.ast;
 
 import lombok.AccessLevel;
 import lombok.Data;

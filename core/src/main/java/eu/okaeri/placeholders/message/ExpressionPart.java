@@ -1,4 +1,4 @@
-package eu.okaeri.placeholders.message.part;
+package eu.okaeri.placeholders.message;
 
 import eu.okaeri.placeholders.ast.AstNode;
 import lombok.Getter;

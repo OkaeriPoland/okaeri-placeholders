@@ -1,4 +1,4 @@
-package eu.okaeri.placeholders.schema;
+package eu.okaeri.placeholders.registry;
 
 /**
  * Access to method arguments with fluent API.

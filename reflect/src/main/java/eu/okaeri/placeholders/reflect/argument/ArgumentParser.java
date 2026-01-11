@@ -1,6 +1,6 @@
 package eu.okaeri.placeholders.reflect.argument;
 
-import eu.okaeri.placeholders.context.Placeholder;
+import eu.okaeri.placeholders.context.FieldValue;
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import lombok.NonNull;
@@ -75,9 +75,9 @@ public final class ArgumentParser {
                 return ParsedArgument.contextRef(resolved, raw);
             }
             // Check if it's a simple field reference (not a path)
-            Placeholder placeholder = context.getFields().get(raw);
-            if (placeholder != null) {
-                return ParsedArgument.contextRef(placeholder.getValue(), raw);
+            FieldValue fieldValue = context.getFields().get(raw);
+            if (fieldValue != null) {
+                return ParsedArgument.contextRef(fieldValue.getValue(), raw);
             }
         }
 

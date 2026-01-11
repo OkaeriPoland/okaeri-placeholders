@@ -2,8 +2,8 @@ package eu.okaeri.placeholders.pack;
 
 import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.context.PlaceholderContext;
-import eu.okaeri.placeholders.schema.Params;
-import eu.okaeri.placeholders.schema.Registry;
+import eu.okaeri.placeholders.registry.Params;
+import eu.okaeri.placeholders.registry.Registry;
 
 import java.time.Instant;
 

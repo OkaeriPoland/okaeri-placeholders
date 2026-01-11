@@ -1,14 +1,11 @@
 package eu.okaeri.placeholders.message;
 
 import eu.okaeri.placeholders.ast.EvaluationResult;
-import eu.okaeri.placeholders.ast.bridge.PlaceholdersEvaluator;
+import eu.okaeri.placeholders.ast.ExpressionEvaluator;
 import eu.okaeri.placeholders.context.FailMode;
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.exception.MissingFieldException;
 import eu.okaeri.placeholders.exception.NullValueException;
-import eu.okaeri.placeholders.message.part.ExpressionPart;
-import eu.okaeri.placeholders.message.part.MessageElement;
-import eu.okaeri.placeholders.message.part.MessageStatic;
 import lombok.NonNull;
 
 import java.util.List;
@@ -34,12 +31,12 @@ public class StringMessageRenderer implements MessageRenderer<String> {
 
         List<MessageElement> parts = message.getParts();
         FailMode failMode = context.getFailMode();
-        PlaceholdersEvaluator evaluator = context.createEvaluator(message);
+        ExpressionEvaluator evaluator = context.createEvaluator(message);
 
         StringBuilder builder = new StringBuilder();
         for (MessageElement part : parts) {
-            if (part instanceof MessageStatic) {
-                builder.append(((MessageStatic) part).getValue());
+            if (part instanceof StaticPart) {
+                builder.append(((StaticPart) part).getValue());
             } else if (part instanceof ExpressionPart) {
                 ExpressionPart expr = (ExpressionPart) part;
                 EvaluationResult result = evaluator.evaluateToResult(expr.getAst(), expr.getRaw());

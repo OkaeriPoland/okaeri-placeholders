@@ -1,7 +1,7 @@
 package eu.okaeri.placeholders;
 
-import eu.okaeri.placeholders.schema.DefaultRegistry;
-import eu.okaeri.placeholders.schema.Registry;
+import eu.okaeri.placeholders.registry.DefaultRegistry;
+import eu.okaeri.placeholders.registry.Registry;
 
 /**
  * A pack of placeholder methods and global functions to register.

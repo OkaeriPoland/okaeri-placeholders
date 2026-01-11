@@ -2,11 +2,13 @@ package eu.okaeri.placeholders;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
-import eu.okaeri.placeholders.schema.DefaultRegistry;
-import eu.okaeri.placeholders.schema.GlobalMethods;
-import eu.okaeri.placeholders.schema.Params;
-import eu.okaeri.placeholders.schema.TypeMethods;
-import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+import eu.okaeri.placeholders.resolver.annotation.AnnotationResolver;
+import eu.okaeri.placeholders.registry.DefaultRegistry;
+import eu.okaeri.placeholders.registry.GlobalMethods;
+import eu.okaeri.placeholders.registry.Params;
+import eu.okaeri.placeholders.registry.TypeMethods;
+import eu.okaeri.placeholders.resolver.annotation.Placeholder;
+import eu.okaeri.placeholders.resolver.PlaceholderResolver;
 import eu.okaeri.pluralize.Pluralize;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -191,6 +193,12 @@ public class Placeholders {
             return resolver;
         }
 
+        // Check for @Placeholder annotation
+        resolver = this.getAnnotationResolver(fromClass, param);
+        if (resolver != null) {
+            return resolver;
+        }
+
         return this.fallbackResolver;
     }
 
@@ -222,7 +230,8 @@ public class Placeholders {
             }
         }
 
-        return null;
+        // Check for @Placeholder annotation
+        return this.getAnnotationResolver(fromClass, param);
     }
 
     private PlaceholderResolver findResolverOrNull(@NonNull Object from, @Nullable String param) {
@@ -244,6 +253,22 @@ public class Placeholders {
         }
 
         return null;
+    }
+
+    /**
+     * Gets a resolver from a @Placeholder annotated class.
+     * This enables auto-discovery of placeholder methods on annotated classes.
+     *
+     * @param clazz The class to check for @Placeholder annotation
+     * @param param The placeholder name to look up
+     * @return The resolver if found, null otherwise
+     */
+    @Nullable
+    private PlaceholderResolver getAnnotationResolver(@NonNull Class<?> clazz, @Nullable String param) {
+        if (clazz.getAnnotation(Placeholder.class) == null) {
+            return null;
+        }
+        return AnnotationResolver.of(clazz).getResolver(param);
     }
 
     /**

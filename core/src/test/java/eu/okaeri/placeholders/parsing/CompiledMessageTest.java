@@ -1,8 +1,8 @@
 package eu.okaeri.placeholders.parsing;
 
 import eu.okaeri.placeholders.message.CompiledMessage;
-import eu.okaeri.placeholders.message.part.ExpressionPart;
-import eu.okaeri.placeholders.message.part.MessageStatic;
+import eu.okaeri.placeholders.message.ExpressionPart;
+import eu.okaeri.placeholders.message.StaticPart;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class CompiledMessageTest {
             assertThat(message.getRaw()).isEqualTo("Hello World!");
             assertThat(message.isWithFields()).isFalse();
             assertThat(message.getParts()).hasSize(1);
-            assertThat(message.getParts().get(0)).isInstanceOf(MessageStatic.class);
+            assertThat(message.getParts().get(0)).isInstanceOf(StaticPart.class);
         }
 
         @Test
@@ -50,9 +50,9 @@ class CompiledMessageTest {
             assertThat(message.hasField("name")).isTrue();
             // static("Hello ") + expression(name) + static("!")
             assertThat(message.getParts()).hasSize(3);
-            assertThat(message.getParts().get(0)).isInstanceOf(MessageStatic.class);
+            assertThat(message.getParts().get(0)).isInstanceOf(StaticPart.class);
             assertThat(message.getParts().get(1)).isInstanceOf(ExpressionPart.class);
-            assertThat(message.getParts().get(2)).isInstanceOf(MessageStatic.class);
+            assertThat(message.getParts().get(2)).isInstanceOf(StaticPart.class);
         }
 
         @ParameterizedTest
@@ -76,7 +76,7 @@ class CompiledMessageTest {
             // expression(name) + static(" World!")
             assertThat(message.getParts()).hasSize(2);
             assertThat(message.getParts().get(0)).isInstanceOf(ExpressionPart.class);
-            assertThat(message.getParts().get(1)).isInstanceOf(MessageStatic.class);
+            assertThat(message.getParts().get(1)).isInstanceOf(StaticPart.class);
         }
 
         @Test
@@ -85,7 +85,7 @@ class CompiledMessageTest {
 
             // static("Hello ") + expression(name)
             assertThat(message.getParts()).hasSize(2);
-            assertThat(message.getParts().get(0)).isInstanceOf(MessageStatic.class);
+            assertThat(message.getParts().get(0)).isInstanceOf(StaticPart.class);
             assertThat(message.getParts().get(1)).isInstanceOf(ExpressionPart.class);
         }
 
