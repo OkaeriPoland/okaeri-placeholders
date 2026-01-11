@@ -10,14 +10,14 @@ Adventure integration for okaeri-placeholders with full MiniMessage support.
 <dependency>
     <groupId>eu.okaeri</groupId>
     <artifactId>okaeri-placeholders-adventure</artifactId>
-    <version>6.0.0-beta.1</version>
+    <version>6.0.0-beta.2</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'eu.okaeri:okaeri-placeholders-adventure:6.0.0-beta.1'
+implementation 'eu.okaeri:okaeri-placeholders-adventure:6.0.0-beta.2'
 ```
 
 ## Features
