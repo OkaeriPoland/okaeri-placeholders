@@ -46,8 +46,8 @@
 
     <repositories>
         <repository>
-            <id>storehouse-releases</id>
-            <url>https://storehouse.okaeri.eu/repository/maven-releases/</url>
+            <id>okaeri-releases</id>
+            <url>https://repo.okaeri.cloud/releases</url>
         </repository>
     </repositories>
 
