@@ -2,7 +2,10 @@ package eu.okaeri.placeholders.ast.parser;
 
 import eu.okaeri.placeholders.ast.AstNode;
 import eu.okaeri.placeholders.ast.SourceSpan;
-import eu.okaeri.placeholders.ast.node.*;
+import eu.okaeri.placeholders.ast.node.Call;
+import eu.okaeri.placeholders.ast.node.Ref;
+import eu.okaeri.placeholders.ast.node.StringLiteral;
+import eu.okaeri.placeholders.ast.node.WithDefault;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,15 +46,15 @@ public class ExpressionParser {
      * Parses the expression and returns the AST.
      */
     public AstNode parse() {
-        if (tokens.isEmpty() || (tokens.size() == 1 && check(TokenType.EOF))) {
+        if (this.tokens.isEmpty() || ((this.tokens.size() == 1) && this.check(TokenType.EOF))) {
             // Empty expression - return empty string literal
             return StringLiteral.of("");
         }
 
-        AstNode expr = parseExpression();
+        AstNode expr = this.parseExpression();
 
-        if (!check(TokenType.EOF)) {
-            throw error("Unexpected token after expression: " + peek());
+        if (!this.check(TokenType.EOF)) {
+            throw this.error("Unexpected token after expression: " + this.peek());
         }
 
         return expr;
@@ -61,12 +64,12 @@ public class ExpressionParser {
      * expression = postfix ( "|" postfix )? ;
      */
     private AstNode parseExpression() {
-        AstNode expr = parsePostfix();
+        AstNode expr = this.parsePostfix();
 
         // Handle default value: {expr|default}
-        if (match(TokenType.PIPE)) {
-            AstNode defaultValue = parsePostfix();
-            SourceSpan span = expr.sourceSpan() != null
+        if (this.match(TokenType.PIPE)) {
+            AstNode defaultValue = this.parsePostfix();
+            SourceSpan span = (expr.sourceSpan() != null)
                 ? expr.sourceSpan().merge(defaultValue.sourceSpan())
                 : null;
             return WithDefault.of(expr, defaultValue, span);
@@ -80,41 +83,43 @@ public class ExpressionParser {
      * Also handles bare function calls: identifier(args) → $.identifier(args)
      */
     private AstNode parsePostfix() {
-        AstNode expr = parsePrimary();
+        AstNode expr = this.parsePrimary();
 
         // Handle bare function call: now() → $.now()
         // If we have a Ref directly followed by (, treat it as a global function
-        if (expr instanceof Ref && check(TokenType.LPAREN)) {
+        if ((expr instanceof Ref) && this.check(TokenType.LPAREN)) {
             Ref ref = (Ref) expr;
             String name = ref.getName();
-            advance(); // consume (
-            List<AstNode> args = parseArguments();
-            consume(TokenType.RPAREN, "Expected ')' after arguments");
+            this.advance(); // consume (
+            List<AstNode> args = this.parseArguments();
+            this.consume(TokenType.RPAREN, "Expected ')' after arguments");
 
-            SourceSpan span = ref.sourceSpan() != null
-                ? ref.sourceSpan().merge(previous().getSpan())
+            SourceSpan span = (ref.sourceSpan() != null)
+                ? ref.sourceSpan().merge(this.previous().getSpan())
                 : null;
-            // Transform to $.name(args) - global function call
+            // Transform to $.name(args) - global function call (always has parens)
             Ref globalRef = Ref.of("$", ref.sourceSpan());
-            expr = Call.of(globalRef, name, args, span);
+            expr = Call.of(globalRef, name, args, true, span);
         }
 
-        while (match(TokenType.DOT)) {
-            Token nameToken = consume(TokenType.IDENTIFIER, "Expected identifier after '.'");
+        while (this.match(TokenType.DOT)) {
+            Token nameToken = this.consume(TokenType.IDENTIFIER, "Expected identifier after '.'");
             String name = nameToken.getValue();
 
             List<AstNode> args;
-            if (match(TokenType.LPAREN)) {
-                args = parseArguments();
-                consume(TokenType.RPAREN, "Expected ')' after arguments");
+            boolean hasParens = false;
+            if (this.match(TokenType.LPAREN)) {
+                hasParens = true;
+                args = this.parseArguments();
+                this.consume(TokenType.RPAREN, "Expected ')' after arguments");
             } else {
                 args = Collections.emptyList();
             }
 
-            SourceSpan span = expr.sourceSpan() != null
-                ? expr.sourceSpan().merge(previous().getSpan())
+            SourceSpan span = (expr.sourceSpan() != null)
+                ? expr.sourceSpan().merge(this.previous().getSpan())
                 : null;
-            expr = Call.of(expr, name, args, span);
+            expr = Call.of(expr, name, args, hasParens, span);
         }
 
         return expr;
@@ -125,25 +130,25 @@ public class ExpressionParser {
      */
     private AstNode parsePrimary() {
         // String literal (quoted)
-        if (match(TokenType.STRING)) {
-            Token token = previous();
+        if (this.match(TokenType.STRING)) {
+            Token token = this.previous();
             return StringLiteral.of(token.getValue(), token.getSpan());
         }
 
         // Identifier (includes numbers, operators, emoji - anything unquoted)
-        if (match(TokenType.IDENTIFIER)) {
-            Token token = previous();
+        if (this.match(TokenType.IDENTIFIER)) {
+            Token token = this.previous();
             return Ref.of(token.getValue(), token.getSpan());
         }
 
         // Grouped expression
-        if (match(TokenType.LPAREN)) {
-            AstNode expr = parseExpression();
-            consume(TokenType.RPAREN, "Expected ')' after expression");
+        if (this.match(TokenType.LPAREN)) {
+            AstNode expr = this.parseExpression();
+            this.consume(TokenType.RPAREN, "Expected ')' after expression");
             return expr;
         }
 
-        throw error("Expected expression, got: " + peek());
+        throw this.error("Expected expression, got: " + this.peek());
     }
 
     /**
@@ -154,16 +159,16 @@ public class ExpressionParser {
         List<AstNode> args = new ArrayList<>();
 
         // Empty args: ()
-        if (check(TokenType.RPAREN)) {
+        if (this.check(TokenType.RPAREN)) {
             return args;
         }
 
         // First argument
-        args.add(parseArgumentExpression());
+        args.add(this.parseArgumentExpression());
 
         // Additional arguments
-        while (match(TokenType.COMMA)) {
-            args.add(parseArgumentExpression());
+        while (this.match(TokenType.COMMA)) {
+            args.add(this.parseArgumentExpression());
         }
 
         return args;
@@ -179,45 +184,45 @@ public class ExpressionParser {
     private AstNode parseArgumentExpression() {
         // Empty argument: ,) or ,,
         // But first check if there's whitespace in the source that was skipped
-        if (check(TokenType.RPAREN) || check(TokenType.COMMA)) {
+        if (this.check(TokenType.RPAREN) || this.check(TokenType.COMMA)) {
             // Check if there's skipped whitespace between previous token and current
-            if (source != null && current > 0) {
-                Token prev = tokens.get(current - 1);
-                Token curr = peek();
+            if ((this.source != null) && (this.current > 0)) {
+                Token prev = this.tokens.get(this.current - 1);
+                Token curr = this.peek();
                 int prevEnd = prev.getSpan().getEnd();
                 int currStart = curr.getSpan().getStart();
                 if (currStart > prevEnd) {
-                    String skipped = source.substring(prevEnd, currStart);
+                    String skipped = this.source.substring(prevEnd, currStart);
                     // If there's whitespace that was skipped, use it as the argument
                     if (!skipped.isEmpty() && skipped.trim().isEmpty()) {
                         return StringLiteral.of(skipped, SourceSpan.of(prevEnd, currStart));
                     }
                 }
             }
-            return StringLiteral.of("", SourceSpan.of(peek().getSpan().getStart(), peek().getSpan().getStart()));
+            return StringLiteral.of("", SourceSpan.of(this.peek().getSpan().getStart(), this.peek().getSpan().getStart()));
         }
 
         // DOT as literal string (for patterns like {s.replace(.,-)})
-        if (check(TokenType.DOT)) {
-            Token token = advance();
+        if (this.check(TokenType.DOT)) {
+            Token token = this.advance();
             return StringLiteral.of(".", token.getSpan());
         }
 
         // PIPE as literal string in arguments
-        if (check(TokenType.PIPE)) {
-            Token token = advance();
+        if (this.check(TokenType.PIPE)) {
+            Token token = this.advance();
             return StringLiteral.of("|", token.getSpan());
         }
 
-        return parseExpression();
+        return this.parseExpression();
     }
 
     // Helper methods
 
     private boolean match(TokenType... types) {
         for (TokenType type : types) {
-            if (check(type)) {
-                advance();
+            if (this.check(type)) {
+                this.advance();
                 return true;
             }
         }
@@ -225,38 +230,38 @@ public class ExpressionParser {
     }
 
     private boolean check(TokenType type) {
-        if (isAtEnd()) return type == TokenType.EOF;
-        return peek().getType() == type;
+        if (this.isAtEnd()) return type == TokenType.EOF;
+        return this.peek().getType() == type;
     }
 
     private Token advance() {
-        if (!isAtEnd()) current++;
-        return previous();
+        if (!this.isAtEnd()) this.current++;
+        return this.previous();
     }
 
     private boolean isAtEnd() {
-        return current >= tokens.size() || peek().getType() == TokenType.EOF;
+        return (this.current >= this.tokens.size()) || (this.peek().getType() == TokenType.EOF);
     }
 
     private Token peek() {
-        if (current >= tokens.size()) {
+        if (this.current >= this.tokens.size()) {
             return Token.eof(0);
         }
-        return tokens.get(current);
+        return this.tokens.get(this.current);
     }
 
     private Token previous() {
-        return tokens.get(current - 1);
+        return this.tokens.get(this.current - 1);
     }
 
     private Token consume(TokenType type, String message) {
-        if (check(type)) return advance();
-        throw error(message + ", got: " + peek());
+        if (this.check(type)) return this.advance();
+        throw this.error(message + ", got: " + this.peek());
     }
 
     private ParseException error(String message) {
-        Token token = peek();
-        int pos = token.getSpan() != null ? token.getSpan().getStart() : 0;
+        Token token = this.peek();
+        int pos = (token.getSpan() != null) ? token.getSpan().getStart() : 0;
         return new ParseException(message, pos);
     }
 }

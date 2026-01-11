@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Boolean translation metadata")
 @ExtendWith(PlaceholdersExtension.class)
@@ -23,7 +23,7 @@ class BooleanTranslationTest {
         @Test
         void shouldTranslateTrueToFirstOption(Placeholders placeholders) {
             var message = CompiledMessage.of("{yes,no#status}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("status", true)
                 .apply();
 
@@ -33,7 +33,7 @@ class BooleanTranslationTest {
         @Test
         void shouldTranslateFalseToSecondOption(Placeholders placeholders) {
             var message = CompiledMessage.of("{yes,no#status}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("status", false)
                 .apply();
 
@@ -52,7 +52,7 @@ class BooleanTranslationTest {
         })
         void shouldTranslateYesNo(boolean value, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of("{yes,no#value}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("value", value)
                 .apply();
 
@@ -66,7 +66,7 @@ class BooleanTranslationTest {
         })
         void shouldTranslateEnabledDisabled(boolean value, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of("{enabled,disabled#value}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("value", value)
                 .apply();
 
@@ -80,7 +80,7 @@ class BooleanTranslationTest {
         })
         void shouldTranslateOnOff(boolean value, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of("{on,off#value}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("value", value)
                 .apply();
 
@@ -94,7 +94,7 @@ class BooleanTranslationTest {
         })
         void shouldTranslateActiveInactive(boolean value, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of("{active,inactive#value}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("value", value)
                 .apply();
 
@@ -109,7 +109,7 @@ class BooleanTranslationTest {
         @Test
         void shouldTranslateToCheckmark(Placeholders placeholders) {
             var message = CompiledMessage.of("{check}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("check", true)
                 .apply();
 
@@ -123,7 +123,7 @@ class BooleanTranslationTest {
         })
         void shouldTranslateToUppercase(boolean value, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of("{TRUE,FALSE#value}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("value", value)
                 .apply();
 
@@ -138,7 +138,7 @@ class BooleanTranslationTest {
         @Test
         void shouldWorkWithSurroundingText(Placeholders placeholders) {
             var message = CompiledMessage.of("Status: {yes,no#active}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("active", true)
                 .apply();
 
@@ -148,7 +148,7 @@ class BooleanTranslationTest {
         @Test
         void shouldHandleMultipleBooleans(Placeholders placeholders) {
             var message = CompiledMessage.of("A: {yes,no#a}, B: {yes,no#b}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("a", true)
                 .with("b", false)
                 .apply();
@@ -165,7 +165,7 @@ class BooleanTranslationTest {
         void shouldHandlePrimitiveBoolean(Placeholders placeholders) {
             boolean value = true;
             var message = CompiledMessage.of("{yes,no#value}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("value", value)
                 .apply();
 
@@ -176,7 +176,7 @@ class BooleanTranslationTest {
         void shouldHandleBooleanWrapper(Placeholders placeholders) {
             Boolean value = Boolean.FALSE;
             var message = CompiledMessage.of("{yes,no#value}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("value", value)
                 .apply();
 
@@ -192,16 +192,16 @@ class BooleanTranslationTest {
         void shouldTranslatePolishYesNo(Placeholders placeholders) {
             var message = CompiledMessage.of("{tak,nie#value}");
 
-            assertThat(placeholders.contextOf(message).with("value", true).apply()).isEqualTo("tak");
-            assertThat(placeholders.contextOf(message).with("value", false).apply()).isEqualTo("nie");
+            assertThat(placeholders.context(message).with("value", true).apply()).isEqualTo("tak");
+            assertThat(placeholders.context(message).with("value", false).apply()).isEqualTo("nie");
         }
 
         @Test
         void shouldTranslateGermanJaNein(Placeholders placeholders) {
             var message = CompiledMessage.of("{ja,nein#value}");
 
-            assertThat(placeholders.contextOf(message).with("value", true).apply()).isEqualTo("ja");
-            assertThat(placeholders.contextOf(message).with("value", false).apply()).isEqualTo("nein");
+            assertThat(placeholders.context(message).with("value", true).apply()).isEqualTo("ja");
+            assertThat(placeholders.context(message).with("value", false).apply()).isEqualTo("nein");
         }
     }
 
@@ -212,7 +212,7 @@ class BooleanTranslationTest {
         @Test
         void shouldTranslateTrueToFirstOption(Placeholders placeholders) {
             var message = CompiledMessage.of("{status.bool(\"yes\",\"no\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("status", true)
                 .apply();
 
@@ -222,7 +222,7 @@ class BooleanTranslationTest {
         @Test
         void shouldTranslateFalseToSecondOption(Placeholders placeholders) {
             var message = CompiledMessage.of("{status.bool(\"yes\",\"no\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("status", false)
                 .apply();
 
@@ -236,7 +236,7 @@ class BooleanTranslationTest {
         })
         void shouldTranslateEnabledDisabled(boolean value, String expected, Placeholders placeholders) {
             var message = CompiledMessage.of("{value.bool(\"enabled\",\"disabled\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("value", value)
                 .apply();
 
@@ -246,7 +246,7 @@ class BooleanTranslationTest {
         @Test
         void shouldWorkWithSingleQuotes(Placeholders placeholders) {
             var message = CompiledMessage.of("{active.bool('on','off')}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("active", true)
                 .apply();
 
@@ -256,7 +256,7 @@ class BooleanTranslationTest {
         @Test
         void shouldWorkWithFormatAlias(Placeholders placeholders) {
             var message = CompiledMessage.of("{active.format(\"on\",\"off\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("active", false)
                 .apply();
 
@@ -266,7 +266,7 @@ class BooleanTranslationTest {
         @Test
         void shouldWorkWithSurroundingText(Placeholders placeholders) {
             var message = CompiledMessage.of("Status: {active.bool(\"online\",\"offline\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("active", true)
                 .apply();
 
@@ -276,7 +276,7 @@ class BooleanTranslationTest {
         @Test
         void shouldHandleMultipleBooleans(Placeholders placeholders) {
             var message = CompiledMessage.of("A: {a.bool(\"yes\",\"no\")}, B: {b.bool(\"yes\",\"no\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("a", true)
                 .with("b", false)
                 .apply();

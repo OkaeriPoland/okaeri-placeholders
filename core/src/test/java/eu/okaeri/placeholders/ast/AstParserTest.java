@@ -1,6 +1,9 @@
 package eu.okaeri.placeholders.ast;
 
-import eu.okaeri.placeholders.ast.node.*;
+import eu.okaeri.placeholders.ast.node.Call;
+import eu.okaeri.placeholders.ast.node.Ref;
+import eu.okaeri.placeholders.ast.node.StringLiteral;
+import eu.okaeri.placeholders.ast.node.WithDefault;
 import eu.okaeri.placeholders.ast.parser.ExpressionParser;
 import eu.okaeri.placeholders.ast.visitor.EvaluationVisitor;
 import org.junit.jupiter.api.DisplayName;
@@ -8,11 +11,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("AST Parser")
 class AstParserTest {
@@ -203,7 +205,7 @@ class AstParserTest {
             Resolver<String> toUpperCase = (target, args, ctx) -> target.toUpperCase();
 
             EvaluationVisitor.ResolverRegistry registry = (targetClass, methodName) -> {
-                if (targetClass == String.class && "toUpperCase".equals(methodName)) {
+                if ((targetClass == String.class) && "toUpperCase".equals(methodName)) {
                     return (Resolver<Object>) (Object) toUpperCase;
                 }
                 return null;
@@ -229,7 +231,7 @@ class AstParserTest {
             };
 
             EvaluationVisitor.ResolverRegistry registry = (targetClass, methodName) -> {
-                if (targetClass == String.class && "replace".equals(methodName)) {
+                if ((targetClass == String.class) && "replace".equals(methodName)) {
                     return (Resolver<Object>) (Object) replace;
                 }
                 return null;

@@ -8,6 +8,7 @@ import lombok.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 @Data
 @ToString(exclude = "context")
@@ -35,10 +36,22 @@ public class Placeholder {
         return placeholder;
     }
 
+    /**
+     * Unwraps the value if it's a Supplier, otherwise returns as-is.
+     * This enables lazy evaluation: {@code context.with("expensive", () -> compute())}
+     */
+    @Nullable
+    private Object getActualValue() {
+        if (this.value instanceof Supplier) {
+            return ((Supplier<?>) this.value).get();
+        }
+        return this.value;
+    }
+
     @Nullable
     @SuppressWarnings("unchecked")
     public String render(@NonNull MessageField field) {
-        return this.render(this.value, field);
+        return this.render(this.getActualValue(), field);
     }
 
     /**
@@ -54,7 +67,7 @@ public class Placeholder {
     @Nullable
     @SuppressWarnings("unchecked")
     public Object resolveValue(@NonNull MessageField field) {
-        return this.resolveValue(this.value, field);
+        return this.resolveValue(this.getActualValue(), field);
     }
 
     @Nullable
@@ -167,8 +180,7 @@ public class Placeholder {
                 if (fieldSub.hasSub()) {
                     return this.render(object, fieldSub);
                 }
-            }
-            else {
+            } else {
                 PlaceholderResolver resolver = this.placeholders.getResolver(object, null);
                 if (resolver != null) {
                     object = resolver.resolve(object, field, this.context);

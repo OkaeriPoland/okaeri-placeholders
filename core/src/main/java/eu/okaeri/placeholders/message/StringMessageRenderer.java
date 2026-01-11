@@ -1,9 +1,7 @@
 package eu.okaeri.placeholders.message;
 
-import eu.okaeri.placeholders.ast.AstNode;
+import eu.okaeri.placeholders.ast.EvaluationResult;
 import eu.okaeri.placeholders.ast.bridge.PlaceholdersEvaluator;
-import eu.okaeri.placeholders.ast.node.Call;
-import eu.okaeri.placeholders.ast.node.Ref;
 import eu.okaeri.placeholders.context.FailMode;
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.part.ExpressionPart;
@@ -12,7 +10,6 @@ import eu.okaeri.placeholders.message.part.MessageStatic;
 import lombok.NonNull;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Default renderer that produces String output.
@@ -35,7 +32,6 @@ public class StringMessageRenderer implements MessageRenderer<String> {
 
         List<MessageElement> parts = message.getParts();
         FailMode failMode = context.getFailMode();
-        Map<String, Object> values = context.getValues();
         PlaceholdersEvaluator evaluator = context.createEvaluator(message);
 
         StringBuilder builder = new StringBuilder();
@@ -44,34 +40,9 @@ public class StringMessageRenderer implements MessageRenderer<String> {
                 builder.append(((MessageStatic) part).getValue());
             } else if (part instanceof ExpressionPart) {
                 ExpressionPart expr = (ExpressionPart) part;
-                String result = evaluator.evaluateToString(expr.getAst());
+                EvaluationResult result = evaluator.evaluateToResult(expr.getAst(), expr.getRaw());
 
-                if (result == null) {
-                    // Handle null result
-                    if (expr.getDefaultValue() != null) {
-                        result = expr.getDefaultValue();
-                    } else if (failMode == FailMode.FAIL_FAST) {
-                        // Determine if field is missing or null
-                        String rootField = getRootFieldName(expr.getAst());
-                        if (rootField != null && !values.containsKey(rootField)) {
-                            throw new IllegalArgumentException("missing placeholder '" + rootField + "' for message '" + message.getRaw() + "'");
-                        } else {
-                            throw new IllegalArgumentException("resolved null for placeholder '{" + expr.getRaw() + "}' in message '" + message.getRaw() + "'");
-                        }
-                    } else if (failMode == FailMode.FAIL_SAFE) {
-                        // Check if the root field is missing vs having null value
-                        String rootField = getRootFieldName(expr.getAst());
-                        if (rootField != null && !values.containsKey(rootField)) {
-                            result = "<missing:" + expr.getRaw() + ">";
-                        } else {
-                            result = "<null:" + expr.getRaw() + ">";
-                        }
-                    } else {
-                        throw new RuntimeException("unknown fail mode: " + failMode);
-                    }
-                }
-
-                builder.append(result);
+                builder.append(this.formatResult(result, expr, message.getRaw(), failMode));
             } else {
                 throw new IllegalArgumentException("unknown message part: " + part);
             }
@@ -81,15 +52,47 @@ public class StringMessageRenderer implements MessageRenderer<String> {
     }
 
     /**
-     * Extracts the root field name from an AST node.
-     * For example: {player.name} → "player", {value} → "value"
+     * Formats an evaluation result for string output.
      */
-    private String getRootFieldName(AstNode node) {
-        if (node instanceof Ref) {
-            return ((Ref) node).getName();
-        } else if (node instanceof Call) {
-            return getRootFieldName(((Call) node).getTarget());
+    private String formatResult(EvaluationResult result, ExpressionPart expr, String messageRaw, FailMode failMode) {
+        if (result instanceof EvaluationResult.Value) {
+            Object value = ((EvaluationResult.Value) result).getValue();
+            return this.objectToString(value);
+        } else if (result instanceof EvaluationResult.NullValue) {
+            // Check for default value
+            if (expr.getDefaultValue() != null) {
+                return expr.getDefaultValue();
+            }
+            if (failMode == FailMode.FAIL_FAST) {
+                throw new IllegalArgumentException("resolved null for placeholder '{" + result.getExpression() + "}' in message '" + messageRaw + "'");
+            }
+            return "null";
+        } else if (result instanceof EvaluationResult.MissingValue) {
+            // Check for default value
+            if (expr.getDefaultValue() != null) {
+                return expr.getDefaultValue();
+            }
+            if (failMode == FailMode.FAIL_FAST) {
+                throw new IllegalArgumentException("missing placeholder '" + ((EvaluationResult.MissingValue) result).getFieldName() + "' for message '" + messageRaw + "'");
+            }
+            return "<missing:" + result.getExpression() + ">";
         }
-        return null;
+        throw new RuntimeException("unknown evaluation result type: " + result.getClass());
+    }
+
+    /**
+     * Converts an object to string using the standard placeholder formatting.
+     */
+    private String objectToString(Object object) {
+        if (object == null) {
+            return "null";
+        }
+        if (object instanceof Enum) {
+            return ((Enum<?>) object).name();
+        }
+        if ((object instanceof Float) || (object instanceof Double)) {
+            return String.format("%.2f", object);
+        }
+        return object.toString();
     }
 }

@@ -44,7 +44,7 @@ public class EvaluationVisitor implements AstVisitor<Object>, EvaluationContext 
 
     @Override
     public Object visitRef(Ref node) {
-        return values.get(node.getName());
+        return this.values.get(node.getName());
     }
 
     @Override
@@ -53,8 +53,8 @@ public class EvaluationVisitor implements AstVisitor<Object>, EvaluationContext 
         String name = node.getName();
 
         // Find resolver
-        Class<?> targetClass = target != null ? target.getClass() : Object.class;
-        Resolver<Object> resolver = resolvers.getResolver(targetClass, name);
+        Class<?> targetClass = (target != null) ? target.getClass() : Object.class;
+        Resolver<Object> resolver = this.resolvers.getResolver(targetClass, name);
 
         if (resolver == null) {
             // No resolver found - return null
@@ -95,16 +95,16 @@ public class EvaluationVisitor implements AstVisitor<Object>, EvaluationContext 
     @Override
     @Nullable
     public Object getValue(String name) {
-        return values.get(name);
+        return this.values.get(name);
     }
 
     @Override
     public boolean hasValue(String name) {
-        return values.containsKey(name);
+        return this.values.containsKey(name);
     }
 
     @Override
     public Locale locale() {
-        return locale;
+        return this.locale;
     }
 }

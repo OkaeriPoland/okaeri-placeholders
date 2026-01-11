@@ -19,15 +19,22 @@ public final class PlaceholderApiPlaceholders implements PlaceholderPack {
 
     private String viewerField = "player";
 
+    /**
+     * Create a Placeholders instance with defaults, Bukkit, and PlaceholderAPI packs.
+     */
     public static Placeholders create() {
-        return create(false);
+        return Placeholders.create()
+            .with(new BukkitPlaceholders())
+            .with(new PlaceholderApiPlaceholders());
     }
 
-    public static Placeholders create(boolean registerDefaults) {
-        return Placeholders.create(registerDefaults)
-            .registerPlaceholders(new BukkitPlaceholders())
-            .registerPlaceholders(new PlaceholderApiPlaceholders())
-            .fastMode(false);
+    /**
+     * Create an empty Placeholders instance with only Bukkit and PlaceholderAPI packs.
+     */
+    public static Placeholders empty() {
+        return Placeholders.empty()
+            .with(new BukkitPlaceholders())
+            .with(new PlaceholderApiPlaceholders());
     }
 
     public static void registerBridge(@NonNull Plugin plugin, @NonNull Placeholders placeholders) {
@@ -38,7 +45,7 @@ public final class PlaceholderApiPlaceholders implements PlaceholderPack {
     // target.papi(example_player_nickname)
     // target.papi(viewer,rel_example_player_title)
     public void register(Placeholders placeholders) {
-        placeholders.registerPlaceholder(Player.class, "papi", (from, field, context) -> {
+        placeholders.register(Player.class, "papi", (from, field, context) -> {
 
             FieldParams params = field.params();
             String viewerField = (params.length() > 1) ? params.strAt(0) : this.viewerField();

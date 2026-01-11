@@ -3,6 +3,7 @@ package eu.okaeri.placeholders.ast.bridge;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.ast.AstNode;
 import eu.okaeri.placeholders.ast.EvaluationContext;
+import eu.okaeri.placeholders.ast.EvaluationResult;
 import eu.okaeri.placeholders.ast.node.*;
 import eu.okaeri.placeholders.ast.visitor.AstVisitor;
 import eu.okaeri.placeholders.context.PlaceholderContext;
@@ -82,7 +83,7 @@ public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationCont
         }
 
         // Create bridge accessor for old resolver interface
-        AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of(name, node.getArgs(), this);
+        AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of(name, node.getArgs(), node.isHasParens(), this);
 
         // Invoke resolver
         return resolver.resolve(target, accessor, this.legacyContext);
@@ -139,9 +140,10 @@ public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationCont
         Object result = ast.accept(this);
 
         // Apply default renderer if available (for types like Duration)
+        // Exclude fallback resolver - it's for method calls, not default rendering
         if ((result != null) && (this.placeholders != null)) {
             PlaceholderResolver resolver = this.placeholders.getResolver(result, null);
-            if (resolver != null) {
+            if ((resolver != null) && (resolver != this.placeholders.getFallbackResolver())) {
                 // Use empty string for field name in default renderer context
                 AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of("", Collections.emptyList(), this);
                 result = resolver.resolve(result, accessor, this.legacyContext);
@@ -165,5 +167,59 @@ public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationCont
             return String.format("%.2f", object);
         }
         return object.toString();
+    }
+
+    /**
+     * Evaluates an AST expression and returns a typed result indicating
+     * success, null, or missing field.
+     *
+     * @param ast        The AST to evaluate
+     * @param expression The original expression string (for error messages)
+     * @return EvaluationResult indicating the outcome
+     */
+    @SuppressWarnings("unchecked")
+    public EvaluationResult evaluateToResult(AstNode ast, String expression) {
+        // Check if root field is missing (for reporting purposes)
+        String rootField = this.getRootFieldName(ast);
+        boolean rootMissing = (rootField != null) && !this.values.containsKey(rootField);
+
+        // Evaluate the expression (this allows .or() and other methods to handle null/missing)
+        Object result = ast.accept(this);
+
+        // Apply default renderer if available (for types like Duration)
+        // Exclude fallback resolver - it's for method calls, not default rendering
+        if ((result != null) && (this.placeholders != null)) {
+            PlaceholderResolver resolver = this.placeholders.getResolver(result, null);
+            if ((resolver != null) && (resolver != this.placeholders.getFallbackResolver())) {
+                AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of("", Collections.emptyList(), this);
+                result = resolver.resolve(result, accessor, this.legacyContext);
+            }
+        }
+
+        if (result == null) {
+            // Distinguish between "field missing" and "field exists but resolved to null"
+            if (rootMissing) {
+                return new EvaluationResult.MissingValue(rootField, expression);
+            }
+            return new EvaluationResult.NullValue(expression);
+        }
+
+        return new EvaluationResult.Value(result, expression);
+    }
+
+    /**
+     * Extracts the root field name from an AST node.
+     * For example: {player.name} → "player", {value} → "value"
+     */
+    @Nullable
+    private String getRootFieldName(AstNode node) {
+        if (node instanceof Ref) {
+            return ((Ref) node).getName();
+        } else if (node instanceof Call) {
+            return this.getRootFieldName(((Call) node).getTarget());
+        } else if (node instanceof WithDefault) {
+            return this.getRootFieldName(((WithDefault) node).getExpression());
+        }
+        return null;
     }
 }

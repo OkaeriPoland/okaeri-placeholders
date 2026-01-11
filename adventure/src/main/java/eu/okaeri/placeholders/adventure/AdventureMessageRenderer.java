@@ -1,5 +1,6 @@
 package eu.okaeri.placeholders.adventure;
 
+import eu.okaeri.placeholders.ast.EvaluationResult;
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.MessageRenderer;
@@ -8,6 +9,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -101,7 +103,7 @@ public class AdventureMessageRenderer implements MessageRenderer<Component> {
     @Override
     public Component render(@NonNull CompiledMessage message, @NonNull PlaceholderContext context) {
         String raw = message.getRaw();
-        Map<String, Object> values = context.renderFieldValues(message);
+        Map<String, EvaluationResult> results = context.renderFieldResults(message);
 
         // Convert {name} → <okaeri:name> for MiniMessage integration
         String processed = this.convertPlaceholders(raw);
@@ -109,11 +111,32 @@ public class AdventureMessageRenderer implements MessageRenderer<Component> {
         // Build tag resolver for okaeri placeholders (handles text content with style inheritance)
         TagResolver okaeriResolver = TagResolver.resolver(OKAERI_TAG, (args, ctx) -> {
             String fieldRaw = args.popOr("field name required").value();
-            Object value = values.get(fieldRaw);
+            EvaluationResult result = results.get(fieldRaw);
 
-            if (value == null) {
-                return Tag.inserting(Component.empty());
+            if (result == null) {
+                // Field not in results - should not happen, but handle gracefully
+                return Tag.inserting(Component.text("<unknown:" + fieldRaw + ">").color(NamedTextColor.RED));
             }
+
+            return this.resultToTag(result);
+        });
+
+        // Parse with MiniMessage (handles text placeholders via TagResolver)
+        Component component = this.baseMiniMessage.deserialize(processed, okaeriResolver);
+
+        // Post-process: Replace placeholders in click/hover events (MiniMessage doesn't resolve tags in event values)
+        Map<String, String> stringValues = results.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> this.resultToString(e.getValue())));
+        return this.replaceEventsPlaceholders(component, stringValues);
+    }
+
+    /**
+     * Converts an EvaluationResult to a MiniMessage Tag.
+     */
+    private Tag resultToTag(EvaluationResult result) {
+        if (result instanceof EvaluationResult.Value) {
+            Object value = ((EvaluationResult.Value) result).getValue();
+
             if (value instanceof Component) {
                 // Component values use their own styling (selfClosing preserves styles)
                 return Tag.selfClosingInserting((Component) value);
@@ -123,15 +146,27 @@ public class AdventureMessageRenderer implements MessageRenderer<Component> {
             }
             // String values inherit surrounding styles (inserting allows style inheritance)
             return Tag.inserting(Component.text(String.valueOf(value)));
-        });
+        } else if (result instanceof EvaluationResult.NullValue) {
+            return Tag.inserting(Component.text("null").color(NamedTextColor.GRAY));
+        } else if (result instanceof EvaluationResult.MissingValue) {
+            String expr = result.getExpression();
+            return Tag.inserting(Component.text("<missing:" + expr + ">").color(NamedTextColor.RED));
+        }
+        return Tag.inserting(Component.empty());
+    }
 
-        // Parse with MiniMessage (handles text placeholders via TagResolver)
-        Component component = this.baseMiniMessage.deserialize(processed, okaeriResolver);
-
-        // Post-process: Replace placeholders in click/hover events (MiniMessage doesn't resolve tags in event values)
-        Map<String, String> stringValues = values.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
-        return this.replaceEventsPlaceholders(component, stringValues);
+    /**
+     * Converts an EvaluationResult to a String (for event placeholders).
+     */
+    private String resultToString(EvaluationResult result) {
+        if (result instanceof EvaluationResult.Value) {
+            return String.valueOf(((EvaluationResult.Value) result).getValue());
+        } else if (result instanceof EvaluationResult.NullValue) {
+            return "null";
+        } else if (result instanceof EvaluationResult.MissingValue) {
+            return "<missing:" + result.getExpression() + ">";
+        }
+        return "";
     }
 
     /**

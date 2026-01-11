@@ -44,7 +44,7 @@ public class MessageFieldTokenizer {
                     buffer.setLength(0);
                     parsingArgs = false;
                     // Skip the dot after ) if present
-                    if ((i + 1 < charArrayLength) && (charArray[i + 1] == '.')) {
+                    if (((i + 1) < charArrayLength) && (charArray[i + 1] == '.')) {
                         i++;
                     }
                     continue;
@@ -95,7 +95,7 @@ public class MessageFieldTokenizer {
             char c = charArray[i];
 
             // Track quote state (but still append the quote character)
-            if ((c == '"' || c == '\'') && (i == 0 || charArray[i - 1] != '\\')) {
+            if (((c == '"') || (c == '\'')) && ((i == 0) || (charArray[i - 1] != '\\'))) {
                 if (quoteChar == 0) {
                     quoteChar = c;
                 } else if (quoteChar == c) {
@@ -113,7 +113,7 @@ public class MessageFieldTokenizer {
             }
 
             // Handle comma - split only if not in quotes AND not inside nested parens
-            if (c == ',' && quoteChar == 0 && parenDepth == 0) {
+            if ((c == ',') && (quoteChar == 0) && (parenDepth == 0)) {
                 if ((i > 0) && (charArray[i - 1] == '\\')) {
                     buffer.setCharAt(buffer.length() - 1, c);
                     continue;
@@ -175,7 +175,7 @@ public class MessageFieldTokenizer {
             char c = charArray[i];
 
             // Handle quote start/end
-            if ((c == '"' || c == '\'') && (i == 0 || charArray[i - 1] != '\\')) {
+            if (((c == '"') || (c == '\'')) && ((i == 0) || (charArray[i - 1] != '\\'))) {
                 if (quoteChar == 0) {
                     // Start of quoted section
                     quoteChar = c;
@@ -200,9 +200,9 @@ public class MessageFieldTokenizer {
             }
 
             // Handle escaped characters inside quotes
-            if (c == '\\' && quoteChar != 0 && i + 1 < charArrayLength) {
+            if ((c == '\\') && (quoteChar != 0) && ((i + 1) < charArrayLength)) {
                 char next = charArray[i + 1];
-                if (next == quoteChar || next == '\\') {
+                if ((next == quoteChar) || (next == '\\')) {
                     buffer.append(next);
                     i++;
                     continue;
@@ -210,7 +210,7 @@ public class MessageFieldTokenizer {
             }
 
             // Handle comma - split only if not in quotes AND not inside nested parens
-            if (c == ',' && quoteChar == 0 && parenDepth == 0) {
+            if ((c == ',') && (quoteChar == 0) && (parenDepth == 0)) {
                 if ((i > 0) && (charArray[i - 1] == '\\')) {
                     buffer.setCharAt(buffer.length() - 1, c);
                     continue;
@@ -244,7 +244,7 @@ public class MessageFieldTokenizer {
 
         // Handle case where buffer has content but wasn't added (unclosed quote at end)
         // Also handle empty quoted strings like "" where wasQuoted is true but buffer is empty
-        if (buffer.length() > 0 || wasQuoted) {
+        if ((buffer.length() > 0) || wasQuoted) {
             String argValue = buffer.toString();
             args.add(wasQuoted
                 ? ParsedArg.literal(argValue, usedQuoteChar)

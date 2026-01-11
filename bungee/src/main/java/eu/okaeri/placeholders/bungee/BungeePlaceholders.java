@@ -2,6 +2,7 @@ package eu.okaeri.placeholders.bungee;
 
 import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.Placeholders;
+import eu.okaeri.placeholders.schema.Registry;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
@@ -10,46 +11,50 @@ import net.md_5.bungee.api.connection.Server;
 
 public final class BungeePlaceholders implements PlaceholderPack {
 
+    /**
+     * Create a Placeholders instance with defaults and Bungee packs.
+     */
     public static Placeholders create() {
-        return create(false);
+        return Placeholders.create().with(new BungeePlaceholders());
     }
 
-    public static Placeholders create(boolean registerDefaults) {
-        return Placeholders.create(registerDefaults)
-            .registerPlaceholders(new BungeePlaceholders());
+    /**
+     * Create an empty Placeholders instance with only Bungee packs.
+     */
+    public static Placeholders empty() {
+        return Placeholders.empty().with(new BungeePlaceholders());
     }
 
     @Override
-    public void register(Placeholders placeholders) {
+    public void register(Registry r) {
+        r.type(ChatColor.class)
+            .self(ChatColor::toString);
 
-        // ChatColor
-        placeholders.registerPlaceholder(ChatColor.class, (e, a, o) -> e.toString());
+        r.type(CommandSender.class)
+            .add("name", CommandSender::getName)
+            .self(CommandSender::getName);
 
-        // CommandSender
-        placeholders.registerPlaceholder(CommandSender.class, "name", (e, a, o) -> e.getName());
-        placeholders.registerPlaceholder(CommandSender.class, (e, a, o) -> e.getName());
+        r.type(ProxyServer.class)
+            .add("name", ProxyServer::getName)
+            .add("onlineCount", ProxyServer::getOnlineCount)
+            .add("version", ProxyServer::getVersion)
+            .self(ProxyServer::getName);
 
-        // ProxyServer
-        placeholders.registerPlaceholder(ProxyServer.class, "name", (e, a, o) -> e.getName());
-        placeholders.registerPlaceholder(ProxyServer.class, "onlineCount", (e, a, o) -> e.getOnlineCount());
-        placeholders.registerPlaceholder(ProxyServer.class, "version", (e, a, o) -> e.getVersion());
-        placeholders.registerPlaceholder(ProxyServer.class, (e, a, o) -> e.getName());
+        r.type(ProxiedPlayer.class)
+            .add("displayName", ProxiedPlayer::getDisplayName)
+            .add("ping", ProxiedPlayer::getPing)
+            .add("server", ProxiedPlayer::getServer)
+            .add("uniqueId", ProxiedPlayer::getUniqueId)
+            .add("locale", ProxiedPlayer::getLocale)
+            .add("viewDistance", ProxiedPlayer::getViewDistance)
+            .add("chatMode", ProxiedPlayer::getChatMode);
 
-        // ProxiedPlayer
-        placeholders.registerPlaceholder(ProxiedPlayer.class, "displayName", (e, a, o) -> e.getDisplayName());
-        placeholders.registerPlaceholder(ProxiedPlayer.class, "ping", (e, a, o) -> e.getPing());
-        placeholders.registerPlaceholder(ProxiedPlayer.class, "server", (e, a, o) -> e.getServer());
-        placeholders.registerPlaceholder(ProxiedPlayer.class, "uniqueId", (e, a, o) -> e.getUniqueId());
-        placeholders.registerPlaceholder(ProxiedPlayer.class, "locale", (e, a, o) -> e.getLocale());
-        placeholders.registerPlaceholder(ProxiedPlayer.class, "viewDistance", (e, a, o) -> e.getViewDistance());
-        placeholders.registerPlaceholder(ProxiedPlayer.class, "chatMode", (e, a, o) -> e.getChatMode());
-
-        // Server
-        placeholders.registerPlaceholder(Server.class, "name", (e, a, o) -> e.getInfo().getName());
-        placeholders.registerPlaceholder(Server.class, "motd", (e, a, o) -> e.getInfo().getMotd());
-        placeholders.registerPlaceholder(Server.class, "address", (e, a, o) -> e.getInfo().getSocketAddress());
-        placeholders.registerPlaceholder(Server.class, "permission", (e, a, o) -> e.getInfo().getPermission());
-        placeholders.registerPlaceholder(Server.class, "playersCount", (e, a, o) -> e.getInfo().getPlayers().size());
-        placeholders.registerPlaceholder(Server.class, (e, a, o) -> e.getInfo().getName());
+        r.type(Server.class)
+            .add("name", s -> s.getInfo().getName())
+            .add("motd", s -> s.getInfo().getMotd())
+            .add("address", s -> s.getInfo().getSocketAddress())
+            .add("permission", s -> s.getInfo().getPermission())
+            .add("playersCount", s -> s.getInfo().getPlayers().size())
+            .self(s -> s.getInfo().getName());
     }
 }

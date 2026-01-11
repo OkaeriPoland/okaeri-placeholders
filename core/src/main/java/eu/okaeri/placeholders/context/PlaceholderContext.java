@@ -2,6 +2,7 @@ package eu.okaeri.placeholders.context;
 
 import eu.okaeri.placeholders.GlobalFunctions;
 import eu.okaeri.placeholders.Placeholders;
+import eu.okaeri.placeholders.ast.EvaluationResult;
 import eu.okaeri.placeholders.ast.bridge.PlaceholdersEvaluator;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.MessageRenderer;
@@ -50,16 +51,6 @@ public class PlaceholderContext {
     }
 
     public PlaceholderContext with(@NonNull String field, @Nullable Object value) {
-
-        // only in fast mode
-        if ((this.placeholders != null) && this.placeholders.isFastMode()) {
-            // when non-shared context (message assigned) with no fields or field with such name not present
-            if ((this.message != null) && (!this.message.isWithFields() || !this.message.hasField(field))) {
-                // skip adding placeholder to the context
-                return this;
-            }
-        }
-
         this.fields.put(field, Placeholder.of(this.placeholders, value, this));
         return this;
     }
@@ -89,8 +80,8 @@ public class PlaceholderContext {
 
         String state = message.getRaw();
         Map<MessageField, String> rendered = new LinkedHashMap<>();
-        PlaceholdersEvaluator evaluator = createEvaluator(message);
-        Locale locale = message.getLocale() != null ? message.getLocale() : Locale.ENGLISH;
+        PlaceholdersEvaluator evaluator = this.createEvaluator(message);
+        Locale locale = (message.getLocale() != null) ? message.getLocale() : Locale.ENGLISH;
 
         // Handle AST-based ExpressionPart parts
         for (MessageElement part : message.getParts()) {
@@ -145,26 +136,26 @@ public class PlaceholderContext {
     }
 
     /**
-     * Renders field values preserving their types (not converting to String).
+     * Renders field results as {@link EvaluationResult} objects.
      * Returns Map keyed by field raw expression for easy lookup.
      * <p>
-     * This is useful for typed composition with external systems like MiniMessage
-     * that need to handle values differently based on their type (e.g., Component vs String).
+     * This is the primary method for renderers that need to handle
+     * missing/null placeholders differently (e.g., showing error styles).
      *
-     * @return Map of field raw expressions to their resolved typed values
+     * @return Map of field raw expressions to their evaluation results
      */
-    public Map<String, Object> renderFieldValues() {
-        return this.renderFieldValues(this.message);
+    public Map<String, EvaluationResult> renderFieldResults() {
+        return this.renderFieldResults(this.message);
     }
 
     /**
-     * Renders field values preserving their types (not converting to String).
+     * Renders field results as {@link EvaluationResult} objects.
      * Returns Map keyed by field raw expression for easy lookup.
      *
      * @param message The message to render fields for
-     * @return Map of field raw expressions to their resolved typed values
+     * @return Map of field raw expressions to their evaluation results
      */
-    public Map<String, Object> renderFieldValues(@NonNull CompiledMessage message) {
+    public Map<String, EvaluationResult> renderFieldResults(@NonNull CompiledMessage message) {
 
         // someone is trying to apply message on the specific non-shareable context
         if ((message != this.message) && (this.message != null)) {
@@ -178,69 +169,84 @@ public class PlaceholderContext {
             return Collections.emptyMap();
         }
 
-        String state = message.getRaw();
-        Map<String, Object> rendered = new LinkedHashMap<>();
-        PlaceholdersEvaluator evaluator = createEvaluator(message);
+        Map<String, EvaluationResult> results = new LinkedHashMap<>();
+        PlaceholdersEvaluator evaluator = this.createEvaluator(message);
 
         // Handle AST-based ExpressionPart parts
         for (MessageElement part : message.getParts()) {
             if (part instanceof ExpressionPart) {
                 ExpressionPart expr = (ExpressionPart) part;
 
-                Object result = evaluator.evaluate(expr.getAst());
-
-                // Build the full raw key (including default if present)
-                // Use originalRaw for backward compatibility with tests that look up by original expression
-                String baseRaw = expr.getOriginalRaw() != null ? expr.getOriginalRaw() : expr.getRaw();
-                String fullRaw = expr.getDefaultValue() != null
-                    ? baseRaw + "|" + expr.getDefaultValue()
+                // Build the key for this expression
+                String baseRaw = (expr.getOriginalRaw() != null) ? expr.getOriginalRaw() : expr.getRaw();
+                String fullRaw = (expr.getDefaultValue() != null)
+                    ? (baseRaw + "|" + expr.getDefaultValue())
                     : baseRaw;
 
-                // Handle null result
-                if (result == null) {
-                    if (expr.getDefaultValue() != null) {
-                        rendered.put(fullRaw, expr.getDefaultValue());
-                    } else if (this.failMode == FailMode.FAIL_FAST) {
-                        throw new IllegalArgumentException("resolved null for placeholder '{" + expr.getRaw() + "}' in message '" + state + "'");
-                    } else if (this.failMode == FailMode.FAIL_SAFE) {
-                        rendered.put(fullRaw, "<null:" + expr.getRaw() + ">");
-                    } else {
-                        throw new RuntimeException("unknown fail mode: " + this.failMode);
-                    }
-                } else {
-                    rendered.put(fullRaw, result);
+                // Evaluate and get typed result
+                EvaluationResult result = evaluator.evaluateToResult(expr.getAst(), expr.getRaw());
+
+                // Apply pipe-syntax default if evaluation failed
+                if (!(result instanceof EvaluationResult.Value) && (expr.getDefaultValue() != null)) {
+                    result = new EvaluationResult.Value(expr.getDefaultValue(), expr.getRaw());
                 }
+
+                results.put(fullRaw, result);
             }
         }
 
-        // Also handle legacy MessageField parts
-        Map<MessageField, ResolvedField> resolved = this.resolveFieldsInternal(message);
+        return results;
+    }
 
-        for (Map.Entry<MessageField, ResolvedField> entry : resolved.entrySet()) {
-            MessageField originalField = entry.getKey();
-            ResolvedField rf = entry.getValue();
+    /**
+     * Renders field values preserving their types (not converting to String).
+     * Returns Map keyed by field raw expression for easy lookup.
+     * <p>
+     * This is useful for typed composition with external systems like MiniMessage
+     * that need to handle values differently based on their type (e.g., Component vs String).
+     * <p>
+     * Note: For access to missing/null status, use {@link #renderFieldResults()} instead.
+     *
+     * @return Map of field raw expressions to their resolved typed values
+     */
+    public Map<String, Object> renderFieldValues() {
+        return this.renderFieldValues(this.message);
+    }
 
-            // Resolve typed value (not String)
-            Object value = rf.placeholder.resolveValue(rf.transformedField);
+    /**
+     * Renders field values preserving their types (not converting to String).
+     * Returns Map keyed by field raw expression for easy lookup.
+     * <p>
+     * Note: For access to missing/null status, use {@link #renderFieldResults(CompiledMessage)} instead.
+     *
+     * @param message The message to render fields for
+     * @return Map of field raw expressions to their resolved typed values
+     */
+    public Map<String, Object> renderFieldValues(@NonNull CompiledMessage message) {
+        Map<String, EvaluationResult> results = this.renderFieldResults(message);
+        Map<String, Object> values = new LinkedHashMap<>();
 
-            // Handle null result
-            if (value == null) {
-                if (rf.transformedField.getDefaultValue() != null) {
-                    rendered.put(originalField.getRaw(), rf.transformedField.getDefaultValue());
-                } else if (this.failMode == FailMode.FAIL_FAST) {
-                    throw new IllegalArgumentException("resolved null for placeholder '" + originalField.getName() + "' for message '" + state + "'");
-                } else if (this.failMode == FailMode.FAIL_SAFE) {
-                    rendered.put(originalField.getRaw(), "<null:" + rf.transformedField.getLastSubPath() + ">");
-                } else {
-                    throw new RuntimeException("unknown fail mode: " + this.failMode);
+        for (Map.Entry<String, EvaluationResult> entry : results.entrySet()) {
+            EvaluationResult result = entry.getValue();
+
+            if (result instanceof EvaluationResult.Value) {
+                values.put(entry.getKey(), ((EvaluationResult.Value) result).getValue());
+            } else if (result instanceof EvaluationResult.NullValue) {
+                if (this.failMode == FailMode.FAIL_FAST) {
+                    throw new IllegalArgumentException("resolved null for placeholder '{" + result.getExpression() + "}' in message '" + message.getRaw() + "'");
                 }
-                continue;
+                // In FAIL_SAFE mode, put null - let renderer decide how to display
+                values.put(entry.getKey(), null);
+            } else if (result instanceof EvaluationResult.MissingValue) {
+                if (this.failMode == FailMode.FAIL_FAST) {
+                    throw new IllegalArgumentException("missing placeholder '" + ((EvaluationResult.MissingValue) result).getFieldName() + "' for message '" + message.getRaw() + "'");
+                }
+                // In FAIL_SAFE mode, put null - let renderer decide how to display
+                values.put(entry.getKey(), null);
             }
-
-            rendered.put(originalField.getRaw(), value);
         }
 
-        return rendered;
+        return values;
     }
 
     /**
@@ -350,8 +356,8 @@ public class PlaceholderContext {
      * @return A configured evaluator ready to evaluate AST nodes
      */
     public PlaceholdersEvaluator createEvaluator(@NonNull CompiledMessage message) {
-        Map<String, Object> values = buildValuesMap();
-        Locale locale = message.getLocale() != null ? message.getLocale() : Locale.ENGLISH;
+        Map<String, Object> values = this.buildValuesMap();
+        Locale locale = (message.getLocale() != null) ? message.getLocale() : Locale.ENGLISH;
         return PlaceholdersEvaluator.of(values, this.placeholders, locale, this);
     }
 
@@ -363,6 +369,17 @@ public class PlaceholderContext {
      * @return Unmodifiable map of field names to values
      */
     public Map<String, Object> getValues() {
-        return Collections.unmodifiableMap(buildValuesMap());
+        return Collections.unmodifiableMap(this.buildValuesMap());
+    }
+
+    /**
+     * Returns the effective locale for this context.
+     * Falls back to {@link Locale#ENGLISH} if no locale is set.
+     */
+    public Locale getLocale() {
+        if ((this.message != null) && (this.message.getLocale() != null)) {
+            return this.message.getLocale();
+        }
+        return Locale.ENGLISH;
     }
 }

@@ -49,6 +49,6 @@ public class ExpressionPart implements MessageElement {
 
     @Override
     public String toString() {
-        return "ExpressionPart{" + raw + "}";
+        return "ExpressionPart{" + this.raw + "}";
     }
 }

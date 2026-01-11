@@ -13,7 +13,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("PlaceholderContext")
 class PlaceholderContextTest {
@@ -249,7 +250,7 @@ class PlaceholderContextTest {
         @Test
         void shouldUseRegisteredResolvers(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.toUpperCase}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", "hello")
                 .apply();
 
@@ -259,7 +260,7 @@ class PlaceholderContextTest {
         @Test
         void shouldSupportChainedOperations(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.toLowerCase.capitalize}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", "HELLO WORLD")
                 .apply();
 
@@ -427,7 +428,7 @@ class PlaceholderContextTest {
         @ExtendWith(PlaceholdersExtension.class)
         void shouldApplyResolverChain(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.toUpperCase}");
-            var values = placeholders.contextOf(message)
+            var values = placeholders.context(message)
                 .with("name", "hello")
                 .renderFieldValues();
 
@@ -438,7 +439,7 @@ class PlaceholderContextTest {
         @ExtendWith(PlaceholdersExtension.class)
         void shouldApplyPrintfFormatViaResolverChain(Placeholders placeholders) {
             var message = CompiledMessage.of("{%.2f#value}");
-            var values = placeholders.contextOf(message)
+            var values = placeholders.context(message)
                 .with("value", 3.14159)
                 .renderFieldValues();
 

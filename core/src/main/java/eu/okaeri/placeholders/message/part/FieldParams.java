@@ -92,8 +92,7 @@ public class FieldParams {
         String str = this.strAt(pos, String.valueOf(def));
         try {
             return new BigDecimal(str).doubleValue();
-        }
-        catch (NumberFormatException exception) {
+        } catch (NumberFormatException exception) {
             return def;
         }
     }
@@ -106,8 +105,7 @@ public class FieldParams {
         String str = this.strAt(pos, String.valueOf(def));
         try {
             return new BigDecimal(str).intValue();
-        }
-        catch (NumberFormatException exception) {
+        } catch (NumberFormatException exception) {
             return def;
         }
     }
@@ -155,11 +153,11 @@ public class FieldParams {
         }
 
         // Try as field reference first
-        if (context != null && arg.mayBeFieldRef()) {
+        if ((context != null) && arg.mayBeFieldRef()) {
             String fieldPath = arg.getValue().trim();  // Trim for field resolution (allows spaces after commas)
 
             // Parse the field path and try to resolve
-            MessageField field = MessageField.of(locale != null ? locale : Locale.ROOT, fieldPath);
+            MessageField field = MessageField.of((locale != null) ? locale : Locale.ROOT, fieldPath);
             Placeholder placeholder = context.getFields().get(field.getName());
 
             if (placeholder != null) {
@@ -177,7 +175,7 @@ public class FieldParams {
      */
     @NonNull
     public String resolveStrAt(int pos, @NonNull String def, @Nullable Locale locale, @Nullable PlaceholderContext context) {
-        Object resolved = resolveArg(pos, locale, context);
+        Object resolved = this.resolveArg(pos, locale, context);
         if (resolved == null) return def;
         return String.valueOf(resolved);
     }

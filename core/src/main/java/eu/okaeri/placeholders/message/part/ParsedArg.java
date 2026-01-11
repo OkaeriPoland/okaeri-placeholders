@@ -41,7 +41,8 @@ public class ParsedArg {
 
     /**
      * Creates a literal argument (from quoted string).
-     * @param value The unquoted value
+     *
+     * @param value    The unquoted value
      * @param rawValue The original value with quotes preserved
      */
     public static ParsedArg literal(@NonNull String value, @NonNull String rawValue) {
@@ -50,7 +51,8 @@ public class ParsedArg {
 
     /**
      * Creates a literal argument (from quoted string), reconstructing raw value.
-     * @param value The unquoted value
+     *
+     * @param value     The unquoted value
      * @param quoteChar The quote character used ('"' or '\'')
      */
     public static ParsedArg literal(@NonNull String value, char quoteChar) {

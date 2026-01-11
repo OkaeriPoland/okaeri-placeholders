@@ -11,7 +11,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @DisplayName("String placeholders")
 @ExtendWith(PlaceholdersExtension.class)
@@ -23,7 +24,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldConvertToLowerCase(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.toLowerCase}"))
+            var result = placeholders.context(CompiledMessage.of("{s.toLowerCase}"))
                 .with("s", "HELLO WORLD")
                 .apply();
 
@@ -32,7 +33,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldConvertToUpperCase(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.toUpperCase}"))
+            var result = placeholders.context(CompiledMessage.of("{s.toUpperCase}"))
                 .with("s", "hello world")
                 .apply();
 
@@ -41,7 +42,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldHandleMixedCase(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.toLowerCase}"))
+            var result = placeholders.context(CompiledMessage.of("{s.toLowerCase}"))
                 .with("s", "HeLLo WoRLD")
                 .apply();
 
@@ -50,7 +51,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldHandleEmptyString(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.toUpperCase}"))
+            var result = placeholders.context(CompiledMessage.of("{s.toUpperCase}"))
                 .with("s", "")
                 .apply();
 
@@ -62,7 +63,7 @@ class StringPlaceholdersTest {
         void shouldHandleUnicodeInCaseConversion(String input, String description, Placeholders placeholders) {
             var message = CompiledMessage.of("{s.toLowerCase}");
 
-            assertThatCode(() -> placeholders.contextOf(message)
+            assertThatCode(() -> placeholders.context(message)
                 .with("s", input)
                 .apply())
                 .describedAs(description)
@@ -76,7 +77,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldCapitalizeFirstLetter(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.capitalize}"))
+            var result = placeholders.context(CompiledMessage.of("{s.capitalize}"))
                 .with("s", "hello world")
                 .apply();
 
@@ -85,7 +86,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldCapitalizeAlreadyCapitalized(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.capitalize}"))
+            var result = placeholders.context(CompiledMessage.of("{s.capitalize}"))
                 .with("s", "Hello World")
                 .apply();
 
@@ -94,7 +95,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldCapitalizeFully(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.capitalizeFully}"))
+            var result = placeholders.context(CompiledMessage.of("{s.capitalizeFully}"))
                 .with("s", "hello world")
                 .apply();
 
@@ -103,7 +104,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldCapitalizeFullyWithMixedCase(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.capitalizeFully}"))
+            var result = placeholders.context(CompiledMessage.of("{s.capitalizeFully}"))
                 .with("s", "hELLO wORLD")
                 .apply();
 
@@ -112,7 +113,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldHandleEmptyStringCapitalize(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.capitalize}"))
+            var result = placeholders.context(CompiledMessage.of("{s.capitalize}"))
                 .with("s", "")
                 .apply();
 
@@ -121,7 +122,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldHandleSingleCharCapitalize(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.capitalize}"))
+            var result = placeholders.context(CompiledMessage.of("{s.capitalize}"))
                 .with("s", "h")
                 .apply();
 
@@ -135,7 +136,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldReplaceCharacter(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.replace(_,-)}"))
+            var result = placeholders.context(CompiledMessage.of("{s.replace(_,-)}"))
                 .with("s", "hello_world")
                 .apply();
 
@@ -144,7 +145,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldReplaceMultipleOccurrences(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.replace(_,-)}"))
+            var result = placeholders.context(CompiledMessage.of("{s.replace(_,-)}"))
                 .with("s", "a_b_c_d")
                 .apply();
 
@@ -153,7 +154,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldHandleNoMatch(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.replace(x,y)}"))
+            var result = placeholders.context(CompiledMessage.of("{s.replace(x,y)}"))
                 .with("s", "hello world")
                 .apply();
 
@@ -162,7 +163,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldReplaceWithEmpty(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.replace(_,)}"))
+            var result = placeholders.context(CompiledMessage.of("{s.replace(_,)}"))
                 .with("s", "hello_world")
                 .apply();
 
@@ -175,7 +176,7 @@ class StringPlaceholdersTest {
             "a.b.c, ., /, a/b/c"
         })
         void shouldReplaceVariousPatterns(String input, String from, String to, String expected, Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.replace(" + from + "," + to + ")}"))
+            var result = placeholders.context(CompiledMessage.of("{s.replace(" + from + "," + to + ")}"))
                 .with("s", input)
                 .apply();
 
@@ -184,7 +185,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldReplaceWithSpace(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.replace(_, )}"))
+            var result = placeholders.context(CompiledMessage.of("{s.replace(_, )}"))
                 .with("s", "snake_case_name")
                 .apply();
 
@@ -198,7 +199,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldPrepend(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.prepend(prefix_)}"))
+            var result = placeholders.context(CompiledMessage.of("{s.prepend(prefix_)}"))
                 .with("s", "value")
                 .apply();
 
@@ -207,7 +208,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldAppend(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.append(_suffix)}"))
+            var result = placeholders.context(CompiledMessage.of("{s.append(_suffix)}"))
                 .with("s", "value")
                 .apply();
 
@@ -216,7 +217,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldChainPrependAndAppend(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.prepend([).append(])}"))
+            var result = placeholders.context(CompiledMessage.of("{s.prepend([).append(])}"))
                 .with("s", "value")
                 .apply();
 
@@ -225,7 +226,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldHandleEmptyPrepend(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.prepend()}"))
+            var result = placeholders.context(CompiledMessage.of("{s.prepend()}"))
                 .with("s", "value")
                 .apply();
 
@@ -239,7 +240,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldChainLowercaseAndCapitalize(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.toLowerCase.capitalize}"))
+            var result = placeholders.context(CompiledMessage.of("{s.toLowerCase.capitalize}"))
                 .with("s", "HELLO WORLD")
                 .apply();
 
@@ -248,7 +249,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldChainReplaceAndUppercase(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.replace(_,-).toUpperCase}"))
+            var result = placeholders.context(CompiledMessage.of("{s.replace(_,-).toUpperCase}"))
                 .with("s", "hello_world")
                 .apply();
 
@@ -259,11 +260,84 @@ class StringPlaceholdersTest {
         void shouldChainMultipleOperations(Placeholders placeholders) {
             // Chain: lowercase -> replace underscore with dash -> uppercase
             // Note: replace with space is not supported - library doesn't strip quotes from params
-            var result = placeholders.contextOf(CompiledMessage.of("{s.toLowerCase.replace(_,-).toUpperCase}"))
+            var result = placeholders.context(CompiledMessage.of("{s.toLowerCase.replace(_,-).toUpperCase}"))
                 .with("s", "HELLO_WORLD")
                 .apply();
 
             assertThat(result).isEqualTo("HELLO-WORLD");
+        }
+    }
+
+    @Nested
+    @DisplayName("String.trim")
+    class StringTrim {
+
+        @Test
+        void shouldTrimWhitespace(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.trim}"))
+                .with("s", "  hello world  ")
+                .apply();
+
+            assertThat(result).isEqualTo("hello world");
+        }
+
+        @Test
+        void shouldTrimTabs(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.trim}"))
+                .with("s", "\thello\t")
+                .apply();
+
+            assertThat(result).isEqualTo("hello");
+        }
+
+        @Test
+        void shouldHandleEmptyStringTrim(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.trim}"))
+                .with("s", "   ")
+                .apply();
+
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("String.length")
+    class StringLength {
+
+        @Test
+        void shouldReturnLength(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.length}"))
+                .with("s", "hello")
+                .apply();
+
+            assertThat(result).isEqualTo("5");
+        }
+
+        @Test
+        void shouldReturnZeroForEmpty(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.length}"))
+                .with("s", "")
+                .apply();
+
+            assertThat(result).isEqualTo("0");
+        }
+
+        @Test
+        void shouldWorkWithSizeAlias(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.size}"))
+                .with("s", "test")
+                .apply();
+
+            assertThat(result).isEqualTo("4");
+        }
+
+        @Test
+        void shouldChainTrimWithLength(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.trim.length}"))
+                .with("s", "  hi  ")
+                .apply();
+
+            assertThat(result).isEqualTo("2");
         }
     }
 
@@ -273,7 +347,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldHandlePolishCharacters(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.toUpperCase}"))
+            var result = placeholders.context(CompiledMessage.of("{s.toUpperCase}"))
                 .with("s", "cześć")
                 .apply();
 
@@ -282,7 +356,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldHandleCyrillicCharacters(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.toLowerCase}"))
+            var result = placeholders.context(CompiledMessage.of("{s.toLowerCase}"))
                 .with("s", "ПРИВЕТ")
                 .apply();
 
@@ -291,7 +365,7 @@ class StringPlaceholdersTest {
 
         @Test
         void shouldCapitalizeUnicode(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{s.capitalize}"))
+            var result = placeholders.context(CompiledMessage.of("{s.capitalize}"))
                 .with("s", "cześć świecie")
                 .apply();
 

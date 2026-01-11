@@ -39,7 +39,7 @@ public class PlaceholdersExtension implements ParameterResolver, BeforeEachCallb
     public void beforeEach(ExtensionContext context) {
         // Create placeholders instance before each test
         var config = this.findConfiguration(context);
-        var placeholders = Placeholders.create(config.defaults());
+        var placeholders = config.defaults() ? Placeholders.create() : Placeholders.empty();
 
         // Store in context for parameter resolution
         context.getStore(NAMESPACE).put(PLACEHOLDERS_KEY, placeholders);

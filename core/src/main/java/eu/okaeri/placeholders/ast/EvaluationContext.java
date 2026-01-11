@@ -51,13 +51,13 @@ public interface EvaluationContext {
     /**
      * Evaluates a node and returns it as a String.
      *
-     * @param node the node to evaluate
+     * @param node         the node to evaluate
      * @param defaultValue value to return if result is null
      * @return the string value
      */
     default String evaluateString(AstNode node, String defaultValue) {
-        Object result = evaluate(node);
-        return result != null ? result.toString() : defaultValue;
+        Object result = this.evaluate(node);
+        return (result != null) ? result.toString() : defaultValue;
     }
 
     /**
@@ -67,12 +67,12 @@ public interface EvaluationContext {
      * the ref name itself is parsed as a number. This allows unquoted
      * numeric arguments like {n.divide(2)} to work.
      *
-     * @param node the node to evaluate
+     * @param node         the node to evaluate
      * @param defaultValue value to return if result is null or not a number
      * @return the int value
      */
     default int evaluateInt(AstNode node, int defaultValue) {
-        Object result = evaluate(node);
+        Object result = this.evaluate(node);
         if (result instanceof Number) {
             return ((Number) result).intValue();
         }
@@ -102,12 +102,12 @@ public interface EvaluationContext {
      * the ref name itself is parsed as a number. This allows unquoted
      * numeric arguments like {n.divide(2.5)} to work.
      *
-     * @param node the node to evaluate
+     * @param node         the node to evaluate
      * @param defaultValue value to return if result is null or not a number
      * @return the double value
      */
     default double evaluateDouble(AstNode node, double defaultValue) {
-        Object result = evaluate(node);
+        Object result = this.evaluate(node);
         if (result instanceof Number) {
             return ((Number) result).doubleValue();
         }
@@ -133,12 +133,12 @@ public interface EvaluationContext {
     /**
      * Evaluates a node and returns it as a boolean.
      *
-     * @param node the node to evaluate
+     * @param node         the node to evaluate
      * @param defaultValue value to return if result is null
      * @return the boolean value
      */
     default boolean evaluateBoolean(AstNode node, boolean defaultValue) {
-        Object result = evaluate(node);
+        Object result = this.evaluate(node);
         if (result instanceof Boolean) {
             return (Boolean) result;
         }

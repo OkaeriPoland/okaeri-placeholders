@@ -2,6 +2,7 @@ package eu.okaeri.placeholders.ast.bridge;
 
 import eu.okaeri.placeholders.ast.AstNode;
 import eu.okaeri.placeholders.ast.EvaluationContext;
+import eu.okaeri.placeholders.ast.node.NumberLiteral;
 import eu.okaeri.placeholders.ast.node.Ref;
 import eu.okaeri.placeholders.ast.node.StringLiteral;
 import eu.okaeri.placeholders.context.PlaceholderContext;
@@ -22,19 +23,21 @@ import java.util.Locale;
 public class AstFieldParams extends FieldParams {
 
     private final List<AstNode> args;
+    private final boolean hasParens;
     private final EvaluationContext ctx;
 
-    private AstFieldParams(String fieldName, List<AstNode> args, EvaluationContext ctx) {
+    private AstFieldParams(String fieldName, List<AstNode> args, boolean hasParens, EvaluationContext ctx) {
         super(fieldName, new String[0], new ParsedArg[0]);
         this.args = args;
+        this.hasParens = hasParens;
         this.ctx = ctx;
     }
 
     /**
      * Creates AstFieldParams wrapping AST argument nodes.
      */
-    public static AstFieldParams of(String fieldName, List<AstNode> args, EvaluationContext ctx) {
-        return new AstFieldParams(fieldName, args, ctx);
+    public static AstFieldParams of(String fieldName, List<AstNode> args, boolean hasParens, EvaluationContext ctx) {
+        return new AstFieldParams(fieldName, args, hasParens, ctx);
     }
 
     @Override
@@ -134,8 +137,8 @@ public class AstFieldParams extends FieldParams {
      * Resolution logic:
      * - String literals return their value directly
      * - For Ref nodes:
-     *   - If the field exists in context (even if null), return the evaluated value
-     *   - If the field doesn't exist, fall back to the ref name (backward compat for literals)
+     * - If the field exists in context (even if null), return the evaluated value
+     * - If the field doesn't exist, fall back to the ref name (backward compat for literals)
      * - Other expressions are evaluated normally
      */
     @Override
@@ -168,12 +171,55 @@ public class AstFieldParams extends FieldParams {
     @Override
     public String[] getParams() {
         // For backward compatibility with ReflectResolver:
-        // Empty args (method call with no arguments) should return [""]
-        // to indicate "called with parens but no args"
+        // - Empty args with parens (foo()) → return [""] to indicate no-arg method call
+        // - Empty args without parens (foo.bar) → return [] for field access
+        // - With args → return raw-format strings
         if (this.args.isEmpty()) {
-            return new String[]{""};
+            if (this.hasParens) {
+                return new String[]{""};
+            }
+            return new String[0];
         }
-        return this.strArr();
+        // Return raw-format strings for ReflectResolver compatibility
+        // ReflectResolver uses raw format to detect types: 'a' → String, 123 → int, etc.
+        return this.rawStrArr();
+    }
+
+    /**
+     * Returns arguments in raw format for backward compatibility with ReflectResolver.
+     * <ul>
+     *   <li>StringLiteral → 'value' (single-quoted)</li>
+     *   <li>NumberLiteral → number as string</li>
+     *   <li>Ref → identifier name</li>
+     *   <li>Other → evaluated string</li>
+     * </ul>
+     */
+    private String[] rawStrArr() {
+        String[] arr = new String[this.args.size()];
+        for (int i = 0; i < this.args.size(); i++) {
+            arr[i] = this.toRawString(this.args.get(i));
+        }
+        return arr;
+    }
+
+    /**
+     * Converts an AST node to its raw string representation for ReflectResolver.
+     */
+    private String toRawString(AstNode node) {
+        if (node instanceof StringLiteral) {
+            // Return with single quotes so ReflectResolver detects as String type
+            return "'" + ((StringLiteral) node).getValue() + "'";
+        }
+        if (node instanceof NumberLiteral) {
+            Number num = ((NumberLiteral) node).getValue();
+            return num.toString();
+        }
+        if (node instanceof Ref) {
+            return ((Ref) node).getName();
+        }
+        // For complex expressions, evaluate and return as string
+        Object result = this.ctx.evaluate(node);
+        return (result != null) ? result.toString() : "";
     }
 
     @Override

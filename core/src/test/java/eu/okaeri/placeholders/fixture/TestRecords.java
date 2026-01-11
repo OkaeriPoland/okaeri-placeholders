@@ -12,27 +12,31 @@ public final class TestRecords {
     }
 
     // Simple item record
-    public record Item(String type, int amount, short damage, byte data, Meta meta) {}
+    public record Item(String type, int amount, short damage, byte data, Meta meta) {
+    }
 
     // Nested metadata record
-    public record Meta(String name, String lore) {}
+    public record Meta(String name, String lore) {
+    }
 
     // Inheritance hierarchy using sealed interfaces
     public sealed interface Entity permits Player, NPC {
         String name();
     }
 
-    public record Player(String name, int health, Inventory inventory) implements Entity {}
+    public record Player(String name, int health, Inventory inventory) implements Entity {
+    }
 
-    public record NPC(String name, String dialogue) implements Entity {}
+    public record NPC(String name, String dialogue) implements Entity {
+    }
 
     public record Inventory(List<Item> items) {
         public int size() {
-            return items.size();
+            return this.items.size();
         }
 
         public Item first() {
-            return items.isEmpty() ? null : items.getFirst();
+            return this.items.isEmpty() ? null : this.items.getFirst();
         }
     }
 
@@ -44,7 +48,8 @@ public final class TestRecords {
         float floatValue,
         short shortValue,
         byte byteValue
-    ) {}
+    ) {
+    }
 
     // For enum tests
     public enum ItemType {
@@ -53,11 +58,12 @@ public final class TestRecords {
         IRON_PICKAXE;
 
         public String pretty() {
-            return name().replace("_", " ").toLowerCase();
+            return this.name().replace("_", " ").toLowerCase();
         }
     }
 
-    public record TypedItem(ItemType type, int amount) {}
+    public record TypedItem(ItemType type, int amount) {
+    }
 
     // Factory methods for common test data
     public static Meta sampleMeta() {

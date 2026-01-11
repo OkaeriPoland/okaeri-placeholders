@@ -6,8 +6,8 @@ package eu.okaeri.placeholders;
  * This class serves as the context value for the special "$" placeholder,
  * enabling global function calls like {$.env(HOME)}, {$.now()}, etc.
  * <p>
- * Functions are registered via {@link Placeholders#registerGlobalFunction(String, PlaceholderResolver)}
- * which internally registers resolvers on this class.
+ * Functions are registered via {@link Placeholders#global} methods
+ * which internally register resolvers on this class.
  * <p>
  * Example usage:
  * <pre>

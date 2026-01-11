@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Enum placeholders")
 @ExtendWith(PlaceholdersExtension.class)
@@ -32,7 +32,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldReturnEnumName(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.name}"))
+            var result = placeholders.context(CompiledMessage.of("{e.name}"))
                 .with("e", Color.RED)
                 .apply();
 
@@ -42,7 +42,7 @@ class EnumPlaceholdersTest {
         @ParameterizedTest
         @EnumSource(Color.class)
         void shouldReturnNameForAllColors(Color color, Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.name}"))
+            var result = placeholders.context(CompiledMessage.of("{e.name}"))
                 .with("e", color)
                 .apply();
 
@@ -51,7 +51,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldReturnUnderscoreName(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.name}"))
+            var result = placeholders.context(CompiledMessage.of("{e.name}"))
                 .with("e", Status.PENDING_APPROVAL)
                 .apply();
 
@@ -65,7 +65,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldReturnOrdinalAsString(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.ordinal}"))
+            var result = placeholders.context(CompiledMessage.of("{e.ordinal}"))
                 .with("e", Color.RED)
                 .apply();
 
@@ -74,7 +74,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldReturnCorrectOrdinalForSecond(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.ordinal}"))
+            var result = placeholders.context(CompiledMessage.of("{e.ordinal}"))
                 .with("e", Color.GREEN)
                 .apply();
 
@@ -83,7 +83,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldReturnCorrectOrdinalForThird(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.ordinal}"))
+            var result = placeholders.context(CompiledMessage.of("{e.ordinal}"))
                 .with("e", Color.BLUE)
                 .apply();
 
@@ -97,7 +97,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldCapitalizeSimpleName(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.pretty}"))
+            var result = placeholders.context(CompiledMessage.of("{e.pretty}"))
                 .with("e", Color.RED)
                 .apply();
 
@@ -106,7 +106,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldConvertUnderscoresToSpacesAndCapitalize(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.pretty}"))
+            var result = placeholders.context(CompiledMessage.of("{e.pretty}"))
                 .with("e", Status.PENDING_APPROVAL)
                 .apply();
 
@@ -115,7 +115,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldCapitalizeEachWord(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.pretty}"))
+            var result = placeholders.context(CompiledMessage.of("{e.pretty}"))
                 .with("e", Status.IN_PROGRESS)
                 .apply();
 
@@ -129,7 +129,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldUseToStringByDefault(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e}"))
+            var result = placeholders.context(CompiledMessage.of("{e}"))
                 .with("e", Color.GREEN)
                 .apply();
 
@@ -143,7 +143,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldChainNameWithLowerCase(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.name.toLowerCase}"))
+            var result = placeholders.context(CompiledMessage.of("{e.name.toLowerCase}"))
                 .with("e", Color.RED)
                 .apply();
 
@@ -152,7 +152,7 @@ class EnumPlaceholdersTest {
 
         @Test
         void shouldChainPrettyWithReplace(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{e.pretty.replace( ,_)}"))
+            var result = placeholders.context(CompiledMessage.of("{e.pretty.replace( ,_)}"))
                 .with("e", Status.PENDING_APPROVAL)
                 .apply();
 

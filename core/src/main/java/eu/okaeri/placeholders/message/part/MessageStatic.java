@@ -1,6 +1,9 @@
 package eu.okaeri.placeholders.message.part;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NonNull;
 
 @Data
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

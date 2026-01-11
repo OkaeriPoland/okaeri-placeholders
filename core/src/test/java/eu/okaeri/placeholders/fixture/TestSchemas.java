@@ -32,23 +32,23 @@ public final class TestSchemas {
         }
 
         public String getType() {
-            return type;
+            return this.type;
         }
 
         public int getAmount() {
-            return amount;
+            return this.amount;
         }
 
         public short getDamage() {
-            return damage;
+            return this.damage;
         }
 
         public byte getData() {
-            return data;
+            return this.data;
         }
 
         public SchemaMeta getMeta() {
-            return meta;
+            return this.meta;
         }
     }
 
@@ -66,11 +66,11 @@ public final class TestSchemas {
         }
 
         public String getName() {
-            return name;
+            return this.name;
         }
 
         public String getLore() {
-            return lore;
+            return this.lore;
         }
     }
 
@@ -87,22 +87,22 @@ public final class TestSchemas {
 
         @Placeholder(name = "custom")
         public String getValue() {
-            return value;
+            return this.value;
         }
 
         @Placeholder(name = "upper")
         public String getUpperCase() {
-            return value.toUpperCase();
+            return this.value.toUpperCase();
         }
 
         @Placeholder(name = "lower")
         public String getLowerCase() {
-            return value.toLowerCase();
+            return this.value.toLowerCase();
         }
 
         @Placeholder(name = "length")
         public int getLength() {
-            return value.length();
+            return this.value.length();
         }
     }
 
@@ -121,12 +121,12 @@ public final class TestSchemas {
 
         @Placeholder
         public String getVisible() {
-            return visible;
+            return this.visible;
         }
 
         // This should NOT be discoverable since scan=false
         public String getHidden() {
-            return hidden;
+            return this.hidden;
         }
     }
 
@@ -146,15 +146,15 @@ public final class TestSchemas {
         }
 
         public String getType() {
-            return type;
+            return this.type;
         }
 
         public int getAmount() {
-            return amount;
+            return this.amount;
         }
 
         public ExternalMeta getMeta() {
-            return meta;
+            return this.meta;
         }
     }
 
@@ -171,11 +171,11 @@ public final class TestSchemas {
         }
 
         public String getName() {
-            return name;
+            return this.name;
         }
 
         public String getLore() {
-            return lore;
+            return this.lore;
         }
     }
 
@@ -193,11 +193,11 @@ public final class TestSchemas {
         }
 
         public Type getType() {
-            return type;
+            return this.type;
         }
 
         public int getCount() {
-            return count;
+            return this.count;
         }
 
         public enum Type {

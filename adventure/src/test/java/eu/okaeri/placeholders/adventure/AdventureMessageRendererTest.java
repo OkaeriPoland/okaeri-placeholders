@@ -26,7 +26,7 @@ class AdventureMessageRendererTest {
     @BeforeEach
     void setUp() {
         this.renderer = new AdventureMessageRenderer();
-        this.placeholders = Placeholders.create(true);
+        this.placeholders = Placeholders.create();
     }
 
     @Nested
@@ -36,7 +36,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldRenderSimplePlaceholder() {
             var message = CompiledMessage.of("Hello {name}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "World");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "World");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -46,7 +46,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldRenderMultiplePlaceholders() {
             var message = CompiledMessage.of("{greeting} {name}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message)
+            var context = AdventureMessageRendererTest.this.placeholders.context(message)
                 .with("greeting", "Hello")
                 .with("name", "World");
 
@@ -58,7 +58,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldRenderStaticText() {
             var message = CompiledMessage.of("No placeholders here");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -68,11 +68,11 @@ class AdventureMessageRendererTest {
         @Test
         void shouldShowMissingPlaceholder() {
             var message = CompiledMessage.of("Hello {name}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello <missing:name>!");
+            assertThat(LEGACY.serialize(result)).isEqualTo("Hello &c<missing:name>!");
         }
     }
 
@@ -83,7 +83,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyBold() {
             var message = CompiledMessage.of("<bold>Hello</bold> {name}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "World");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "World");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -93,7 +93,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyColor() {
             var message = CompiledMessage.of("<red>Error:</red> {message}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("message", "failed");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("message", "failed");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -103,7 +103,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyColorToPlaceholder() {
             var message = CompiledMessage.of("<gold>{name}</gold>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "Steve");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Steve");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -113,7 +113,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyBoldToPlaceholder() {
             var message = CompiledMessage.of("<bold>{name}</bold>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "Steve");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Steve");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -123,7 +123,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyColorAndBoldToPlaceholder() {
             var message = CompiledMessage.of("<red><bold>{name}</bold></red>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "Steve");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Steve");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -133,7 +133,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldInheritStyleForStringPlaceholder() {
             var message = CompiledMessage.of("<aqua>Hello {name}!</aqua>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "World");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "World");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -143,7 +143,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyGradientToPlaceholder() {
             var message = CompiledMessage.of("<gradient:red:blue>Hi {name}!</gradient>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "AB");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "AB");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -160,7 +160,7 @@ class AdventureMessageRendererTest {
             var goldComponent = Component.text("Gold").color(NamedTextColor.GOLD);
 
             var message = CompiledMessage.of("Color: {comp}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("comp", goldComponent);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("comp", goldComponent);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -172,7 +172,7 @@ class AdventureMessageRendererTest {
             var boldComponent = Component.text("Bold").decorate(TextDecoration.BOLD);
 
             var message = CompiledMessage.of("Style: {comp}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("comp", boldComponent);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("comp", boldComponent);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -186,7 +186,7 @@ class AdventureMessageRendererTest {
                 .decorate(TextDecoration.BOLD);
 
             var message = CompiledMessage.of("Hello {comp}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("comp", styledComponent);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("comp", styledComponent);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -198,7 +198,7 @@ class AdventureMessageRendererTest {
             var goldComponent = Component.text("Gold").color(NamedTextColor.GOLD);
 
             var message = CompiledMessage.of("<red>Error: {comp}</red>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("comp", goldComponent);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("comp", goldComponent);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -210,7 +210,7 @@ class AdventureMessageRendererTest {
             var goldComponent = Component.text("Gold").color(NamedTextColor.GOLD);
 
             var message = CompiledMessage.of("{comp} and {str}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message)
+            var context = AdventureMessageRendererTest.this.placeholders.context(message)
                 .with("comp", goldComponent)
                 .with("str", "plain");
 
@@ -227,7 +227,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldParseSectionCodes() {
             var message = CompiledMessage.of("§cRed {name}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "Text");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Text");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -237,7 +237,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldParseAmpersandCodes() {
             var message = CompiledMessage.of("&6Gold {name}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "Text");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Text");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -247,7 +247,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldMixLegacyAndMiniMessage() {
             var message = CompiledMessage.of("&6Gold <bold>{name}</bold>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "Steve");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Steve");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -262,7 +262,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldReplacePlaceholderInRunCommand() {
             var message = CompiledMessage.of("<click:run_command:'/give {name} diamond'>Click</click>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "Steve");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Steve");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -272,7 +272,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldReplacePlaceholderInSuggestCommand() {
             var message = CompiledMessage.of("<click:suggest_command:'/msg {name} '>Message</click>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "Player");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Player");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -282,7 +282,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldReplacePlaceholderInOpenUrl() {
             var message = CompiledMessage.of("<click:open_url:'https://example.com/{id}'>Link</click>");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("id", "123");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("id", "123");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -297,7 +297,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyResolverChain() {
             var message = CompiledMessage.of("Hello {name.toUpperCase}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "world");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "world");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -307,7 +307,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldHandleOrFallback() {
             var message = CompiledMessage.of("Hello {name.or(\"Guest\")}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -317,7 +317,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldChainMultipleResolvers() {
             var message = CompiledMessage.of("{name.toLowerCase.capitalize}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "HELLO WORLD");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "HELLO WORLD");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -332,7 +332,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyPrintfFormat() {
             var message = CompiledMessage.of("Value: {%.2f#value}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("value", 3.14159);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("value", 3.14159);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -342,8 +342,8 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyPluralization() {
             var message = CompiledMessage.of("{apple,apples#count}");
-            var context1 = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("count", 1);
-            var context5 = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("count", 5);
+            var context1 = AdventureMessageRendererTest.this.placeholders.context(message).with("count", 1);
+            var context5 = AdventureMessageRendererTest.this.placeholders.context(message).with("count", 5);
 
             var result1 = AdventureMessageRendererTest.this.renderer.render(message, context1);
             var result5 = AdventureMessageRendererTest.this.renderer.render(message, context5);
@@ -355,8 +355,8 @@ class AdventureMessageRendererTest {
         @Test
         void shouldApplyBooleanFormat() {
             var message = CompiledMessage.of("Status: {yes,no#active}");
-            var contextTrue = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("active", true);
-            var contextFalse = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("active", false);
+            var contextTrue = AdventureMessageRendererTest.this.placeholders.context(message).with("active", true);
+            var contextFalse = AdventureMessageRendererTest.this.placeholders.context(message).with("active", false);
 
             var resultTrue = AdventureMessageRendererTest.this.renderer.render(message, contextTrue);
             var resultFalse = AdventureMessageRendererTest.this.renderer.render(message, contextFalse);
@@ -373,7 +373,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldUseDefaultWhenMissing() {
             var message = CompiledMessage.of("Hello {name|Guest}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -383,7 +383,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldUseValueWhenPresent() {
             var message = CompiledMessage.of("Hello {name|Guest}!");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("name", "World");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "World");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
@@ -393,7 +393,7 @@ class AdventureMessageRendererTest {
         @Test
         void shouldUseDefaultWhenNull() {
             var message = CompiledMessage.of("Value: {value|none}");
-            var context = AdventureMessageRendererTest.this.placeholders.contextOf(message).with("value", null);
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("value", null);
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 

@@ -50,11 +50,16 @@ public class Lexer {
 
         // Structural tokens
         switch (c) {
-            case '.': return Token.of(TokenType.DOT, start);
-            case '(': return Token.of(TokenType.LPAREN, start);
-            case ')': return Token.of(TokenType.RPAREN, start);
-            case ',': return Token.of(TokenType.COMMA, start);
-            case '|': return Token.of(TokenType.PIPE, start);
+            case '.':
+                return Token.of(TokenType.DOT, start);
+            case '(':
+                return Token.of(TokenType.LPAREN, start);
+            case ')':
+                return Token.of(TokenType.RPAREN, start);
+            case ',':
+                return Token.of(TokenType.COMMA, start);
+            case '|':
+                return Token.of(TokenType.PIPE, start);
         }
 
         // String literals (quoted)
@@ -76,13 +81,27 @@ public class Lexer {
             if ((c == '\\') && !this.isAtEnd()) {
                 char next = this.advance();
                 switch (next) {
-                    case 'n': sb.append('\n'); break;
-                    case 't': sb.append('\t'); break;
-                    case 'r': sb.append('\r'); break;
-                    case '\\': sb.append('\\'); break;
-                    case '"': sb.append('"'); break;
-                    case '\'': sb.append('\''); break;
-                    default: sb.append(next); break;
+                    case 'n':
+                        sb.append('\n');
+                        break;
+                    case 't':
+                        sb.append('\t');
+                        break;
+                    case 'r':
+                        sb.append('\r');
+                        break;
+                    case '\\':
+                        sb.append('\\');
+                        break;
+                    case '"':
+                        sb.append('"');
+                        break;
+                    case '\'':
+                        sb.append('\'');
+                        break;
+                    default:
+                        sb.append(next);
+                        break;
                 }
             } else {
                 sb.append(c);

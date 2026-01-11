@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.time.Instant;
 import java.util.Locale;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Instant placeholders")
 @ExtendWith(PlaceholdersExtension.class)
@@ -26,7 +26,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatShortTimeEnglish(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{lt,short,UTC#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{lt,short,UTC#time}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -35,7 +35,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatMediumTimeEnglish(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{lt,medium,UTC#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{lt,medium,UTC#time}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -44,7 +44,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatTimeWithParisTimezone(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{lt,short,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{lt,short,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -53,7 +53,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatTimeWithPolishLocale(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.forLanguageTag("pl"), "{lt,short,Europe/Warsaw#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.forLanguageTag("pl"), "{lt,short,Europe/Warsaw#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -62,7 +62,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatTimeWithJapaneseLocale(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.JAPAN, "{lt,short,Asia/Tokyo#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.JAPAN, "{lt,short,Asia/Tokyo#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -76,7 +76,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatShortDateTimeEnglish(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{ldt,short,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{ldt,short,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -87,7 +87,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatMediumDateTimeEnglish(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{ldt,medium,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{ldt,medium,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -97,7 +97,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatLongDateTimeEnglish(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{ldt,long,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{ldt,long,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -107,7 +107,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatDateTimeWithPolishLocale(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.forLanguageTag("pl"), "{ldt,short,Europe/Warsaw#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.forLanguageTag("pl"), "{ldt,short,Europe/Warsaw#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -118,7 +118,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatDateTimeWithJapaneseLocale(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.JAPAN, "{ldt,short,Asia/Tokyo#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.JAPAN, "{ldt,short,Asia/Tokyo#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -132,7 +132,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatShortDateEnglish(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{ld,short,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{ld,short,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -141,7 +141,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatMediumDateEnglish(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{ld,medium,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{ld,medium,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -150,7 +150,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatLongDateEnglish(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{ld,long,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{ld,long,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -159,7 +159,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatDateWithPolishLocale(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.forLanguageTag("pl"), "{ld,short,Europe/Warsaw#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.forLanguageTag("pl"), "{ld,short,Europe/Warsaw#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -175,7 +175,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatWithCustomPattern(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{p,yyyy-MM-dd,UTC#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{p,yyyy-MM-dd,UTC#time}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -184,7 +184,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatWithTimePattern(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{p,HH:mm:ss,UTC#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{p,HH:mm:ss,UTC#time}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -193,7 +193,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatWithEscapedComma(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{p,yyyy/MM/dd\\, HH:mm G,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{p,yyyy/MM/dd\\, HH:mm G,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -202,7 +202,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldRespectLocaleInPattern(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.forLanguageTag("pl"), "{p,yyyy/MM/dd\\, HH:mm G,Europe/Paris#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.forLanguageTag("pl"), "{p,yyyy/MM/dd\\, HH:mm G,Europe/Paris#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -216,7 +216,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldHandleEpoch(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{ld,short,UTC#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{ld,short,UTC#time}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -225,7 +225,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldHandleFutureDate(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{ld,short,UTC#time}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{ld,short,UTC#time}"))
                 .with("time", Instant.parse("2099-12-31T23:59:59Z"))
                 .apply();
 
@@ -239,7 +239,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatTimeWithDefaultStyle(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"short\",\"UTC\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"short\",\"UTC\")}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -248,7 +248,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatMediumTime(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"medium\",\"UTC\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"medium\",\"UTC\")}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -257,7 +257,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatTimeWithTimezone(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"short\",\"Europe/Paris\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.time(\"short\",\"Europe/Paris\")}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -271,7 +271,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatShortDate(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"short\",\"Europe/Paris\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"short\",\"Europe/Paris\")}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -280,7 +280,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatMediumDate(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"medium\",\"Europe/Paris\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"medium\",\"Europe/Paris\")}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -289,7 +289,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatLongDate(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"long\",\"Europe/Paris\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.date(\"long\",\"Europe/Paris\")}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -303,7 +303,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatShortDateTime(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"short\",\"Europe/Paris\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"short\",\"Europe/Paris\")}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -313,7 +313,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatMediumDateTime(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"medium\",\"Europe/Paris\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"medium\",\"Europe/Paris\")}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -323,7 +323,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatLongDateTime(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"long\",\"Europe/Paris\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.datetime(\"long\",\"Europe/Paris\")}"))
                 .with("time", EPOCH)
                 .apply();
 
@@ -338,7 +338,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatWithCustomPattern(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd\",\"UTC\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd\",\"UTC\")}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -347,7 +347,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatWithTimePattern(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"HH:mm:ss\",\"UTC\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"HH:mm:ss\",\"UTC\")}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -356,7 +356,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldFormatWithFullPattern(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd HH:mm:ss\",\"UTC\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd HH:mm:ss\",\"UTC\")}"))
                 .with("time", Y2K)
                 .apply();
 
@@ -365,7 +365,7 @@ class InstantPlaceholdersTest {
 
         @Test
         void shouldRespectTimezone(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd HH:mm\",\"Europe/Paris\")}"))
+            var result = placeholders.context(CompiledMessage.of(Locale.ENGLISH, "{time.format(\"yyyy-MM-dd HH:mm\",\"Europe/Paris\")}"))
                 .with("time", EPOCH)
                 .apply();
 

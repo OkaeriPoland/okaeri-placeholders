@@ -33,11 +33,11 @@ implementation 'eu.okaeri:okaeri-placeholders-adventure:5.1.2'
 ### Basic Usage
 
 ```java
-Placeholders placeholders = Placeholders.create(true);
+Placeholders placeholders = Placeholders.create();
 AdventureMessageRenderer renderer = new AdventureMessageRenderer();
 
 CompiledMessage message = CompiledMessage.of("<gold>Hello {name}!</gold>");
-Component result = placeholders.contextOf(message)
+Component result = placeholders.context(message)
     .with("name", "World")
     .apply(renderer);
 // Result: gold-colored "Hello World!"
@@ -50,7 +50,7 @@ String placeholder values inherit surrounding styles:
 ```java
 // Gradient applies to the entire text including placeholder value
 CompiledMessage message = CompiledMessage.of("<gradient:red:blue>Welcome {player}!</gradient>");
-Component result = placeholders.contextOf(message)
+Component result = placeholders.context(message)
     .with("player", "Steve")
     .apply(renderer);
 // Result: "Welcome Steve!" with gradient from red to blue across all text
@@ -66,7 +66,7 @@ Component styledName = Component.text("Admin")
     .decorate(TextDecoration.BOLD);
 
 CompiledMessage message = CompiledMessage.of("<red>Error reported by {reporter}</red>");
-Component result = placeholders.contextOf(message)
+Component result = placeholders.context(message)
     .with("reporter", styledName)
     .apply(renderer);
 // Result: red "Error reported by " + gold bold "Admin"
@@ -80,7 +80,7 @@ Placeholders inside click events are replaced automatically:
 CompiledMessage message = CompiledMessage.of(
     "<click:run_command:'/give {player} diamond'>Click for diamond!</click>"
 );
-Component result = placeholders.contextOf(message)
+Component result = placeholders.context(message)
     .with("player", "Steve")
     .apply(renderer);
 // Result: clickable text that runs "/give Steve diamond"
@@ -107,14 +107,14 @@ All okaeri-placeholders resolvers work with AdventureMessageRenderer:
 
 ```java
 CompiledMessage message = CompiledMessage.of("<gold>{name.toUpperCase}</gold>");
-Component result = placeholders.contextOf(message)
+Component result = placeholders.context(message)
     .with("name", "steve")
     .apply(renderer);
 // Result: gold "STEVE"
 
 // With .or() fallback
 CompiledMessage message = CompiledMessage.of("Hello {name.or(\"Guest\")}!");
-Component result = placeholders.contextOf(message)
+Component result = placeholders.context(message)
     .apply(renderer);
 // Result: "Hello Guest!"
 ```

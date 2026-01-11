@@ -112,13 +112,13 @@ CompiledMessage message = CompiledMessage.of("Hola {who}! ¿Cómo estás {when}?
 // or created on demand (use #of(message) and #apply())
 // second version can't be reused but is faster in on-demand scenario
 // especially when resulting message is using only part of the placeholders
-PlaceholderContext context = PlaceholderContext.of(message)
+PlaceholderContext context = PlaceholderContext.of(this.message)
     .with("who", "Mundo") // in real life scenario these would be your variables
     .with("when", "hoy")
     .with("how", "bien");
 
 // process message and get output: Hola Mundo! ¿Cómo estás hoy? Estoy bien.
-String test = context.apply();
+String test = this.context.apply();
 ```
 
 ## Benchmarks

@@ -21,6 +21,7 @@ public class AstMessageFieldAccessor implements MessageFieldAccessor {
 
     private final String methodName;
     private final List<AstNode> args;
+    private final boolean hasParens;
     private final EvaluationContext ctx;
     private AstFieldParams cachedParams;
 
@@ -28,7 +29,14 @@ public class AstMessageFieldAccessor implements MessageFieldAccessor {
      * Creates an accessor for an AST Call node.
      */
     public static AstMessageFieldAccessor of(String methodName, List<AstNode> args, EvaluationContext ctx) {
-        return new AstMessageFieldAccessor(methodName, args, ctx);
+        return new AstMessageFieldAccessor(methodName, args, true, ctx);
+    }
+
+    /**
+     * Creates an accessor for an AST Call node with explicit parens flag.
+     */
+    public static AstMessageFieldAccessor of(String methodName, List<AstNode> args, boolean hasParens, EvaluationContext ctx) {
+        return new AstMessageFieldAccessor(methodName, args, hasParens, ctx);
     }
 
     @Override
@@ -39,7 +47,7 @@ public class AstMessageFieldAccessor implements MessageFieldAccessor {
     @Override
     public FieldParams params() {
         if (this.cachedParams == null) {
-            this.cachedParams = AstFieldParams.of(this.methodName, this.args, this.ctx);
+            this.cachedParams = AstFieldParams.of(this.methodName, this.args, this.hasParens, this.ctx);
         }
         return this.cachedParams;
     }
@@ -50,7 +58,7 @@ public class AstMessageFieldAccessor implements MessageFieldAccessor {
         // Return null or throw - resolvers that need raw MessageField won't work with AST
         throw new UnsupportedOperationException(
             "MessageField.unsafe() is not available in AST-based evaluation. " +
-            "Resolver should use params() instead."
+                "Resolver should use params() instead."
         );
     }
 }

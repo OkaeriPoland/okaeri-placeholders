@@ -2,7 +2,10 @@ package eu.okaeri.placeholders;
 
 import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.message.CompiledMessage;
-import eu.okaeri.placeholders.message.part.MessageField;
+import eu.okaeri.placeholders.schema.DefaultRegistry;
+import eu.okaeri.placeholders.schema.GlobalMethods;
+import eu.okaeri.placeholders.schema.Params;
+import eu.okaeri.placeholders.schema.TypeMethods;
 import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
 import eu.okaeri.pluralize.Pluralize;
 import lombok.AccessLevel;
@@ -12,6 +15,9 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Placeholders {
@@ -25,59 +31,106 @@ public class Placeholders {
     private Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new LinkedHashMap<>();
     private List<Class<?>> resolversOrdered = new ArrayList<>();
     @Getter private PlaceholderResolver fallbackResolver = null;
-    @Getter private boolean fastMode = true;
 
+    /**
+     * Create a new Placeholders instance with default packs registered.
+     */
     public static Placeholders create() {
-        return create(false);
+        return new Placeholders().with(new DefaultPlaceholderPack());
     }
 
-    public static Placeholders create(boolean registerDefaults) {
-        Placeholders placeholders = new Placeholders();
-        if (registerDefaults) placeholders.registerPlaceholders(new DefaultPlaceholderPack());
-        return placeholders;
+    /**
+     * Create an empty Placeholders instance with no packs registered.
+     */
+    public static Placeholders empty() {
+        return new Placeholders();
     }
 
-    public PlaceholderContext contextOf(@NonNull CompiledMessage message) {
+    /**
+     * Create a placeholder context for the given message.
+     */
+    public PlaceholderContext context(@NonNull CompiledMessage message) {
         return PlaceholderContext.of(this, message);
     }
 
-    public Placeholders fallbackResolver(PlaceholderResolver fallbackResolver) {
+    /**
+     * Set a fallback resolver used when no specific resolver is found.
+     */
+    public Placeholders fallback(PlaceholderResolver fallbackResolver) {
         this.fallbackResolver = fallbackResolver;
         return this;
     }
 
     /**
-     * Sets fast mode state.
-     *
-     * Fast mode applies to the non-shared {@link PlaceholderContext} instances.
-     *
-     * When {@code fastMode} is set to {@code true}, fields added to the context
-     * and not present in the specific message would be discarded immediately.
-     *
-     * When {@code fastMode} is set to {@code false}, all fields added to the
-     * context are preserved regardless of the message contents.
-     *
-     * @param fastMode Target fast mode state
-     * @return This instance
+     * Register a placeholder pack.
      */
-    public Placeholders fastMode(boolean fastMode) {
-        this.fastMode = fastMode;
-        return this;
-    }
-
-    public Placeholders registerPlaceholders(@NonNull PlaceholderPack pack) {
+    public Placeholders with(@NonNull PlaceholderPack pack) {
         pack.register(this);
         return this;
     }
 
-    public void setResolvers(@NonNull Map<Class<?>, Map<String, PlaceholderResolver>> resolvers) {
-        this.resolvers = resolvers;
-        ArrayList<Class<?>> keys = new ArrayList<>(resolvers.keySet());
-        Collections.reverse(keys);
-        this.resolversOrdered = keys;
+    /**
+     * Access the fluent API for registering type methods.
+     * <p>
+     * Example:
+     * <pre>
+     * placeholders.type(String.class)
+     *     .add("reverse", s -> new StringBuilder(s).reverse().toString())
+     *     .add("truncate", (s, p) -> s.substring(0, Math.min(s.length(), p.arg(0).asInt(10))));
+     * </pre>
+     */
+    public <T> TypeMethods<T> type(@NonNull Class<T> type) {
+        return DefaultRegistry.of(this).type(type);
     }
 
-    public <T> Placeholders registerPlaceholder(@NonNull Class<T> type, @NonNull PlaceholderResolver<T> resolver) {
+    /**
+     * Access the fluent API for registering global functions.
+     * <p>
+     * Example:
+     * <pre>
+     * placeholders.globals()
+     *     .add("env", p -> System.getenv(p.arg(0).asString()))
+     *     .add("now", () -> Instant.now());
+     * </pre>
+     */
+    public GlobalMethods globals() {
+        return DefaultRegistry.of(this).globals();
+    }
+
+    /**
+     * Register a global function with no parameters.
+     * Shorthand for {@code globals().add(name, resolver)}.
+     */
+    public Placeholders global(@NonNull String name, @NonNull Supplier<Object> resolver) {
+        this.globals().add(name, resolver);
+        return this;
+    }
+
+    /**
+     * Register a global function with parameters.
+     * Shorthand for {@code globals().add(name, resolver)}.
+     */
+    public Placeholders global(@NonNull String name, @NonNull Function<Params, Object> resolver) {
+        this.globals().add(name, resolver);
+        return this;
+    }
+
+    /**
+     * Register a global function with parameters and context.
+     * Shorthand for {@code globals().add(name, resolver)}.
+     */
+    public Placeholders global(@NonNull String name, @NonNull BiFunction<Params, PlaceholderContext, Object> resolver) {
+        this.globals().add(name, resolver);
+        return this;
+    }
+
+    // Low-level registration - prefer using type() or globals() fluent API
+
+    /**
+     * Register a default resolver for a type (when no method name specified).
+     * Prefer using {@link #type(Class)} fluent API.
+     */
+    public <T> Placeholders register(@NonNull Class<T> type, @NonNull PlaceholderResolver<T> resolver) {
 
         if (!this.resolvers.containsKey(type)) {
             this.resolvers.put(type, new HashMap<>());
@@ -89,7 +142,11 @@ public class Placeholders {
         return this;
     }
 
-    public <T> Placeholders registerPlaceholder(@NonNull Class<T> type, @NonNull String name, @NonNull PlaceholderResolver<T> resolver) {
+    /**
+     * Register a named resolver for a type.
+     * Prefer using {@link #type(Class)} fluent API.
+     */
+    public <T> Placeholders register(@NonNull Class<T> type, @NonNull String name, @NonNull PlaceholderResolver<T> resolver) {
 
         if (!this.resolvers.containsKey(type)) {
             this.resolvers.put(type, new HashMap<>());
@@ -102,44 +159,19 @@ public class Placeholders {
     }
 
     /**
-     * Registers a global function accessible via {$.name(args)} syntax.
-     * <p>
-     * This is a convenience method equivalent to:
-     * {@code registerPlaceholder(GlobalFunctions.class, name, resolver)}
-     * <p>
-     * Example:
-     * <pre>
-     * placeholders.registerGlobalFunction("env", (gf, field, ctx) ->
-     *     System.getenv(field.params().strAt(0, "")));
-     * // Usage: {$.env(HOME)}
-     * </pre>
-     *
-     * @param name     The function name (without $. prefix)
-     * @param resolver The resolver that implements the function
-     * @return This instance for chaining
+     * Register a global function with a raw resolver.
+     * Prefer using {@link #global(String, Supplier)} or {@link #globals()} fluent API.
      */
-    public Placeholders registerGlobalFunction(@NonNull String name, @NonNull PlaceholderResolver<GlobalFunctions> resolver) {
-        return this.registerPlaceholder(GlobalFunctions.class, name, resolver);
+    public Placeholders register(@NonNull String name, @NonNull PlaceholderResolver<GlobalFunctions> resolver) {
+        return this.register(GlobalFunctions.class, name, resolver);
     }
 
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public Object readValue(@NonNull Object from) {
-        PlaceholderResolver placeholderResolver = this.getResolver(from, null);
-        if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from, MessageField.unknown(), null);
-        }
-        throw new IllegalArgumentException("cannot find resolver for " + from.getClass());
-    }
-
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public Object readValue(@NonNull Object from, @Nullable String param) {
-        PlaceholderResolver placeholderResolver = this.getResolver(from, param);
-        if (placeholderResolver != null) {
-            return placeholderResolver.resolve(from, MessageField.unknown(), null);
-        }
-        throw new IllegalArgumentException("cannot find resolver for " + from.getClass() + ": " + param);
+    // Used internally by copy()
+    void setResolvers(@NonNull Map<Class<?>, Map<String, PlaceholderResolver>> resolvers) {
+        this.resolvers = resolvers;
+        ArrayList<Class<?>> keys = new ArrayList<>(resolvers.keySet());
+        Collections.reverse(keys);
+        this.resolversOrdered = keys;
     }
 
     public PlaceholderResolver getResolver(@NonNull Object from, @Nullable String param) {
@@ -193,7 +225,7 @@ public class Placeholders {
         return null;
     }
 
-    public PlaceholderResolver findResolverOrNull(@NonNull Object from, @Nullable String param) {
+    private PlaceholderResolver findResolverOrNull(@NonNull Object from, @Nullable String param) {
 
         for (Class<?> potentialType : this.resolversOrdered) {
 
@@ -214,20 +246,17 @@ public class Placeholders {
         return null;
     }
 
-    public int getResolversCount() {
-        return Math.toIntExact(this.resolvers.values().stream()
-            .mapToLong(map -> map.entrySet().size())
-            .sum());
-    }
-
+    /**
+     * Create a copy of this Placeholders instance.
+     */
     public Placeholders copy() {
         Placeholders placeholders = new Placeholders();
-        placeholders.setResolvers(this.getResolversCopy());
+        placeholders.setResolvers(this.copyResolvers());
         placeholders.fallbackResolver = this.getFallbackResolver();
         return placeholders;
     }
 
-    public Map<Class<?>, Map<String, PlaceholderResolver>> getResolversCopy() {
+    private Map<Class<?>, Map<String, PlaceholderResolver>> copyResolvers() {
         Map<Class<?>, Map<String, PlaceholderResolver>> resolvers = new LinkedHashMap<>();
         for (Map.Entry<Class<?>, Map<String, PlaceholderResolver>> entry : this.resolvers.entrySet()) {
             Map<String, PlaceholderResolver> map = new HashMap<>();
@@ -245,12 +274,10 @@ public class Placeholders {
             if (options.length == Pluralize.plurals(locale)) {
                 return Pluralize.pluralize(locale, count, options);
             }
-        }
-        catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException exception) {
             try {
                 return Pluralize.pluralize(Locale.ENGLISH, count, options);
-            }
-            catch (IllegalArgumentException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
         }
         return options[0];

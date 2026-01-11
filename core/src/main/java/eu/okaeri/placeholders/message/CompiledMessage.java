@@ -4,15 +4,9 @@ import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.ast.AstNode;
 import eu.okaeri.placeholders.ast.node.Call;
 import eu.okaeri.placeholders.ast.node.Ref;
-import eu.okaeri.placeholders.ast.node.StringLiteral;
 import eu.okaeri.placeholders.ast.node.WithDefault;
 import eu.okaeri.placeholders.ast.parser.ExpressionParser;
-import eu.okaeri.placeholders.message.part.ExpressionPart;
-import eu.okaeri.placeholders.message.part.FieldParams;
-import eu.okaeri.placeholders.message.part.MessageElement;
-import eu.okaeri.placeholders.message.part.MessageField;
-import eu.okaeri.placeholders.message.part.MessageStatic;
-import eu.okaeri.placeholders.message.part.ParsedArg;
+import eu.okaeri.placeholders.message.part.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
@@ -20,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Data
@@ -298,18 +291,18 @@ public class CompiledMessage {
                 int depth = 1;
                 i++;
 
-                while (i < length && depth > 0) {
+                while ((i < length) && (depth > 0)) {
                     char ch = source.charAt(i);
                     if (ch == '{') {
                         depth++;
                     } else if (ch == '}') {
                         depth--;
-                    } else if (ch == '"' || ch == '\'') {
+                    } else if ((ch == '"') || (ch == '\'')) {
                         // Skip quoted strings
                         char quote = ch;
                         i++;
-                        while (i < length && source.charAt(i) != quote) {
-                            if (source.charAt(i) == '\\' && i + 1 < length) {
+                        while ((i < length) && (source.charAt(i) != quote)) {
+                            if ((source.charAt(i) == '\\') && ((i + 1) < length)) {
                                 i++; // Skip escaped char
                             }
                             i++;
@@ -392,7 +385,7 @@ public class CompiledMessage {
         int fallbackInField = fieldPart.lastIndexOf('|');
         int argsEndInField = fieldPart.lastIndexOf(')');
         String defaultSuffix = "";
-        if (fallbackInField != -1 && fallbackInField > argsEndInField) {
+        if ((fallbackInField != -1) && (fallbackInField > argsEndInField)) {
             defaultSuffix = fieldPart.substring(fallbackInField);
             fieldPart = fieldPart.substring(0, fallbackInField);
         }
@@ -461,19 +454,19 @@ public class CompiledMessage {
             char c = content.charAt(i);
 
             if (inQuote) {
-                if (c == '\\' && i + 1 < content.length()) {
+                if ((c == '\\') && ((i + 1) < content.length())) {
                     i++; // skip escaped char
                 } else if (c == quoteChar) {
                     inQuote = false;
                 }
-            } else if (c == '"' || c == '\'') {
+            } else if ((c == '"') || (c == '\'')) {
                 inQuote = true;
                 quoteChar = c;
             } else if (c == '(') {
                 depth++;
             } else if (c == ')') {
                 depth--;
-            } else if (c == '|' && depth == 0) {
+            } else if ((c == '|') && (depth == 0)) {
                 return i; // Return FIRST pipe outside parens/quotes
             }
         }

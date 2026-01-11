@@ -10,9 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("MessageFieldTokenizer")
 class MessageFieldTokenizerTest {
@@ -21,7 +19,7 @@ class MessageFieldTokenizerTest {
 
     @BeforeEach
     void setUp() {
-        tokenizer = new MessageFieldTokenizer();
+        this.tokenizer = new MessageFieldTokenizer();
     }
 
     @Nested
@@ -30,7 +28,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeSimpleField() {
-            var result = tokenizer.tokenize("name");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("name");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("name");
@@ -39,7 +37,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeTwoPartPath() {
-            var result = tokenizer.tokenize("player.name");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("player.name");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getField()).isEqualTo("player");
@@ -48,7 +46,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeThreePartPath() {
-            var result = tokenizer.tokenize("player.inventory.size");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("player.inventory.size");
 
             assertThat(result).hasSize(3)
                 .extracting(FieldParams::getField)
@@ -57,7 +55,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeDeeplyNestedPath() {
-            var result = tokenizer.tokenize("a.b.c.d.e.f.g");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("a.b.c.d.e.f.g");
 
             assertThat(result).hasSize(7)
                 .extracting(FieldParams::getField)
@@ -67,7 +65,7 @@ class MessageFieldTokenizerTest {
         @ParameterizedTest
         @ValueSource(strings = {"single", "two.parts", "three.part.path"})
         void shouldTokenizeVariousPaths(String path) {
-            var result = tokenizer.tokenize(path);
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize(path);
             var expectedCount = path.split("\\.").length;
 
             assertThat(result).hasSize(expectedCount);
@@ -80,7 +78,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeMethodWithNoArgs() {
-            var result = tokenizer.tokenize("method()");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("method()");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("method");
@@ -89,7 +87,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeMethodWithSingleArg() {
-            var result = tokenizer.tokenize("healthBar(20)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("healthBar(20)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("healthBar");
@@ -98,7 +96,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeMethodWithMultipleArgs() {
-            var result = tokenizer.tokenize("healthBar(20,X)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("healthBar(20,X)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("healthBar");
@@ -107,7 +105,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeMethodWithManyArgs() {
-            var result = tokenizer.tokenize("method(a,b,c,d,e)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("method(a,b,c,d,e)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getParams()).containsExactly("a", "b", "c", "d", "e");
@@ -115,7 +113,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeMethodAfterField() {
-            var result = tokenizer.tokenize("player.healthBar(20)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("player.healthBar(20)");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getField()).isEqualTo("player");
@@ -126,7 +124,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeChainedMethodCalls() {
-            var result = tokenizer.tokenize("a.b(1,2).c.d(33)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("a.b(1,2).c.d(33)");
 
             assertThat(result).hasSize(4);
             assertThat(result.get(0).getField()).isEqualTo("a");
@@ -139,7 +137,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeMethodFollowedByField() {
-            var result = tokenizer.tokenize("method(arg).field");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("method(arg).field");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getField()).isEqualTo("method");
@@ -154,56 +152,56 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeEmptyArgs() {
-            var result = tokenizer.tokenizeArgs("");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("");
 
             assertThat(result).containsExactly("");
         }
 
         @Test
         void shouldTokenizeSingleArg() {
-            var result = tokenizer.tokenizeArgs("value");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("value");
 
             assertThat(result).containsExactly("value");
         }
 
         @Test
         void shouldTokenizeMultipleArgs() {
-            var result = tokenizer.tokenizeArgs("a,b,c");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("a,b,c");
 
             assertThat(result).containsExactly("a", "b", "c");
         }
 
         @Test
         void shouldHandleEscapedComma() {
-            var result = tokenizer.tokenizeArgs("a\\,b");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("a\\,b");
 
             assertThat(result).containsExactly("a,b");
         }
 
         @Test
         void shouldHandleEscapedCommaInMiddle() {
-            var result = tokenizer.tokenizeArgs("first,a\\,b,last");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("first,a\\,b,last");
 
             assertThat(result).containsExactly("first", "a,b", "last");
         }
 
         @Test
         void shouldHandleMultipleEscapedCommas() {
-            var result = tokenizer.tokenizeArgs("a\\,b\\,c");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("a\\,b\\,c");
 
             assertThat(result).containsExactly("a,b,c");
         }
 
         @Test
         void shouldPreserveSpacesInArgs() {
-            var result = tokenizer.tokenizeArgs("hello world,goodbye world");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("hello world,goodbye world");
 
             assertThat(result).containsExactly("hello world", "goodbye world");
         }
 
         @Test
         void shouldHandleEmptyArgsInList() {
-            var result = tokenizer.tokenizeArgs(",second");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs(",second");
 
             assertThat(result).containsExactly("", "second");
         }
@@ -211,7 +209,7 @@ class MessageFieldTokenizerTest {
         @Test
         void shouldHandleTrailingComma() {
             // Note: Trailing comma does NOT create an empty element (implementation behavior)
-            var result = tokenizer.tokenizeArgs("first,");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("first,");
 
             assertThat(result).containsExactly("first");
         }
@@ -224,7 +222,7 @@ class MessageFieldTokenizerTest {
             "'a,b,c,d,e', 5"
         })
         void shouldCountArgsCorrectly(String input, int expectedCount) {
-            var result = tokenizer.tokenizeArgs(input);
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs(input);
 
             assertThat(result).hasSize(expectedCount);
         }
@@ -236,7 +234,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleParenthesesInArgs() {
-            var result = tokenizer.tokenize("papi(some.nested.call)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("papi(some.nested.call)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("papi");
@@ -246,7 +244,7 @@ class MessageFieldTokenizerTest {
         @Test
         void shouldHandleNestedParenthesesInArgs() {
             // or(secondary.replace(_,-)) should keep nested parens intact
-            var result = tokenizer.tokenize("primary.or(secondary.replace(_,-))");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("primary.or(secondary.replace(_,-))");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getField()).isEqualTo("primary");
@@ -259,7 +257,7 @@ class MessageFieldTokenizerTest {
             // 3 levels: $.if(cond, a.or(b.replace(x,y)), fallback)
             // $ and if are separate tokens ($ is the global functions container)
             // Tokenizer preserves spaces - trimming happens at field resolution time
-            var result = tokenizer.tokenize("$.if(active, primary.or(secondary.replace(_,-)), fallback)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("$.if(active, primary.or(secondary.replace(_,-)), fallback)");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getField()).isEqualTo("$");
@@ -270,7 +268,7 @@ class MessageFieldTokenizerTest {
         @Test
         void shouldHandleDeepNestedParenthesesInArgsWithoutSpaces() {
             // Same as above but without spaces after commas
-            var result = tokenizer.tokenize("$.if(active,primary.or(secondary.replace(_,-)),fallback)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("$.if(active,primary.or(secondary.replace(_,-)),fallback)");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getField()).isEqualTo("$");
@@ -280,7 +278,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandlePipeInArgs() {
-            var result = tokenizer.tokenize("method(|)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("method(|)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getParams()).containsExactly("|");
@@ -288,7 +286,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleSpaceInArgs() {
-            var result = tokenizer.tokenize("method( )");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("method( )");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getParams()).containsExactly(" ");
@@ -296,7 +294,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleHashInArgs() {
-            var result = tokenizer.tokenize("method(#tag)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("method(#tag)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getParams()).containsExactly("#tag");
@@ -305,7 +303,7 @@ class MessageFieldTokenizerTest {
         @Test
         void shouldHandleComplexArgumentWithCommas() {
             // Note: Unescaped commas in arguments are split as separate args
-            var result = tokenizer.tokenize("format([h]< hour, hours> (m)< minute, minutes>)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("format([h]< hour, hours> (m)< minute, minutes>)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("format");
@@ -316,7 +314,7 @@ class MessageFieldTokenizerTest {
         @Test
         void shouldHandleEscapedCommasInComplexArgument() {
             // Use escaped commas to keep the format string as single argument
-            var result = tokenizer.tokenize("format([h]< hour\\, hours> (m)< minute\\, minutes>)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("format([h]< hour\\, hours> (m)< minute\\, minutes>)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("format");
@@ -331,7 +329,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizePolishFieldName() {
-            var result = tokenizer.tokenize("cześć");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("cześć");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("cześć");
@@ -339,7 +337,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeCyrillicPath() {
-            var result = tokenizer.tokenize("игрок.имя");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("игрок.имя");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getField()).isEqualTo("игрок");
@@ -348,7 +346,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleUnicodeInArgs() {
-            var result = tokenizer.tokenize("метод(аргумент)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("метод(аргумент)");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("метод");
@@ -357,7 +355,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldTokenizeJapanesePath() {
-            var result = tokenizer.tokenize("プレイヤー.名前");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("プレイヤー.名前");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0).getField()).isEqualTo("プレイヤー");
@@ -371,7 +369,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleSingleCharacterField() {
-            var result = tokenizer.tokenize("a");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("a");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("a");
@@ -379,7 +377,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleSingleCharacterPath() {
-            var result = tokenizer.tokenize("a.b.c");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("a.b.c");
 
             assertThat(result).hasSize(3)
                 .extracting(FieldParams::getField)
@@ -388,7 +386,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleMethodOnSingleChar() {
-            var result = tokenizer.tokenize("a.b(x)");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("a.b(x)");
 
             assertThat(result).hasSize(2);
             assertThat(result.get(1).getField()).isEqualTo("b");
@@ -397,7 +395,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleNumericFieldName() {
-            var result = tokenizer.tokenize("field123");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("field123");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("field123");
@@ -405,7 +403,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleFieldStartingWithNumber() {
-            var result = tokenizer.tokenize("123field");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("123field");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("123field");
@@ -413,7 +411,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleUnderscoreInFieldName() {
-            var result = tokenizer.tokenize("snake_case_field");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("snake_case_field");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("snake_case_field");
@@ -421,7 +419,7 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldHandleMixedCaseFieldName() {
-            var result = tokenizer.tokenize("camelCaseField");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenize("camelCaseField");
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getField()).isEqualTo("camelCaseField");
@@ -434,28 +432,28 @@ class MessageFieldTokenizerTest {
 
         @Test
         void shouldParsePluralizationOptions() {
-            var result = tokenizer.tokenizeArgs("apple,apples");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("apple,apples");
 
             assertThat(result).containsExactly("apple", "apples");
         }
 
         @Test
         void shouldParsePolishPluralizationOptions() {
-            var result = tokenizer.tokenizeArgs("pies,psy,psów");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("pies,psy,psów");
 
             assertThat(result).containsExactly("pies", "psy", "psów");
         }
 
         @Test
         void shouldParseDateTimeOptions() {
-            var result = tokenizer.tokenizeArgs("ldt,medium,Europe/Paris");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("ldt,medium,Europe/Paris");
 
             assertThat(result).containsExactly("ldt", "medium", "Europe/Paris");
         }
 
         @Test
         void shouldParseBooleanOptions() {
-            var result = tokenizer.tokenizeArgs("yes,no");
+            var result = MessageFieldTokenizerTest.this.tokenizer.tokenizeArgs("yes,no");
 
             assertThat(result).containsExactly("yes", "no");
         }

@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.time.Duration;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Duration placeholders")
 @ExtendWith(PlaceholdersExtension.class)
@@ -24,7 +24,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatDays(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofDays(1))
                 .apply();
 
@@ -33,7 +33,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatHours(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofHours(2))
                 .apply();
 
@@ -42,7 +42,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatMinutes(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofMinutes(30))
                 .apply();
 
@@ -51,7 +51,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatSeconds(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofSeconds(45))
                 .apply();
 
@@ -60,7 +60,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatMilliseconds(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofMillis(500))
                 .apply();
 
@@ -74,7 +74,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatDaysAndHours(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofHours(25))
                 .apply();
 
@@ -83,7 +83,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatHoursAndMinutes(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofMinutes(90))
                 .apply();
 
@@ -92,7 +92,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatHoursMinutesSeconds(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofSeconds(3661))
                 .apply();
 
@@ -101,7 +101,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatLargeDuration(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofDays(30).plusHours(12))
                 .apply();
 
@@ -115,7 +115,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatZeroAsSeconds(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ZERO)
                 .apply();
 
@@ -129,7 +129,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatNegativeDuration(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofHours(-2))
                 .apply();
 
@@ -143,7 +143,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatYearEquivalent(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofDays(365))
                 .apply();
 
@@ -152,7 +152,7 @@ class DurationPlaceholdersTest {
 
         @Test
         void shouldFormatWeekEquivalent(Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.ofDays(7))
                 .apply();
 
@@ -176,7 +176,7 @@ class DurationPlaceholdersTest {
             "P1DT12H, 1d12h"
         })
         void shouldFormatVariousDurations(String isoDuration, String expected, Placeholders placeholders) {
-            var result = placeholders.contextOf(CompiledMessage.of("{d}"))
+            var result = placeholders.context(CompiledMessage.of("{d}"))
                 .with("d", Duration.parse(isoDuration))
                 .apply();
 

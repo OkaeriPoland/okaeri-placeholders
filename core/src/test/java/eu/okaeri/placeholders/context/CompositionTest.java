@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Composition with .or() and method chaining")
 @ExtendWith(PlaceholdersExtension.class)
@@ -21,7 +21,7 @@ class CompositionTest {
         @Test
         void shouldReturnValueWhenNotNull(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.or(\"Anonymous\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", "Alice")
                 .apply();
 
@@ -31,7 +31,7 @@ class CompositionTest {
         @Test
         void shouldReturnFallbackWhenNull(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.or(\"Anonymous\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", null)
                 .apply();
 
@@ -41,7 +41,7 @@ class CompositionTest {
         @Test
         void shouldReturnFallbackWhenMissing(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.or(\"Anonymous\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .apply();
 
             assertThat(result).isEqualTo("Anonymous");
@@ -50,7 +50,7 @@ class CompositionTest {
         @Test
         void shouldWorkWithSingleQuotes(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.or('Guest')}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .apply();
 
             assertThat(result).isEqualTo("Guest");
@@ -59,7 +59,7 @@ class CompositionTest {
         @Test
         void shouldWorkWithEmptyString(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.or(\"\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", null)
                 .apply();
 
@@ -74,7 +74,7 @@ class CompositionTest {
         @Test
         void shouldUseFieldRefAsFallback(Placeholders placeholders) {
             var message = CompiledMessage.of("{nickname.or(name)}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("nickname", null)
                 .with("name", "Alice")
                 .apply();
@@ -85,7 +85,7 @@ class CompositionTest {
         @Test
         void shouldReturnValueIfNotNull(Placeholders placeholders) {
             var message = CompiledMessage.of("{nickname.or(name)}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("nickname", "Ali")
                 .with("name", "Alice")
                 .apply();
@@ -97,7 +97,7 @@ class CompositionTest {
         void shouldTreatUnknownFieldAsLiteralString(Placeholders placeholders) {
             // backward compat: if the field doesn't exist, treat arg as string literal
             var message = CompiledMessage.of("{name.or(fallback)}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .apply();
 
             assertThat(result).isEqualTo("fallback");
@@ -111,7 +111,7 @@ class CompositionTest {
         @Test
         void shouldChainMultipleOrs(Placeholders placeholders) {
             var message = CompiledMessage.of("{a.or(b).or(c).or(\"default\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("a", null)
                 .with("b", null)
                 .with("c", "Charlie")
@@ -123,7 +123,7 @@ class CompositionTest {
         @Test
         void shouldUseFirstNonNullValue(Placeholders placeholders) {
             var message = CompiledMessage.of("{a.or(b).or(c).or(\"default\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("a", "Alpha")
                 .with("b", "Bravo")
                 .with("c", "Charlie")
@@ -135,7 +135,7 @@ class CompositionTest {
         @Test
         void shouldUseLiteralDefaultWhenAllNull(Placeholders placeholders) {
             var message = CompiledMessage.of("{a.or(b).or(c).or(\"default\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("a", null)
                 .with("b", null)
                 .with("c", null)
@@ -152,7 +152,7 @@ class CompositionTest {
         @Test
         void shouldChainOrWithToUpperCase(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.or(\"guest\").toUpperCase()}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .apply();
 
             assertThat(result).isEqualTo("GUEST");
@@ -161,7 +161,7 @@ class CompositionTest {
         @Test
         void shouldApplyMethodToFallbackValue(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.or(fallback).toUpperCase()}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", null)
                 .with("fallback", "alice")
                 .apply();
@@ -173,7 +173,7 @@ class CompositionTest {
         void shouldApplyToUpperCaseAfterOrWithNull(Placeholders placeholders) {
             // Test chaining another method after .or() when value is null
             var message = CompiledMessage.of("{nickname.or(name).toUpperCase()}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("nickname", null)
                 .with("name", "alice")
                 .apply();
@@ -185,7 +185,7 @@ class CompositionTest {
         void shouldApplyMethodInsideOrParam(Placeholders placeholders) {
             // Test method call INSIDE .or() param: {name.or(fallback.toUpperCase)}
             var message = CompiledMessage.of("{name.or(fallback.toUpperCase)}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", null)
                 .with("fallback", "alice")
                 .apply();
@@ -197,7 +197,7 @@ class CompositionTest {
         void shouldApplyChainedMethodsInsideOrParam(Placeholders placeholders) {
             // Test chained methods INSIDE .or() param: {name.or(fallback.toLowerCase.capitalize)}
             var message = CompiledMessage.of("{name.or(fallback.toLowerCase.capitalize)}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", null)
                 .with("fallback", "HELLO WORLD")
                 .apply();
@@ -209,7 +209,7 @@ class CompositionTest {
         void shouldApplyMethodWithParamsInsideOrParam(Placeholders placeholders) {
             // Test method with () args INSIDE .or() param: {name.or(fallback.replace(a,b))}
             var message = CompiledMessage.of("{name.or(fallback.replace(o,0))}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("name", null)
                 .with("fallback", "hello")
                 .apply();
@@ -221,7 +221,7 @@ class CompositionTest {
         void shouldHandleTwoLevelsOfNestedParens(Placeholders placeholders) {
             // 2 levels: {$.if(cond, value.replace(a,b), fallback)}
             var message = CompiledMessage.of("{$.if(active, name.replace(_,-), fallback)}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("active", true)
                 .with("name", "hello_world")
                 .with("fallback", "default")
@@ -234,7 +234,7 @@ class CompositionTest {
         void shouldHandleThreeLevelsOfNestedParens(Placeholders placeholders) {
             // 3 levels: {$.if(cond, a.or(b.replace(x,y)), fallback)}
             var message = CompiledMessage.of("{$.if(active, primary.or(secondary.replace(_,-)), fallback)}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .with("active", true)
                 .with("primary", null)
                 .with("secondary", "hello_world")
@@ -252,7 +252,7 @@ class CompositionTest {
         @Test
         void pipeSyntaxShouldStillWork(Placeholders placeholders) {
             var message = CompiledMessage.of("{name|Anonymous}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .apply();
 
             assertThat(result).isEqualTo("Anonymous");
@@ -261,7 +261,7 @@ class CompositionTest {
         @Test
         void orMethodShouldWorkLikePipeSyntax(Placeholders placeholders) {
             var message = CompiledMessage.of("{name.or(\"Anonymous\")}");
-            var result = placeholders.contextOf(message)
+            var result = placeholders.context(message)
                 .apply();
 
             assertThat(result).isEqualTo("Anonymous");
@@ -270,7 +270,7 @@ class CompositionTest {
         @Test
         void orMethodAllowsFieldRefWhilePipeDoesNot(Placeholders placeholders) {
             var messageOr = CompiledMessage.of("{nickname.or(name)}");
-            var resultOr = placeholders.contextOf(messageOr)
+            var resultOr = placeholders.context(messageOr)
                 .with("nickname", null)
                 .with("name", "Alice")
                 .apply();
@@ -280,7 +280,7 @@ class CompositionTest {
 
             // With |, the default is always a literal string
             var messagePipe = CompiledMessage.of("{nickname|name}");
-            var resultPipe = placeholders.contextOf(messagePipe)
+            var resultPipe = placeholders.context(messagePipe)
                 .with("nickname", null)
                 .with("name", "Alice")
                 .apply();

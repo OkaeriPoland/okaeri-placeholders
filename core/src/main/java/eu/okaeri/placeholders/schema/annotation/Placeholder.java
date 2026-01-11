@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Placeholder {
     String name() default "";
+
     boolean scan() default true;
 }
