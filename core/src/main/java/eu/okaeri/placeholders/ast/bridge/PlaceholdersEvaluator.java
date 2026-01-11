@@ -133,43 +133,6 @@ public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationCont
     }
 
     /**
-     * Evaluates an AST expression and returns the result as a String.
-     */
-    @SuppressWarnings("unchecked")
-    public String evaluateToString(AstNode ast) {
-        Object result = ast.accept(this);
-
-        // Apply default renderer if available (for types like Duration)
-        // Exclude fallback resolver - it's for method calls, not default rendering
-        if ((result != null) && (this.placeholders != null)) {
-            PlaceholderResolver resolver = this.placeholders.getResolver(result, null);
-            if ((resolver != null) && (resolver != this.placeholders.getFallbackResolver())) {
-                // Use empty string for field name in default renderer context
-                AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of("", Collections.emptyList(), this);
-                result = resolver.resolve(result, accessor, this.legacyContext);
-            }
-        }
-
-        return this.objectToString(result);
-    }
-
-    /**
-     * Converts an object to string using the standard placeholder formatting.
-     */
-    private String objectToString(@Nullable Object object) {
-        if (object == null) {
-            return null;
-        }
-        if (object instanceof Enum) {
-            return ((Enum<?>) object).name();
-        }
-        if ((object instanceof Float) || (object instanceof Double)) {
-            return String.format("%.2f", object);
-        }
-        return object.toString();
-    }
-
-    /**
      * Evaluates an AST expression and returns a typed result indicating
      * success, null, or missing field.
      *

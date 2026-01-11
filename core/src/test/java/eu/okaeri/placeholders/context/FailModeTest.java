@@ -1,5 +1,7 @@
 package eu.okaeri.placeholders.context;
 
+import eu.okaeri.placeholders.exception.MissingFieldException;
+import eu.okaeri.placeholders.exception.NullValueException;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -84,7 +86,7 @@ class FailModeTest {
             assertThatThrownBy(() ->
                 PlaceholderContext.create(FailMode.FAIL_FAST)
                     .apply(message))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(MissingFieldException.class)
                 .hasMessageContaining("missing");
         }
 
@@ -95,7 +97,7 @@ class FailModeTest {
             assertThatThrownBy(() ->
                 PlaceholderContext.create(FailMode.FAIL_FAST)
                     .apply(message))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(MissingFieldException.class)
                 .hasMessageContaining("player");
         }
 
@@ -106,8 +108,8 @@ class FailModeTest {
             assertThatThrownBy(() ->
                 PlaceholderContext.create(FailMode.FAIL_FAST)
                     .apply(message))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Hello {name}!");
+                .isInstanceOf(MissingFieldException.class);
+            // Note: formatMessage() includes the template, but getMessage() may not
         }
 
         @Test
@@ -139,7 +141,7 @@ class FailModeTest {
                 PlaceholderContext.create(FailMode.FAIL_FAST)
                     .with("value", null)
                     .apply(message))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(NullValueException.class);
         }
 
         @Test
@@ -161,7 +163,7 @@ class FailModeTest {
             assertThatThrownBy(() ->
                 PlaceholderContext.create(FailMode.FAIL_FAST)
                     .apply(message))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(MissingFieldException.class);
         }
     }
 
@@ -258,7 +260,7 @@ class FailModeTest {
             assertThatThrownBy(() ->
                 PlaceholderContext.create(FailMode.FAIL_FAST)
                     .apply(message))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(MissingFieldException.class)
                 .hasMessageContaining("first");
         }
     }

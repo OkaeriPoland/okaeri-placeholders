@@ -1,5 +1,7 @@
 package eu.okaeri.placeholders.reflect.argument;
 
+import eu.okaeri.placeholders.exception.CoercionException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -102,12 +104,12 @@ public final class TypeCoercer {
      * @param value      The value to coerce
      * @param targetType The target type
      * @return The coerced value
-     * @throws IllegalArgumentException if coercion is not possible
+     * @throws CoercionException if coercion is not possible
      */
     public static Object coerce(Object value, Class<?> targetType) {
         if (value == null) {
             if (targetType.isPrimitive()) {
-                throw new IllegalArgumentException("Cannot coerce null to primitive type " + targetType);
+                throw new CoercionException(null, null, targetType, "cannot coerce null to primitive type");
             }
             return null;
         }
@@ -127,7 +129,7 @@ public final class TypeCoercer {
 
         // Numeric widening
         if (value instanceof Number) {
-            return coerceNumber((Number) value, targetType);
+            return coerceNumber((Number) value, targetType, value);
         }
 
         // String to numeric
@@ -137,16 +139,16 @@ public final class TypeCoercer {
 
         // Character to numeric
         if ((value instanceof Character) && isNumericType(targetType)) {
-            return coerceNumber((int) (Character) value, targetType);
+            return coerceNumber((int) (Character) value, targetType, value);
         }
 
-        throw new IllegalArgumentException("Cannot coerce " + sourceType.getName() + " to " + targetType.getName());
+        throw new CoercionException(value, sourceType, targetType, "no coercion path available");
     }
 
     /**
      * Coerces a Number to the target numeric type.
      */
-    private static Object coerceNumber(Number number, Class<?> targetType) {
+    private static Object coerceNumber(Number number, Class<?> targetType, Object originalValue) {
         if ((targetType == byte.class) || (targetType == Byte.class)) {
             return number.byteValue();
         }
@@ -165,7 +167,7 @@ public final class TypeCoercer {
         if ((targetType == double.class) || (targetType == Double.class)) {
             return number.doubleValue();
         }
-        throw new IllegalArgumentException("Cannot coerce number to " + targetType.getName());
+        throw new CoercionException(originalValue, originalValue.getClass(), targetType, "not a supported numeric target type");
     }
 
     /**
@@ -198,12 +200,12 @@ public final class TypeCoercer {
                 if (str.length() == 1) {
                     return str.charAt(0);
                 }
-                throw new IllegalArgumentException("Cannot coerce multi-char string to char");
+                throw new CoercionException(str, String.class, targetType, "string length must be 1 for char conversion");
             }
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Cannot parse '" + str + "' as " + targetType.getName(), e);
+            throw new CoercionException(str, String.class, targetType, "failed to parse as number", e);
         }
-        throw new IllegalArgumentException("Cannot coerce String to " + targetType.getName());
+        throw new CoercionException(str, String.class, targetType, "not a supported target type for string parsing");
     }
 
     /**

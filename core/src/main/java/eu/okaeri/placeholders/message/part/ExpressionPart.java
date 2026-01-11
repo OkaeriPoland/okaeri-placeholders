@@ -16,7 +16,10 @@ public class ExpressionPart implements MessageElement {
 
     /**
      * The original raw expression string (without braces, before transformation).
-     * Used as the key in renderFieldValues() for backward compatibility.
+     * <p>
+     * When legacy syntax like {@code #plural:count:apple:apples} is transformed
+     * to {@code $.plural(count, "apple", "apples")}, this preserves the original
+     * so the map key matches what the user wrote in the template.
      */
     private final String originalRaw;
 

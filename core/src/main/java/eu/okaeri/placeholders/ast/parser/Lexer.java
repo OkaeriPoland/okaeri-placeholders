@@ -1,5 +1,6 @@
 package eu.okaeri.placeholders.ast.parser;
 
+import eu.okaeri.placeholders.exception.ParseException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
@@ -176,6 +177,6 @@ public class Lexer {
     }
 
     private ParseException error(String message, int pos) {
-        return new ParseException(message, pos);
+        return new ParseException(message, this.source, pos);
     }
 }

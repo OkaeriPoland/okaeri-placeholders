@@ -1,5 +1,9 @@
 package eu.okaeri.placeholders.ast;
 
+import eu.okaeri.placeholders.util.FormatUtils;
+
+import java.util.function.Function;
+
 /**
  * Result of evaluating a placeholder expression.
  * <p>
@@ -18,6 +22,42 @@ public interface EvaluationResult {
     String getExpression();
 
     /**
+     * Returns the value if this is a successful result, null otherwise.
+     */
+    default Object getValueOrNull() {
+        return null;
+    }
+
+    /**
+     * Formats this result for string output using standard rules.
+     * <ul>
+     *   <li>Value → formatted via {@link FormatUtils#objectToString(Object)}</li>
+     *   <li>NullValue → "null"</li>
+     *   <li>MissingValue → "&lt;missing:expression&gt;"</li>
+     * </ul>
+     */
+    default String format() {
+        return this.format(FormatUtils::objectToString);
+    }
+
+    /**
+     * Formats this result for string output with a custom value formatter.
+     *
+     * @param valueFormatter Function to format successful values
+     * @return Formatted string representation
+     */
+    default String format(Function<Object, String> valueFormatter) {
+        if (this instanceof Value) {
+            return valueFormatter.apply(((Value) this).getValue());
+        } else if (this instanceof NullValue) {
+            return "null";
+        } else if (this instanceof MissingValue) {
+            return "<missing:" + this.getExpression() + ">";
+        }
+        throw new IllegalStateException("Unknown EvaluationResult type: " + this.getClass());
+    }
+
+    /**
      * Successfully resolved value.
      */
     class Value implements EvaluationResult {
@@ -30,6 +70,11 @@ public interface EvaluationResult {
         }
 
         public Object getValue() {
+            return this.value;
+        }
+
+        @Override
+        public Object getValueOrNull() {
             return this.value;
         }
 

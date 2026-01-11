@@ -4,6 +4,8 @@ import eu.okaeri.placeholders.ast.EvaluationResult;
 import eu.okaeri.placeholders.ast.bridge.PlaceholdersEvaluator;
 import eu.okaeri.placeholders.context.FailMode;
 import eu.okaeri.placeholders.context.PlaceholderContext;
+import eu.okaeri.placeholders.exception.MissingFieldException;
+import eu.okaeri.placeholders.exception.NullValueException;
 import eu.okaeri.placeholders.message.part.ExpressionPart;
 import eu.okaeri.placeholders.message.part.MessageElement;
 import eu.okaeri.placeholders.message.part.MessageStatic;
@@ -55,44 +57,28 @@ public class StringMessageRenderer implements MessageRenderer<String> {
      * Formats an evaluation result for string output.
      */
     private String formatResult(EvaluationResult result, ExpressionPart expr, String messageRaw, FailMode failMode) {
+        // Handle successful value
         if (result instanceof EvaluationResult.Value) {
-            Object value = ((EvaluationResult.Value) result).getValue();
-            return this.objectToString(value);
-        } else if (result instanceof EvaluationResult.NullValue) {
-            // Check for default value
-            if (expr.getDefaultValue() != null) {
-                return expr.getDefaultValue();
-            }
-            if (failMode == FailMode.FAIL_FAST) {
-                throw new IllegalArgumentException("resolved null for placeholder '{" + result.getExpression() + "}' in message '" + messageRaw + "'");
-            }
-            return "null";
-        } else if (result instanceof EvaluationResult.MissingValue) {
-            // Check for default value
-            if (expr.getDefaultValue() != null) {
-                return expr.getDefaultValue();
-            }
-            if (failMode == FailMode.FAIL_FAST) {
-                throw new IllegalArgumentException("missing placeholder '" + ((EvaluationResult.MissingValue) result).getFieldName() + "' for message '" + messageRaw + "'");
-            }
-            return "<missing:" + result.getExpression() + ">";
+            return result.format();
         }
-        throw new RuntimeException("unknown evaluation result type: " + result.getClass());
-    }
 
-    /**
-     * Converts an object to string using the standard placeholder formatting.
-     */
-    private String objectToString(Object object) {
-        if (object == null) {
-            return "null";
+        // Check for default value first (applies to both NullValue and MissingValue)
+        if (expr.getDefaultValue() != null) {
+            return expr.getDefaultValue();
         }
-        if (object instanceof Enum) {
-            return ((Enum<?>) object).name();
+
+        // Handle failure cases based on fail mode
+        if (failMode == FailMode.FAIL_FAST) {
+            if (result instanceof EvaluationResult.NullValue) {
+                throw new NullValueException(result.getExpression(), messageRaw);
+            }
+            if (result instanceof EvaluationResult.MissingValue) {
+                EvaluationResult.MissingValue mv = (EvaluationResult.MissingValue) result;
+                throw new MissingFieldException(mv.getFieldName(), mv.getExpression(), messageRaw);
+            }
         }
-        if ((object instanceof Float) || (object instanceof Double)) {
-            return String.format("%.2f", object);
-        }
-        return object.toString();
+
+        // FAIL_SAFE mode: use standard formatting
+        return result.format();
     }
 }

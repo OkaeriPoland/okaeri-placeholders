@@ -6,6 +6,7 @@ import eu.okaeri.placeholders.ast.node.Call;
 import eu.okaeri.placeholders.ast.node.Ref;
 import eu.okaeri.placeholders.ast.node.StringLiteral;
 import eu.okaeri.placeholders.ast.node.WithDefault;
+import eu.okaeri.placeholders.exception.ParseException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -262,6 +263,7 @@ public class ExpressionParser {
     private ParseException error(String message) {
         Token token = this.peek();
         int pos = (token.getSpan() != null) ? token.getSpan().getStart() : 0;
-        return new ParseException(message, pos);
+        String found = (token.getValue() != null) ? token.getValue() : token.getType().name();
+        return new ParseException(message, this.source, pos, found, null);
     }
 }

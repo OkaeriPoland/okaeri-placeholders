@@ -4,19 +4,62 @@ import eu.okaeri.placeholders.GlobalFunctions;
 import eu.okaeri.placeholders.Placeholders;
 import eu.okaeri.placeholders.ast.EvaluationResult;
 import eu.okaeri.placeholders.ast.bridge.PlaceholdersEvaluator;
+import eu.okaeri.placeholders.exception.MissingFieldException;
+import eu.okaeri.placeholders.exception.NullValueException;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.MessageRenderer;
 import eu.okaeri.placeholders.message.StringMessageRenderer;
 import eu.okaeri.placeholders.message.part.ExpressionPart;
 import eu.okaeri.placeholders.message.part.MessageElement;
-import eu.okaeri.placeholders.message.part.MessageField;
 import lombok.Data;
 import lombok.NonNull;
-import lombok.Value;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
+/**
+ * Holds field values and renders placeholders in compiled messages.
+ * <p>
+ * A context can be created in two modes:
+ * <ul>
+ *   <li><b>Shared context</b> via {@link #create()} - reusable across multiple messages</li>
+ *   <li><b>Message-bound context</b> via {@link #of(CompiledMessage)} - tied to one message</li>
+ * </ul>
+ *
+ * <h2>Basic Usage</h2>
+ * <pre>{@code
+ * // Simple rendering
+ * String result = PlaceholderContext.of(CompiledMessage.of("Hello {name}!"))
+ *     .with("name", "World")
+ *     .apply();
+ * // → "Hello World!"
+ *
+ * // With Placeholders instance for resolvers
+ * String result = placeholders.contextOf(CompiledMessage.of("{player.health}"))
+ *     .with("player", playerObject)
+ *     .apply();
+ * }</pre>
+ *
+ * <h2>Fail Modes</h2>
+ * <ul>
+ *   <li>{@link FailMode#FAIL_SAFE} (default) - missing fields render as {@code <missing:expr>}</li>
+ *   <li>{@link FailMode#FAIL_FAST} - missing fields throw {@link MissingFieldException}</li>
+ * </ul>
+ *
+ * <h2>Rendering Methods</h2>
+ * <ul>
+ *   <li>{@link #apply()} - renders to final string</li>
+ *   <li>{@link #renderFields()} - returns map of expression → formatted string</li>
+ *   <li>{@link #renderFieldResults()} - returns map of expression → typed result</li>
+ * </ul>
+ *
+ * @see Placeholders#context(CompiledMessage)
+ * @see FailMode
+ */
 @Data
 public class PlaceholderContext {
 
@@ -25,24 +68,67 @@ public class PlaceholderContext {
     private final FailMode failMode;
     private Placeholders placeholders;
 
+    /**
+     * Creates a shared context with {@link FailMode#FAIL_SAFE}.
+     * <p>
+     * Shared contexts have no bound message and can be reused with multiple messages
+     * via {@link #apply(CompiledMessage)}.
+     *
+     * @return A new shared context
+     */
     public static PlaceholderContext create() {
         return create(FailMode.FAIL_SAFE);
     }
 
+    /**
+     * Creates a shared context with the specified fail mode.
+     * <p>
+     * Shared contexts have no bound message and can be reused with multiple messages
+     * via {@link #apply(CompiledMessage)}.
+     *
+     * @param failMode How to handle missing/null placeholders
+     * @return A new shared context
+     */
     public static PlaceholderContext create(@NonNull FailMode failMode) {
         PlaceholderContext context = new PlaceholderContext(null, failMode);
         context.fields.put(Placeholders.GLOBAL_FUNCTIONS_KEY, Placeholder.of(null, GlobalFunctions.INSTANCE, context));
         return context;
     }
 
+    /**
+     * Creates a message-bound context with {@link FailMode#FAIL_SAFE}.
+     * <p>
+     * Message-bound contexts can only render their bound message via {@link #apply()}.
+     * Attempting to use {@link #apply(CompiledMessage)} with a different message will throw.
+     *
+     * @param message The message this context is bound to
+     * @return A new message-bound context
+     */
     public static PlaceholderContext of(@NonNull CompiledMessage message) {
         return of(null, message);
     }
 
+    /**
+     * Creates a message-bound context with a Placeholders instance.
+     * <p>
+     * The Placeholders instance provides resolvers for method calls like {@code {player.health}}.
+     *
+     * @param placeholders Resolver registry (may be null for simple field substitution)
+     * @param message      The message this context is bound to
+     * @return A new message-bound context
+     */
     public static PlaceholderContext of(@Nullable Placeholders placeholders, @NonNull CompiledMessage message) {
         return of(placeholders, message, FailMode.FAIL_SAFE);
     }
 
+    /**
+     * Creates a message-bound context with full configuration.
+     *
+     * @param placeholders Resolver registry (may be null for simple field substitution)
+     * @param message      The message this context is bound to
+     * @param failMode     How to handle missing/null placeholders
+     * @return A new message-bound context
+     */
     public static PlaceholderContext of(@Nullable Placeholders placeholders, @NonNull CompiledMessage message, @NonNull FailMode failMode) {
         PlaceholderContext context = new PlaceholderContext(message, failMode);
         context.setPlaceholders(placeholders);
@@ -50,119 +136,113 @@ public class PlaceholderContext {
         return context;
     }
 
+    /**
+     * Adds a field value to this context.
+     * <p>
+     * The field name corresponds to the root identifier in placeholder expressions.
+     * For {@code {player.name}}, the field name is {@code "player"}.
+     *
+     * @param field The field name
+     * @param value The value (may be null)
+     * @return This context for chaining
+     */
     public PlaceholderContext with(@NonNull String field, @Nullable Object value) {
         this.fields.put(field, Placeholder.of(this.placeholders, value, this));
         return this;
     }
 
+    /**
+     * Adds multiple field values to this context.
+     *
+     * @param fields Map of field names to values
+     * @return This context for chaining
+     */
     public PlaceholderContext with(@NonNull Map<String, Object> fields) {
         fields.forEach(this::with);
         return this;
     }
 
-    public Map<MessageField, String> renderFields() {
+    /**
+     * Renders all placeholders to strings.
+     * <p>
+     * <b>Map keys:</b> The expression exactly as written in the template (including default if present).
+     * This allows easy search-replace in the original template string.
+     * <p>
+     * <b>Map values:</b> The formatted string result.
+     * <p>
+     * Examples:
+     * <ul>
+     *   <li>{@code {name}}         → key: {@code "name"}</li>
+     *   <li>{@code {player.health}} → key: {@code "player.health"}</li>
+     *   <li>{@code {name|Anonymous}} → key: {@code "name|Anonymous"}</li>
+     * </ul>
+     *
+     * @return Map of expressions to their rendered string values
+     * @see #renderFieldResults() for typed results with null/missing distinction
+     */
+    public Map<String, String> renderFields() {
         return this.renderFields(this.message);
     }
 
-    public Map<MessageField, String> renderFields(@NonNull CompiledMessage message) {
-
-        // someone is trying to apply message on the specific non-shareable context
-        if ((message != this.message) && (this.message != null)) {
-            throw new IllegalArgumentException("cannot apply another message for context created with prepacked message: " +
-                "if you intended to use this context as shared please use empty context from #create(), " +
-                "if you're just trying to send a message use of(message)");
-        }
+    /**
+     * Renders all placeholders to strings.
+     *
+     * @param message The message to render fields for
+     * @return Map of expressions to their rendered string values
+     * @see #renderFields() for key format documentation
+     */
+    public Map<String, String> renderFields(@NonNull CompiledMessage message) {
+        this.validateMessage(message);
 
         // no fields, no need for processing
         if (!message.isWithFields()) {
             return Collections.emptyMap();
         }
 
-        String state = message.getRaw();
-        Map<MessageField, String> rendered = new LinkedHashMap<>();
-        PlaceholdersEvaluator evaluator = this.createEvaluator(message);
-        Locale locale = (message.getLocale() != null) ? message.getLocale() : Locale.ENGLISH;
+        Map<String, EvaluationResult> results = this.renderFieldResults(message);
+        Map<String, String> strings = new LinkedHashMap<>();
 
-        // Handle AST-based ExpressionPart parts
-        for (MessageElement part : message.getParts()) {
-            if (part instanceof ExpressionPart) {
-                ExpressionPart expr = (ExpressionPart) part;
-
-                String result = evaluator.evaluateToString(expr.getAst());
-
-                if (result == null) {
-                    if (expr.getDefaultValue() != null) {
-                        result = expr.getDefaultValue();
-                    } else if (this.failMode == FailMode.FAIL_FAST) {
-                        throw new IllegalArgumentException("resolved null for placeholder '{" + expr.getRaw() + "}' in message '" + state + "'");
-                    } else if (this.failMode == FailMode.FAIL_SAFE) {
-                        result = "<null:" + expr.getRaw() + ">";
-                    } else {
-                        throw new RuntimeException("unknown fail mode: " + this.failMode);
-                    }
-                }
-
-                // Create synthetic MessageField for the key to maintain API compatibility
-                MessageField syntheticField = MessageField.of(locale, expr.getRaw());
-                rendered.put(syntheticField, result);
-            }
+        for (Map.Entry<String, EvaluationResult> entry : results.entrySet()) {
+            EvaluationResult result = entry.getValue();
+            this.checkFailFast(result, message.getRaw());
+            strings.put(entry.getKey(), result.format());
         }
 
-        // Also handle legacy MessageField parts
-        Map<MessageField, ResolvedField> resolved = this.resolveFieldsInternal(message);
-
-        for (Map.Entry<MessageField, ResolvedField> entry : resolved.entrySet()) {
-            MessageField originalField = entry.getKey();
-            ResolvedField rf = entry.getValue();
-
-            // Use placeholder.render() for proper formatting (printf, plural, bool, etc.)
-            String render = rf.placeholder.render(rf.transformedField);
-            if (render == null) {
-                if (rf.transformedField.getDefaultValue() != null) {
-                    render = rf.transformedField.getDefaultValue();
-                } else if (this.failMode == FailMode.FAIL_FAST) {
-                    throw new IllegalArgumentException("rendered null for placeholder '" + originalField.getName() + "' for message '" + state + "'");
-                } else if (this.failMode == FailMode.FAIL_SAFE) {
-                    render = "<null:" + rf.transformedField.getLastSubPath() + ">";
-                } else {
-                    throw new RuntimeException("unknown fail mode: " + this.failMode);
-                }
-            }
-
-            rendered.put(originalField, render);
-        }
-
-        return rendered;
+        return strings;
     }
 
     /**
-     * Renders field results as {@link EvaluationResult} objects.
-     * Returns Map keyed by field raw expression for easy lookup.
+     * Renders all placeholders to typed {@link EvaluationResult} objects.
      * <p>
-     * This is the primary method for renderers that need to handle
-     * missing/null placeholders differently (e.g., showing error styles).
+     * <b>Map keys:</b> The expression exactly as written in the template (including default if present).
+     * This allows easy search-replace in the original template string.
+     * <p>
+     * <b>Map values:</b> One of:
+     * <ul>
+     *   <li>{@link EvaluationResult.Value} - successfully resolved value</li>
+     *   <li>{@link EvaluationResult.NullValue} - field exists but resolved to null</li>
+     *   <li>{@link EvaluationResult.MissingValue} - root field not in context</li>
+     * </ul>
+     * <p>
+     * Use {@link EvaluationResult#getValueOrNull()} for the raw value,
+     * or {@link EvaluationResult#format()} for string output.
      *
-     * @return Map of field raw expressions to their evaluation results
+     * @return Map of expressions to their evaluation results
+     * @see #renderFields() for pre-formatted string results
      */
     public Map<String, EvaluationResult> renderFieldResults() {
         return this.renderFieldResults(this.message);
     }
 
     /**
-     * Renders field results as {@link EvaluationResult} objects.
-     * Returns Map keyed by field raw expression for easy lookup.
+     * Renders all placeholders to typed {@link EvaluationResult} objects.
      *
      * @param message The message to render fields for
-     * @return Map of field raw expressions to their evaluation results
+     * @return Map of expressions to their evaluation results
+     * @see #renderFieldResults() for key format and value type documentation
      */
     public Map<String, EvaluationResult> renderFieldResults(@NonNull CompiledMessage message) {
-
-        // someone is trying to apply message on the specific non-shareable context
-        if ((message != this.message) && (this.message != null)) {
-            throw new IllegalArgumentException("cannot apply another message for context created with prepacked message: " +
-                "if you intended to use this context as shared please use empty context from #create(), " +
-                "if you're just trying to send a message use of(message)");
-        }
+        this.validateMessage(message);
 
         // no fields, no need for processing
         if (!message.isWithFields()) {
@@ -199,138 +279,56 @@ public class PlaceholderContext {
     }
 
     /**
-     * Renders field values preserving their types (not converting to String).
-     * Returns Map keyed by field raw expression for easy lookup.
+     * Renders the bound message to a string.
      * <p>
-     * This is useful for typed composition with external systems like MiniMessage
-     * that need to handle values differently based on their type (e.g., Component vs String).
-     * <p>
-     * Note: For access to missing/null status, use {@link #renderFieldResults()} instead.
+     * This is the most common way to use a context:
+     * <pre>{@code
+     * String result = PlaceholderContext.of(message)
+     *     .with("name", "World")
+     *     .apply();
+     * }</pre>
      *
-     * @return Map of field raw expressions to their resolved typed values
+     * @return The rendered string
+     * @throws IllegalStateException if this is a shared context with no bound message
+     * @throws MissingFieldException if fail mode is FAIL_FAST and a field is missing
+     * @throws NullValueException    if fail mode is FAIL_FAST and a field resolves to null
      */
-    public Map<String, Object> renderFieldValues() {
-        return this.renderFieldValues(this.message);
-    }
-
-    /**
-     * Renders field values preserving their types (not converting to String).
-     * Returns Map keyed by field raw expression for easy lookup.
-     * <p>
-     * Note: For access to missing/null status, use {@link #renderFieldResults(CompiledMessage)} instead.
-     *
-     * @param message The message to render fields for
-     * @return Map of field raw expressions to their resolved typed values
-     */
-    public Map<String, Object> renderFieldValues(@NonNull CompiledMessage message) {
-        Map<String, EvaluationResult> results = this.renderFieldResults(message);
-        Map<String, Object> values = new LinkedHashMap<>();
-
-        for (Map.Entry<String, EvaluationResult> entry : results.entrySet()) {
-            EvaluationResult result = entry.getValue();
-
-            if (result instanceof EvaluationResult.Value) {
-                values.put(entry.getKey(), ((EvaluationResult.Value) result).getValue());
-            } else if (result instanceof EvaluationResult.NullValue) {
-                if (this.failMode == FailMode.FAIL_FAST) {
-                    throw new IllegalArgumentException("resolved null for placeholder '{" + result.getExpression() + "}' in message '" + message.getRaw() + "'");
-                }
-                // In FAIL_SAFE mode, put null - let renderer decide how to display
-                values.put(entry.getKey(), null);
-            } else if (result instanceof EvaluationResult.MissingValue) {
-                if (this.failMode == FailMode.FAIL_FAST) {
-                    throw new IllegalArgumentException("missing placeholder '" + ((EvaluationResult.MissingValue) result).getFieldName() + "' for message '" + message.getRaw() + "'");
-                }
-                // In FAIL_SAFE mode, put null - let renderer decide how to display
-                values.put(entry.getKey(), null);
-            }
-        }
-
-        return values;
-    }
-
-    /**
-     * Helper class holding a resolved placeholder and its potentially transformed field.
-     */
-    @Value
-    private static class ResolvedField {
-        Placeholder placeholder;
-        MessageField transformedField;
-    }
-
-    /**
-     * Core field resolution returning placeholder + transformed field pairs.
-     * Handles global function fallback, .or() fallback, and missing placeholder cases.
-     */
-    private Map<MessageField, ResolvedField> resolveFieldsInternal(@NonNull CompiledMessage message) {
-
-        String state = message.getRaw();
-        List<MessageElement> parts = message.getParts();
-        Map<MessageField, ResolvedField> resolved = new LinkedHashMap<>();
-
-        for (MessageElement part : parts) {
-
-            if (!(part instanceof MessageField)) {
-                continue;
-            }
-
-            MessageField originalField = (MessageField) part;
-            MessageField field = originalField;
-            String name = field.getName();
-
-            // Skip if already resolved (duplicate field in message)
-            if (resolved.containsKey(originalField)) {
-                continue;
-            }
-
-            Placeholder placeholder = this.fields.get(name);
-
-            // Fallback: if field not found, try as a global function via $ context
-            if ((placeholder == null) && (this.placeholders != null)) {
-                Placeholder globalFunctions = this.fields.get(Placeholders.GLOBAL_FUNCTIONS_KEY);
-                if (globalFunctions != null) {
-                    if (this.placeholders.getResolver(GlobalFunctions.class, name) != null) {
-                        String transformedSource = Placeholders.GLOBAL_FUNCTIONS_KEY + "." + field.getSource();
-                        MessageField transformedField = MessageField.of(field.getLocale(), transformedSource);
-                        transformedField.setDefaultValue(field.getDefaultValue());
-                        field = transformedField;
-                        placeholder = globalFunctions;
-                    }
-                }
-            }
-
-            // If field is missing but has a method call (like .or()), try with null value
-            if ((placeholder == null) && field.hasSub() && (field.getSub().getParams() != null) && (field.getSub().getParams().length() > 0)) {
-                placeholder = Placeholder.of(this.placeholders, null, this);
-            }
-
-            // Handle missing placeholder
-            if ((placeholder == null) || ((placeholder.getValue() == null) && !field.hasSub())) {
-                if (field.getDefaultValue() != null) {
-                    placeholder = Placeholder.of(null, field.getDefaultValue(), this);
-                } else if (this.failMode == FailMode.FAIL_FAST) {
-                    throw new IllegalArgumentException("missing placeholder '" + name + "' for message '" + state + "'");
-                } else if (this.failMode == FailMode.FAIL_SAFE) {
-                    placeholder = Placeholder.of(null, "<missing:" + field.getLastSubPath() + ">", this);
-                } else {
-                    throw new RuntimeException("unknown fail mode: " + this.failMode);
-                }
-            }
-
-            resolved.put(originalField, new ResolvedField(placeholder, field));
-        }
-
-        return resolved;
-    }
-
     public String apply() {
         return this.apply(this.message);
     }
 
+    /**
+     * Renders the bound message using a custom renderer.
+     * <p>
+     * Example with Adventure components:
+     * <pre>{@code
+     * Component result = context.apply(adventureRenderer);
+     * }</pre>
+     *
+     * @param renderer The renderer to use
+     * @param <T>      The output type
+     * @return The rendered result
+     */
     public <T> T apply(@NonNull MessageRenderer<T> renderer) {
         return renderer.render(this.message, this);
     }
 
+    /**
+     * Renders the given message to a string.
+     * <p>
+     * For shared contexts created via {@link #create()}, this allows rendering
+     * different messages with the same field values:
+     * <pre>{@code
+     * var ctx = PlaceholderContext.create()
+     *     .with("name", "World");
+     * ctx.apply(message1);  // reuse context
+     * ctx.apply(message2);
+     * }</pre>
+     *
+     * @param message The message to render
+     * @return The rendered string
+     * @throws IllegalArgumentException if this context is bound to a different message
+     */
     public String apply(@NonNull CompiledMessage message) {
         return StringMessageRenderer.INSTANCE.render(message, this);
     }
@@ -349,8 +347,8 @@ public class PlaceholderContext {
     /**
      * Creates an evaluator for the given message.
      * <p>
-     * This is the shared entry point for AST-based expression evaluation.
-     * Used by both internal render methods and external renderers like {@link StringMessageRenderer}.
+     * This is primarily for custom {@link MessageRenderer} implementations
+     * that need to evaluate expressions manually.
      *
      * @param message The compiled message (used for locale)
      * @return A configured evaluator ready to evaluate AST nodes
@@ -362,9 +360,10 @@ public class PlaceholderContext {
     }
 
     /**
-     * Returns a map of field names to their raw values.
+     * Returns a snapshot of field names to their values.
      * <p>
-     * This is useful for checking if a field exists in the context.
+     * Useful for debugging or checking which fields are set.
+     * The returned map is unmodifiable.
      *
      * @return Unmodifiable map of field names to values
      */
@@ -374,12 +373,51 @@ public class PlaceholderContext {
 
     /**
      * Returns the effective locale for this context.
-     * Falls back to {@link Locale#ENGLISH} if no locale is set.
+     * <p>
+     * Uses the bound message's locale if available, otherwise {@link Locale#ENGLISH}.
+     *
+     * @return The locale used for formatting
      */
     public Locale getLocale() {
         if ((this.message != null) && (this.message.getLocale() != null)) {
             return this.message.getLocale();
         }
         return Locale.ENGLISH;
+    }
+
+    /**
+     * Validates that the message can be used with this context.
+     *
+     * @param message The message to validate
+     * @throws IllegalArgumentException if this context was created with a different message
+     */
+    private void validateMessage(CompiledMessage message) {
+        if ((message != this.message) && (this.message != null)) {
+            throw new IllegalArgumentException("cannot apply another message for context created with prepacked message: " +
+                "if you intended to use this context as shared please use empty context from #create(), " +
+                "if you're just trying to send a message use of(message)");
+        }
+    }
+
+    /**
+     * Throws appropriate exception if fail mode is FAIL_FAST and result is not a value.
+     *
+     * @param result The evaluation result to check
+     * @param messageRaw The raw message template (for error context)
+     * @throws NullValueException if result is NullValue and fail mode is FAIL_FAST
+     * @throws MissingFieldException if result is MissingValue and fail mode is FAIL_FAST
+     */
+    private void checkFailFast(EvaluationResult result, String messageRaw) {
+        if (this.failMode != FailMode.FAIL_FAST) {
+            return;
+        }
+
+        if (result instanceof EvaluationResult.NullValue) {
+            throw new NullValueException(result.getExpression(), messageRaw);
+        }
+        if (result instanceof EvaluationResult.MissingValue) {
+            EvaluationResult.MissingValue mv = (EvaluationResult.MissingValue) result;
+            throw new MissingFieldException(mv.getFieldName(), mv.getExpression(), messageRaw);
+        }
     }
 }
