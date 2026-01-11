@@ -5,18 +5,22 @@ import eu.okaeri.placeholders.Placeholders;
 
 public final class ReflectPlaceholders implements PlaceholderPack {
 
+    /**
+     * Create a Placeholders instance with defaults and reflection resolver.
+     */
     public static Placeholders create() {
-        return create(false);
+        return Placeholders.create().with(new ReflectPlaceholders());
     }
 
-    public static Placeholders create(boolean registerDefaults) {
-        return Placeholders.create(registerDefaults)
-            .registerPlaceholders(new ReflectPlaceholders())
-            .fastMode(false);
+    /**
+     * Create an empty Placeholders instance with only reflection resolver.
+     */
+    public static Placeholders empty() {
+        return Placeholders.empty().with(new ReflectPlaceholders());
     }
 
     @Override
     public void register(Placeholders placeholders) {
-        placeholders.fallbackResolver(new ReflectResolver());
+        placeholders.fallback(new ReflectResolver());
     }
 }
