@@ -5,7 +5,10 @@ import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.registry.Params;
 import eu.okaeri.placeholders.registry.Registry;
 
+import java.lang.reflect.Array;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Global functions accessible via {@code {$.func()}} or {@code {func()}} syntax.
@@ -19,6 +22,8 @@ import java.time.Instant;
  *   <li>{@code random(min, max)} - random integer</li>
  *   <li>{@code concat(a, b, ...)} - concatenation</li>
  *   <li>{@code min(a, b, ...)} / {@code max(a, b, ...)} - numeric min/max</li>
+ *   <li>{@code clamp(value, min, max)} - clamp number to range</li>
+ *   <li>{@code len(value)} - length/size of string, array, or collection</li>
  *   <li>{@code default(value, fallback)} - default value</li>
  *   <li>{@code cond(c1, v1, c2, v2, ..., default)} - chained conditionals</li>
  *   <li>{@code switch(value, case1, result1, ..., default)} - switch/case</li>
@@ -100,6 +105,28 @@ public class GlobalPack implements PlaceholderPack {
                 return (max != null) ? asIntIfWhole(max) : null;
             })
 
+            // Clamp value to range
+            .add("clamp", (p, ctx) -> {
+                Object val = p.arg(0).resolve(ctx);
+                if (!(val instanceof Number)) return val;
+                double value = ((Number) val).doubleValue();
+                double min = p.arg(1).asDouble(Double.MIN_VALUE);
+                double max = p.arg(2).asDouble(Double.MAX_VALUE);
+                return asIntIfWhole(Math.max(min, Math.min(max, value)));
+            })
+
+            // Length/size of string, array, or collection
+            .add("len", (p, ctx) -> {
+                Object val = p.arg(0).resolve(ctx);
+                if (val == null) return 0;
+                if (val instanceof String) return ((String) val).length();
+                if (val instanceof Collection) return ((Collection<?>) val).size();
+                if (val instanceof Map) return ((Map<?, ?>) val).size();
+                if (val.getClass().isArray()) return Array.getLength(val);
+                return 1;
+            })
+            .alias("len", "length", "size")
+
             // Default value (simpler coalesce for 2 args)
             .add("default", (p, ctx) -> {
                 Object val = p.arg(0).resolve(ctx);
@@ -124,12 +151,13 @@ public class GlobalPack implements PlaceholderPack {
         for (int i = 0; (i + 1) < len; i += 2) {
             Object condition = p.arg(i).resolve(ctx);
             if (isTruthy(condition)) {
-                return p.arg(i + 1).resolve(ctx);
+                // Use resolveRaw to preserve literal info for the value
+                return p.arg(i + 1).resolveRaw(ctx);
             }
         }
         // Odd number of args = last is default
         if ((len % 2) == 1) {
-            return p.arg(len - 1).resolve(ctx);
+            return p.arg(len - 1).resolveRaw(ctx);
         }
         return null;
     }
@@ -145,12 +173,13 @@ public class GlobalPack implements PlaceholderPack {
             Object caseVal = p.arg(i).resolve(ctx);
             String caseStr = (caseVal != null) ? String.valueOf(caseVal) : "";
             if (valueStr.equals(caseStr) || ((value != null) && value.equals(caseVal))) {
-                return p.arg(i + 1).resolve(ctx);
+                // Use resolveRaw to preserve literal info for the value
+                return p.arg(i + 1).resolveRaw(ctx);
             }
         }
         // Remaining arg after pairs is default
         if (((len - 1) % 2) == 1) {
-            return p.arg(len - 1).resolve(ctx);
+            return p.arg(len - 1).resolveRaw(ctx);
         }
         return null;
     }

@@ -51,24 +51,25 @@ public class AdventureMessageRenderer implements MessageRenderer<Component> {
 
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([^}]+)\\}");
     private static final Pattern OKAERI_TAG_PATTERN = Pattern.compile("<okaeri:([^>]+)>");
-    private static final Pattern LEGACY_SECTION_PATTERN = Pattern.compile("§([0-9A-Fa-fK-Ok-oRXrx])");
     private static final String OKAERI_TAG = "okaeri";
 
+    private static final String LEGACY_CODES = "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx";
+    private static final char LEGACY_MARKER = '\uE000';
+    private static final Pattern LEGACY_MARKER_PATTERN = Pattern.compile(LEGACY_MARKER + "([" + LEGACY_CODES + "])");
+
     /**
-     * Default MiniMessage that supports both legacy color codes and MiniMessage tags.
+     * Default MiniMessage that supports legacy color codes in template text.
      * <p>
-     * Processing order:
-     * <ol>
-     *   <li>Pre-process: Convert §-codes to &amp;-codes</li>
-     *   <li>Parse MiniMessage tags normally</li>
-     *   <li>Post-process: Convert remaining &amp;-codes in text to styled components</li>
-     * </ol>
+     * Template &amp;-codes are converted to markers before parsing, then to §-codes after.
+     * Runtime values containing &amp; are NOT parsed (safe from injection).
      */
     public static final MiniMessage DEFAULT_MINI_MESSAGE = MiniMessage.builder()
-        .preProcessor(text -> LEGACY_SECTION_PATTERN.matcher(text).replaceAll("&$1"))
         .postProcessor(component -> component.replaceText(config -> config
-            .match(Pattern.compile(".++", Pattern.DOTALL))
-            .replacement((result, input) -> LegacyComponentSerializer.legacyAmpersand().deserialize(result.group()))))
+            .match(Pattern.compile(".+", Pattern.DOTALL))
+            .replacement((result, input) -> {
+                String text = LEGACY_MARKER_PATTERN.matcher(result.group()).replaceAll("§$1");
+                return LegacyComponentSerializer.legacySection().deserialize(text);
+            })))
         .build();
 
     private final MiniMessage baseMiniMessage;
@@ -105,8 +106,11 @@ public class AdventureMessageRenderer implements MessageRenderer<Component> {
         String raw = message.getRaw();
         Map<String, EvaluationResult> results = context.renderFieldResults(message);
 
+        // Convert &/§ codes to markers in template text (outside placeholders)
+        String withLegacy = this.convertLegacyCodes(raw);
+
         // Convert {name} → <okaeri:name> for MiniMessage integration
-        String processed = this.convertPlaceholders(raw);
+        String processed = this.convertPlaceholders(withLegacy);
 
         // Build tag resolver for okaeri placeholders (handles text content with style inheritance)
         TagResolver okaeriResolver = TagResolver.resolver(OKAERI_TAG, (args, ctx) -> {
@@ -135,7 +139,8 @@ public class AdventureMessageRenderer implements MessageRenderer<Component> {
      */
     private Tag resultToTag(EvaluationResult result) {
         if (result instanceof EvaluationResult.Value) {
-            Object value = ((EvaluationResult.Value) result).getValue();
+            EvaluationResult.Value valueResult = (EvaluationResult.Value) result;
+            Object value = valueResult.getValue();
 
             if (value instanceof Component) {
                 // Component values use their own styling (selfClosing preserves styles)
@@ -144,8 +149,20 @@ public class AdventureMessageRenderer implements MessageRenderer<Component> {
             if (value instanceof ComponentLike) {
                 return Tag.selfClosingInserting(((ComponentLike) value).asComponent());
             }
-            // String values inherit surrounding styles (inserting allows style inheritance)
-            return Tag.inserting(Component.text(String.valueOf(value)));
+
+            String text = String.valueOf(value);
+            // Literals can have & codes processed (they're template-authored)
+            // Non-literals (context values) are stripped of markers (safe from injection)
+            if (valueResult.isLiteral()) {
+                // Convert &/§ to § and deserialize as legacy
+                String withMarkers = this.convertLegacyCodesAll(text);
+                String withSection = LEGACY_MARKER_PATTERN.matcher(withMarkers).replaceAll("§$1");
+                Component formatted = LegacyComponentSerializer.legacySection().deserialize(withSection);
+                return Tag.inserting(formatted);
+            } else {
+                text = this.stripMarker(text);
+                return Tag.inserting(Component.text(text));
+            }
         } else if (result instanceof EvaluationResult.NullValue) {
             return Tag.inserting(Component.text("null").color(NamedTextColor.GRAY));
         } else if (result instanceof EvaluationResult.MissingValue) {
@@ -179,6 +196,66 @@ public class AdventureMessageRenderer implements MessageRenderer<Component> {
      */
     private String convertPlaceholders(String raw) {
         return PLACEHOLDER_PATTERN.matcher(raw).replaceAll("<" + OKAERI_TAG + ":$1>");
+    }
+
+    /**
+     * Converts legacy &amp;-codes and §-codes to markers ONLY OUTSIDE placeholders.
+     * Codes inside {...} are left untouched so expression keys remain unchanged.
+     * The {@link #resultToTag} method handles conversion for literal values.
+     */
+    private String convertLegacyCodes(String raw) {
+        StringBuilder result = new StringBuilder(raw.length());
+        int depth = 0;
+        for (int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            if (c == '{') {
+                depth++;
+                result.append(c);
+            } else if (c == '}') {
+                depth = Math.max(0, depth - 1);
+                result.append(c);
+            } else if ((depth == 0) && ((c == '&') || (c == '§')) && ((i + 1) < raw.length())) {
+                char next = raw.charAt(i + 1);
+                if (LEGACY_CODES.indexOf(next) >= 0) {
+                    result.append(LEGACY_MARKER).append(next);
+                    i++;
+                } else {
+                    result.append(c);
+                }
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Converts legacy codes to markers for use in literal values.
+     */
+    private String convertLegacyCodesAll(String raw) {
+        StringBuilder result = new StringBuilder(raw.length());
+        for (int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            if (((c == '&') || (c == '§')) && ((i + 1) < raw.length())) {
+                char next = raw.charAt(i + 1);
+                if (LEGACY_CODES.indexOf(next) >= 0) {
+                    result.append(LEGACY_MARKER).append(next);
+                    i++;
+                } else {
+                    result.append(c);
+                }
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Strips marker characters from non-literal values to prevent injection.
+     */
+    private String stripMarker(String text) {
+        return text.replace(String.valueOf(LEGACY_MARKER), "");
     }
 
     /**

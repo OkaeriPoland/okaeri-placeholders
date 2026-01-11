@@ -86,4 +86,10 @@ class DefaultArg implements Arg {
         PlaceholderContext effectiveCtx = (ctx != null) ? ctx : this.context;
         return this.fieldParams.resolveArg(this.index, this.locale, effectiveCtx);
     }
+
+    @Override
+    public Object resolveRaw(PlaceholderContext ctx) {
+        PlaceholderContext effectiveCtx = (ctx != null) ? ctx : this.context;
+        return this.fieldParams.resolveArgRaw(this.index, this.locale, effectiveCtx);
+    }
 }

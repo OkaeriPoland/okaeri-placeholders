@@ -79,12 +79,12 @@ public class ExpressionEvaluator implements AstVisitor<Object>, EvaluationContex
 
     @Override
     public Object visitStringLiteral(StringLiteral node) {
-        return node.getValue();
+        return new LiteralValue(node.getValue());
     }
 
     @Override
     public Object visitNumberLiteral(NumberLiteral node) {
-        return node.getValue();
+        return new LiteralValue(node.getValue());
     }
 
     @Override
@@ -135,12 +135,19 @@ public class ExpressionEvaluator implements AstVisitor<Object>, EvaluationContex
 
         Object result = ast.accept(this);
 
+        // Check if result came from a literal before any further processing
+        boolean isLiteral = LiteralValue.isLiteral(result);
+        result = LiteralValue.unwrap(result);
+
         // Apply default renderer if available
         if ((result != null) && (this.placeholders != null)) {
-            PlaceholderResolver resolver = this.placeholders.getResolver(result, null);
+            Object unwrapped = LiteralValue.unwrap(result);
+            PlaceholderResolver resolver = this.placeholders.getResolver(unwrapped, null);
             if ((resolver != null) && (resolver != this.placeholders.getFallbackResolver())) {
                 FieldParams params = FieldParams.of("", Collections.emptyList(), this);
-                result = resolver.resolve(result, params, this.legacyContext);
+                result = resolver.resolve(unwrapped, params, this.legacyContext);
+                // After resolver processing, it's no longer a raw literal
+                isLiteral = false;
             }
         }
 
@@ -151,7 +158,7 @@ public class ExpressionEvaluator implements AstVisitor<Object>, EvaluationContex
             return new EvaluationResult.NullValue(expression);
         }
 
-        return new EvaluationResult.Value(result, expression);
+        return new EvaluationResult.Value(result, expression, isLiteral);
     }
 
     @Nullable

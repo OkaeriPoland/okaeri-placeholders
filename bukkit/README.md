@@ -1,6 +1,11 @@
 # Okaeri Placeholders | Bukkit
 
-This module includes bukkit specific mappings.
+This module includes bukkit specific mappings and functions.
+
+## Features
+
+- Bukkit type resolvers (Player, Location, Inventory, etc.)
+- `color()` function for dynamic color codes with `ChatColor.translateAlternateColorCodes`
 
 ## Installation
 
@@ -21,6 +26,22 @@ Add dependency to the `maven` section:
 ```groovy
 implementation 'eu.okaeri:okaeri-placeholders-bukkit:6.0.0-beta.1'
 ```
+
+## Functions
+
+### color(...args)
+
+Concatenates all arguments and translates `&` color codes. Use this when color codes need to be **dynamic**:
+
+```java
+// Dynamic color based on health - the color code changes with the condition
+{color("&", cond(health.gt(66),"a",health.gt(33),"e","c"), health, "% HP")}
+// health=75 → "§a75% HP" (green)
+// health=50 → "§e50% HP" (yellow)
+// health=20 → "§c20% HP" (red)
+```
+
+Note: Static colors like `&a{health}% HP` work fine without `color()` - it's only needed when building codes dynamically.
 
 ## Supported types
 

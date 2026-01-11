@@ -63,14 +63,31 @@ public interface EvaluationResult {
     class Value implements EvaluationResult {
         private final Object value;
         private final String expression;
+        private final boolean literal;
 
         public Value(Object value, String expression) {
+            this(value, expression, false);
+        }
+
+        public Value(Object value, String expression, boolean literal) {
             this.value = value;
             this.expression = expression;
+            this.literal = literal;
         }
 
         public Object getValue() {
             return this.value;
+        }
+
+        /**
+         * Returns true if this value came directly from a string/number literal
+         * in the template expression, rather than from context or computation.
+         * <p>
+         * This is useful for renderers that want to process literal values differently
+         * (e.g., parsing color codes in literals but not in user-provided values).
+         */
+        public boolean isLiteral() {
+            return this.literal;
         }
 
         @Override

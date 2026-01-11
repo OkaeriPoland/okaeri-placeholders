@@ -60,6 +60,15 @@ public interface Arg {
     /**
      * Resolves this argument as a field reference using the given context.
      * Used when the argument might be a variable name rather than a literal.
+     * The returned value has LiteralValue wrapper unwrapped.
      */
     Object resolve(PlaceholderContext ctx);
+
+    /**
+     * Resolves this argument preserving literal information.
+     * If the argument was a string/number literal, the returned value
+     * will be wrapped in {@link eu.okaeri.placeholders.ast.LiteralValue}.
+     * Use this when the literal status needs to flow through to the result.
+     */
+    Object resolveRaw(PlaceholderContext ctx);
 }

@@ -94,15 +94,38 @@ First non-null: {or(nickname,name,"Anonymous")}
 Conditional: {if(active,"online","offline")}
 Random number: {random(1,100)}
 Concatenation: {concat("Hello ",name,"!")}
+Numeric min/max: {min(a,b,c)}, {max(a,b,c)}
+Clamp to range: {clamp(health,0,100)}
+Length/size: {len(items)}, {len(name)}
+Default value: {default(name,"Anonymous")}
+Chained conditions: {cond(isAdmin,"Admin",isMod,"Mod","User")}
+Switch/case: {switch(status,"online","Online","away","Away","Offline")}
+
+# number methods
+Arithmetic: {n.plus(5)}, {n.minus(3)}, {n.multiply(2)}, {n.divide(4)}
+Math: {n.abs()}, {n.round()}, {n.floor()}, {n.ceil()}
+Clamp/mod: {health.clamp(0,100)}, {index.mod(2)}
+Comparisons: {n.gt(5)}, {n.gte(5)}, {n.lt(10)}, {n.lte(10)}, {n.between(1,10)}
+
+# string methods
+Case: {name.toLowerCase()}, {name.toUpperCase()}, {name.capitalize()}
+Utility: {name.trim()}, {name.length()}, {name.isEmpty()}, {name.isBlank()}
+Modify: {name.replace("a","b")}, {name.prepend("Hi ")}, {name.append("!")}
+Extract: {name.substring(0,5)}, {name.repeat(3)}
+Check: {name.contains("test")}, {name.startsWith("Mr")}, {name.endsWith("Jr")}
+
+# practical example: 3-level health bar with colors
+# health=75 → green (>66), health=50 → yellow (>33), health=20 → red
+Health: {cond(health.gt(66),"&a",health.gt(33),"&e","&c")}{health}% &7HP
+# → "Health: &a75% &7HP" (green for high health)
+
 # note: explicit $.func() and .func() also work: {$.now()}, {.now()}
 ```
 
 ## Example
 
 Basic example representing standard usage for simple placeholders. For more examples and advanced usage cases
-see [tests](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/core/src/test/java/eu/okaeri/placeholderstest). For subfield support (e.g. {player.name})
-see [TestSchema.java](https://github.com/OkaeriPoland/okaeri-placeholders/blob/master/core/src/test/java/eu/okaeri/placeholderstest/schema/TestSchema.java), for pluralization and other metadata
-see [TestMetadataUsage.java](https://github.com/OkaeriPoland/okaeri-placeholders/blob/master/core/src/test/java/eu/okaeri/placeholderstest/TestMetadataUsage.java).
+see [tests](https://github.com/OkaeriPoland/okaeri-placeholders/tree/master/core/src/test/java/eu/okaeri/placeholders).
 
 ```java
 // this is intended to be loaded from the configuration on the startup/cached and stored compiled
@@ -120,6 +143,38 @@ PlaceholderContext context = PlaceholderContext.of(this.message)
 // process message and get output: Hola Mundo! ¿Cómo estás hoy? Estoy bien.
 String test = this.context.apply();
 ```
+
+## @Placeholder Annotation
+
+For automatic subfield resolution on your classes, use the `@Placeholder` annotation. This enables `{player.name}` syntax
+without manual resolver registration.
+
+```java
+import eu.okaeri.placeholders.resolver.annotation.Placeholder;
+
+@Placeholder
+public class Player {
+    private String name;
+    private int health;
+
+    public String getName() { return this.name; }
+    public int getHealth() { return this.health; }
+    public boolean isAlive() { return this.health > 0; }
+}
+
+// usage - getters are auto-discovered
+CompiledMessage message = CompiledMessage.of("{player.name} has {player.health} HP (alive: {player.alive})");
+String result = PlaceholderContext.of(message)
+    .with("player", new Player("John", 100))
+    .apply();
+// → "John has 100 HP (alive: true)"
+```
+
+The annotation supports:
+- **Getter auto-discovery**: `getName()` → `{obj.name}`, `isActive()` → `{obj.active}`
+- **Custom names**: `@Placeholder(name = "hp") int getHealth()` → `{obj.hp}`
+- **Selective scanning**: `@Placeholder(scan = false)` on class to only expose explicitly annotated methods
+- **Method chaining**: `{player.name.upper()}` combines annotation discovery with registered resolvers
 
 ## Benchmarks
 

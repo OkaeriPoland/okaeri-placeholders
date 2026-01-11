@@ -11,13 +11,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("AdventureMessageRenderer")
 class AdventureMessageRendererTest {
 
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
+    private static final LegacyComponentSerializer SECTION = LegacyComponentSerializer.legacySection();
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     private AdventureMessageRenderer renderer;
@@ -26,7 +28,8 @@ class AdventureMessageRendererTest {
     @BeforeEach
     void setUp() {
         this.renderer = new AdventureMessageRenderer();
-        this.placeholders = Placeholders.create();
+        this.placeholders = Placeholders.create()
+            .with(new AdventurePack());
     }
 
     @Nested
@@ -40,7 +43,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello World!");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello World!");
         }
 
         @Test
@@ -52,7 +55,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello World!");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello World!");
         }
 
         @Test
@@ -62,7 +65,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("No placeholders here");
+            assertThat(SECTION.serialize(result)).isEqualTo("No placeholders here");
         }
 
         @Test
@@ -72,7 +75,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello &c<missing:name>!");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello §c<missing:name>!");
         }
     }
 
@@ -87,7 +90,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&lHello&r World!");
+            assertThat(SECTION.serialize(result)).isEqualTo("§lHello§r World!");
         }
 
         @Test
@@ -97,7 +100,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&cError:&r failed");
+            assertThat(SECTION.serialize(result)).isEqualTo("§cError:§r failed");
         }
 
         @Test
@@ -107,7 +110,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&6Steve");
+            assertThat(SECTION.serialize(result)).isEqualTo("§6Steve");
         }
 
         @Test
@@ -117,7 +120,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&lSteve");
+            assertThat(SECTION.serialize(result)).isEqualTo("§lSteve");
         }
 
         @Test
@@ -127,7 +130,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&c&lSteve");
+            assertThat(SECTION.serialize(result)).isEqualTo("§c§lSteve");
         }
 
         @Test
@@ -137,7 +140,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&bHello World!");
+            assertThat(SECTION.serialize(result)).isEqualTo("§bHello World!");
         }
 
         @Test
@@ -147,7 +150,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&cH&ci&d &dA&9B&9!");
+            assertThat(SECTION.serialize(result)).isEqualTo("§cH§ci§d §dA§9B§9!");
         }
     }
 
@@ -164,7 +167,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Color: &6Gold");
+            assertThat(SECTION.serialize(result)).isEqualTo("Color: §6Gold");
         }
 
         @Test
@@ -176,7 +179,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Style: &lBold");
+            assertThat(SECTION.serialize(result)).isEqualTo("Style: §lBold");
         }
 
         @Test
@@ -190,7 +193,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello &6&lStyled&r!");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello §6§lStyled§r!");
         }
 
         @Test
@@ -202,7 +205,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&cError: &6Gold");
+            assertThat(SECTION.serialize(result)).isEqualTo("§cError: §6Gold");
         }
 
         @Test
@@ -216,7 +219,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&6Gold&r and plain");
+            assertThat(SECTION.serialize(result)).isEqualTo("§6Gold§r and plain");
         }
     }
 
@@ -226,12 +229,12 @@ class AdventureMessageRendererTest {
 
         @Test
         void shouldParseSectionCodes() {
-            var message = CompiledMessage.of("§cRed {name}");
+            var message = CompiledMessage.of("&cRed {name}");
             var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "Text");
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&cRed &rText");
+            assertThat(SECTION.serialize(result)).isEqualTo("§cRed §rText");
         }
 
         @Test
@@ -241,7 +244,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&6Gold &rText");
+            assertThat(SECTION.serialize(result)).isEqualTo("§6Gold §rText");
         }
 
         @Test
@@ -251,7 +254,52 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("&6Gold &r&lSteve");
+            assertThat(SECTION.serialize(result)).isEqualTo("§6Gold §r§lSteve");
+        }
+    }
+
+    @Nested
+    @DisplayName("Field value safety")
+    class FieldValueSafety {
+
+        @Test
+        void shouldNotParseAmpersandInFieldValues() {
+            var message = CompiledMessage.of("Hello {name}!");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "&cEvil");
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello &cEvil!");
+        }
+
+        @Test
+        void shouldNotParseSectionSignInFieldValues() {
+            var message = CompiledMessage.of("Hello {name}!");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "§cEvil");
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello §cEvil!");
+        }
+
+        @Test
+        void shouldNotParseMiniMessageTagsInFieldValues() {
+            var message = CompiledMessage.of("Hello {name}!");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "<red>Evil</red>");
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello <red>Evil</red>!");
+        }
+
+        @Test
+        void shouldKeepTemplateFormattingWhileIgnoringFieldInjection() {
+            var message = CompiledMessage.of("&aGood: {name}");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("name", "&cEvil");
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(SECTION.serialize(result)).isEqualTo("§aGood: §r&cEvil");
         }
     }
 
@@ -301,7 +349,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello WORLD!");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello WORLD!");
         }
 
         @Test
@@ -311,7 +359,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello Guest!");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello Guest!");
         }
 
         @Test
@@ -321,7 +369,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello world");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello world");
         }
     }
 
@@ -336,7 +384,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Value: 3.14");
+            assertThat(SECTION.serialize(result)).isEqualTo("Value: 3.14");
         }
 
         @Test
@@ -348,8 +396,8 @@ class AdventureMessageRendererTest {
             var result1 = AdventureMessageRendererTest.this.renderer.render(message, context1);
             var result5 = AdventureMessageRendererTest.this.renderer.render(message, context5);
 
-            assertThat(LEGACY.serialize(result1)).isEqualTo("apple");
-            assertThat(LEGACY.serialize(result5)).isEqualTo("apples");
+            assertThat(SECTION.serialize(result1)).isEqualTo("apple");
+            assertThat(SECTION.serialize(result5)).isEqualTo("apples");
         }
 
         @Test
@@ -361,8 +409,8 @@ class AdventureMessageRendererTest {
             var resultTrue = AdventureMessageRendererTest.this.renderer.render(message, contextTrue);
             var resultFalse = AdventureMessageRendererTest.this.renderer.render(message, contextFalse);
 
-            assertThat(LEGACY.serialize(resultTrue)).isEqualTo("Status: yes");
-            assertThat(LEGACY.serialize(resultFalse)).isEqualTo("Status: no");
+            assertThat(SECTION.serialize(resultTrue)).isEqualTo("Status: yes");
+            assertThat(SECTION.serialize(resultFalse)).isEqualTo("Status: no");
         }
     }
 
@@ -377,7 +425,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello Guest!");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello Guest!");
         }
 
         @Test
@@ -387,7 +435,7 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Hello World!");
+            assertThat(SECTION.serialize(result)).isEqualTo("Hello World!");
         }
 
         @Test
@@ -397,7 +445,76 @@ class AdventureMessageRendererTest {
 
             var result = AdventureMessageRendererTest.this.renderer.render(message, context);
 
-            assertThat(LEGACY.serialize(result)).isEqualTo("Value: none");
+            assertThat(SECTION.serialize(result)).isEqualTo("Value: none");
+        }
+    }
+
+    @Nested
+    @DisplayName("Conditional styling with cond()")
+    class ConditionalStyling {
+
+        @ParameterizedTest
+        @CsvSource({
+            "75, §a75%",
+            "67, §a67%",
+            "50, §e50%",
+            "34, §e34%",
+            "33, §c33%",
+            "20, §c20%"
+        })
+        void shouldApplyCorrectColorBasedOnHealth(int health, String expected) {
+            var message = CompiledMessage.of("{cond(health.gt(66),\"&a\",health.gt(33),\"&e\",\"&c\")}{health}%");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("health", health);
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(SECTION.serialize(result)).isEqualTo(expected);
+        }
+
+        @Test
+        void shouldWorkWithFullHealthBar() {
+            var message = CompiledMessage.of("Health: {cond(health.gt(66),\"&a\",health.gt(33),\"&e\",\"&c\")}{health}% &7HP");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("health", 100);
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(SECTION.serialize(result)).isEqualTo("Health: §a100% §7HP");
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "80, §aHigh",
+            "50, §eMedium",
+            "10, §cLow"
+        })
+        void shouldWorkWithBetweenRanges(int health, String expected) {
+            var message = CompiledMessage.of("{cond(health.between(67,100),\"&aHigh\",health.between(34,66),\"&eMedium\",\"&cLow\")}");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("health", health);
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(SECTION.serialize(result)).isEqualTo(expected);
+        }
+    }
+
+    @Nested
+    @DisplayName("Dynamic gradient tags")
+    class DynamicGradientTags {
+
+        @ParameterizedTest
+        @CsvSource({
+            "80, §aH§2P",
+            "50, §eH§6P",
+            "10, §cH§4P"
+        })
+        void shouldApplyGradientBasedOnHealth(int health, String expected) {
+            // Use color() to concat and parse MiniMessage
+            var message = CompiledMessage.of("{color(\"<gradient:\",cond(health.gt(66),\"green:dark_green\",health.gt(33),\"yellow:gold\",\"red:dark_red\"),\">HP</gradient>\")}");
+            var context = AdventureMessageRendererTest.this.placeholders.context(message).with("health", health);
+
+            var result = AdventureMessageRendererTest.this.renderer.render(message, context);
+
+            assertThat(SECTION.serialize(result)).isEqualTo(expected);
         }
     }
 }

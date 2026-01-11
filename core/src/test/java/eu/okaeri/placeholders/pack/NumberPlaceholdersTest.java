@@ -469,6 +469,101 @@ class NumberPlaceholdersTest {
     }
 
     @Nested
+    @DisplayName("Range methods (between, clamp, mod)")
+    class RangeMethods {
+
+        @Test
+        void shouldReturnTrueWhenBetween(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.between(10,20)}"))
+                .with("n", 15)
+                .apply();
+
+            assertThat(result).isEqualTo("true");
+        }
+
+        @Test
+        void shouldReturnFalseWhenNotBetween(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.between(10,20)}"))
+                .with("n", 25)
+                .apply();
+
+            assertThat(result).isEqualTo("false");
+        }
+
+        @Test
+        void shouldReturnTrueAtLowerBound(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.between(10,20)}"))
+                .with("n", 10)
+                .apply();
+
+            assertThat(result).isEqualTo("true");
+        }
+
+        @Test
+        void shouldReturnTrueAtUpperBound(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.between(10,20)}"))
+                .with("n", 20)
+                .apply();
+
+            assertThat(result).isEqualTo("true");
+        }
+
+        @Test
+        void shouldClampToMin(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.clamp(0,100)}"))
+                .with("n", -50)
+                .apply();
+
+            assertThat(result).isEqualTo("0");
+        }
+
+        @Test
+        void shouldClampToMax(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.clamp(0,100)}"))
+                .with("n", 150)
+                .apply();
+
+            assertThat(result).isEqualTo("100");
+        }
+
+        @Test
+        void shouldNotClampWhenInRange(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.clamp(0,100)}"))
+                .with("n", 50)
+                .apply();
+
+            assertThat(result).isEqualTo("50");
+        }
+
+        @Test
+        void shouldCalculateMod(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.mod(3)}"))
+                .with("n", 10)
+                .apply();
+
+            assertThat(result).isEqualTo("1");
+        }
+
+        @Test
+        void shouldReturnZeroWhenDivisible(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.mod(5)}"))
+                .with("n", 10)
+                .apply();
+
+            assertThat(result).isEqualTo("0");
+        }
+
+        @Test
+        void shouldUseBetweenInCondition(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{$.if(n.between(34,66),\"medium\",\"other\")}"))
+                .with("n", 50)
+                .apply();
+
+            assertThat(result).isEqualTo("medium");
+        }
+    }
+
+    @Nested
     @DisplayName("Edge cases")
     class EdgeCases {
 

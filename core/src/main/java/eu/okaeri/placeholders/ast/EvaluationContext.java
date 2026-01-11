@@ -56,7 +56,7 @@ public interface EvaluationContext {
      * @return the string value
      */
     default String evaluateString(AstNode node, String defaultValue) {
-        Object result = this.evaluate(node);
+        Object result = LiteralValue.unwrap(this.evaluate(node));
         return (result != null) ? result.toString() : defaultValue;
     }
 
@@ -72,7 +72,7 @@ public interface EvaluationContext {
      * @return the int value
      */
     default int evaluateInt(AstNode node, int defaultValue) {
-        Object result = this.evaluate(node);
+        Object result = LiteralValue.unwrap(this.evaluate(node));
         if (result instanceof Number) {
             return ((Number) result).intValue();
         }
@@ -107,7 +107,7 @@ public interface EvaluationContext {
      * @return the double value
      */
     default double evaluateDouble(AstNode node, double defaultValue) {
-        Object result = this.evaluate(node);
+        Object result = LiteralValue.unwrap(this.evaluate(node));
         if (result instanceof Number) {
             return ((Number) result).doubleValue();
         }
@@ -138,7 +138,7 @@ public interface EvaluationContext {
      * @return the boolean value
      */
     default boolean evaluateBoolean(AstNode node, boolean defaultValue) {
-        Object result = this.evaluate(node);
+        Object result = LiteralValue.unwrap(this.evaluate(node));
         if (result instanceof Boolean) {
             return (Boolean) result;
         }

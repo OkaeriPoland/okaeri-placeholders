@@ -133,6 +133,43 @@ AdventureMessageRenderer renderer = new AdventureMessageRenderer(customMiniMessa
 
 The default MiniMessage instance supports both legacy codes and MiniMessage tags via pre/post processors.
 
+### Dynamic Styling with color()
+
+Static tags like `<red>{name}</red>` work fine - the tags are parsed from template text. But when the **tag itself** needs to be dynamic (e.g., color based on a condition), use `AdventurePack.color()`:
+
+```java
+Placeholders placeholders = Placeholders.create()
+    .with(new AdventurePack());
+AdventureMessageRenderer renderer = new AdventureMessageRenderer();
+
+// Dynamic gradient - the colors change based on health value
+CompiledMessage message = CompiledMessage.of(
+    "{color(\"<gradient:\",cond(health.gt(66),\"green:dark_green\",health.gt(33),\"yellow:gold\",\"red:dark_red\"),\">\",health,\"% HP</gradient>\")}"
+);
+
+Component result = placeholders.context(message)
+    .with("health", 75)
+    .apply(renderer);
+// Result: "75% HP" with green gradient (health > 66)
+```
+
+The `color()` function concatenates all arguments and parses through MiniMessage, allowing you to build tags dynamically.
+
+## Security
+
+**Context values are safe from injection.** Color codes (`&`, `§`) and MiniMessage tags in user-provided values are NOT parsed:
+
+```java
+// User input with attempted injection
+context.with("name", "&cEvil<red>Hacker");
+
+CompiledMessage message = CompiledMessage.of("<gold>Hello {name}!</gold>");
+Component result = context.apply(renderer);
+// Result: gold "Hello &cEvil<red>Hacker!" (injection attempt shown as literal text)
+```
+
+Only template text and string literals in expressions (like `cond(x,"&a","&c")`) are processed for color codes.
+
 ## How It Works
 
 1. **Text placeholders** use MiniMessage's TagResolver for native integration - string values inherit surrounding styles (gradients, colors, decorations)

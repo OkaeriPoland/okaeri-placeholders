@@ -14,9 +14,9 @@ import java.math.BigDecimal;
  * <p>
  * Provides:
  * <ul>
- *   <li>Arithmetic: {@code plus/add}, {@code minus/subtract}, {@code multiply}, {@code divide}</li>
- *   <li>Math: {@code abs}, {@code round}, {@code floor}, {@code ceil}</li>
- *   <li>Comparisons: {@code gt}, {@code gte}, {@code lt}, {@code lte}</li>
+ *   <li>Arithmetic: {@code plus/add}, {@code minus/subtract}, {@code multiply}, {@code divide}, {@code mod}</li>
+ *   <li>Math: {@code abs}, {@code round}, {@code floor}, {@code ceil}, {@code clamp}</li>
+ *   <li>Comparisons: {@code gt}, {@code gte}, {@code lt}, {@code lte}, {@code between}</li>
  *   <li>Formatting: {@code plural}, {@code format}</li>
  * </ul>
  */
@@ -84,11 +84,31 @@ public class NumberPack implements PlaceholderPack {
             .add("floor", num -> (int) Math.floor(num.doubleValue()))
             .add("ceil", num -> (int) Math.ceil(num.doubleValue()))
 
+            // Clamp to range
+            .add("clamp", (num, p) -> {
+                double value = num.doubleValue();
+                double min = p.arg(0).asDouble(Double.MIN_VALUE);
+                double max = p.arg(1).asDouble(Double.MAX_VALUE);
+                return asIntIfWhole(Math.max(min, Math.min(max, value)));
+            })
+
+            // Modulo
+            .add("mod", (num, p) -> {
+                double divisor = p.arg(0).asDouble(1);
+                return asIntIfWhole(num.doubleValue() % divisor);
+            })
+
             // Comparisons (return Boolean for use with $.if)
             .add("gt", (num, p) -> num.doubleValue() > p.arg(0).asDouble(0))
             .add("gte", (num, p) -> num.doubleValue() >= p.arg(0).asDouble(0))
             .add("lt", (num, p) -> num.doubleValue() < p.arg(0).asDouble(0))
             .add("lte", (num, p) -> num.doubleValue() <= p.arg(0).asDouble(0))
+            .add("between", (num, p) -> {
+                double value = num.doubleValue();
+                double min = p.arg(0).asDouble(Double.MIN_VALUE);
+                double max = p.arg(1).asDouble(Double.MAX_VALUE);
+                return value >= min && value <= max;
+            })
 
             // Pluralization
             .add("plural", (num, p, ctx) -> {

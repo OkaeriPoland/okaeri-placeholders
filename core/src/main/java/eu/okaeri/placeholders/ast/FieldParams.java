@@ -111,7 +111,7 @@ public class FieldParams {
         if (pos >= this.args.size()) return def;
 
         AstNode arg = this.args.get(pos);
-        Object result = this.ctx.evaluate(arg);
+        Object result = LiteralValue.unwrap(this.ctx.evaluate(arg));
 
         if (result != null) {
             return result.toString();
@@ -150,7 +150,7 @@ public class FieldParams {
     @Nullable
     public ParsedArg parsedAt(int pos) {
         if (pos >= this.args.size()) return null;
-        Object value = this.ctx.evaluate(this.args.get(pos));
+        Object value = LiteralValue.unwrap(this.ctx.evaluate(this.args.get(pos)));
         String strValue = (value != null) ? value.toString() : null;
         return ParsedArg.fieldRefOrLiteral(strValue);
     }
@@ -179,12 +179,37 @@ public class FieldParams {
         if (arg instanceof Ref) {
             String refName = ((Ref) arg).getName();
             if (this.ctx.hasValue(refName)) {
-                return this.ctx.evaluate(arg);
+                return LiteralValue.unwrap(this.ctx.evaluate(arg));
             }
             return refName;
         }
 
-        return this.ctx.evaluate(arg);
+        return LiteralValue.unwrap(this.ctx.evaluate(arg));
+    }
+
+    /**
+     * Resolves an argument preserving literal information.
+     * The returned value will be wrapped in LiteralValue if it came from a string/number literal.
+     */
+    @Nullable
+    public Object resolveArgRaw(int pos, @Nullable Locale locale, @Nullable PlaceholderContext context) {
+        if (pos >= this.args.size()) return null;
+
+        AstNode arg = this.args.get(pos);
+
+        if (arg instanceof StringLiteral) {
+            return new LiteralValue(((StringLiteral) arg).getValue());
+        }
+
+        if (arg instanceof Ref) {
+            String refName = ((Ref) arg).getName();
+            if (this.ctx.hasValue(refName)) {
+                return this.ctx.evaluate(arg);  // Keep LiteralValue if present
+            }
+            return refName;
+        }
+
+        return this.ctx.evaluate(arg);  // Keep LiteralValue if present
     }
 
     /**
@@ -232,7 +257,7 @@ public class FieldParams {
         if (node instanceof Ref) {
             return ((Ref) node).getName();
         }
-        Object result = this.ctx.evaluate(node);
+        Object result = LiteralValue.unwrap(this.ctx.evaluate(node));
         return (result != null) ? result.toString() : "";
     }
 
