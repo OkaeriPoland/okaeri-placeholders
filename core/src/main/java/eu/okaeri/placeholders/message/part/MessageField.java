@@ -1,5 +1,6 @@
 package eu.okaeri.placeholders.message.part;
 
+import eu.okaeri.placeholders.Placeholders;
 import lombok.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +41,7 @@ public class MessageField implements MessageElement, MessageFieldAccessor {
         // Transform shorthand .func() syntax to $.func()
         // This allows {.now()} instead of {$.now()}
         if (source.startsWith(".")) {
-            source = eu.okaeri.placeholders.Placeholders.GLOBAL_FUNCTIONS_KEY + source;
+            source = Placeholders.GLOBAL_FUNCTIONS_KEY + source;
         }
 
         List<FieldParams> parts = TOKENIZER.tokenize(source);

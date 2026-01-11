@@ -1,7 +1,9 @@
 package eu.okaeri.placeholders.message.part;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Represents a parsed argument from a placeholder method call.
@@ -13,6 +15,7 @@ import lombok.NonNull;
  * </ul>
  */
 @Data
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ParsedArg {
 
     /**
@@ -32,15 +35,9 @@ public class ParsedArg {
         FIELD_REF_OR_LITERAL
     }
 
-    private final Type type;
-    private final String value;
-    private final String rawValue;
-
-    private ParsedArg(@NonNull Type type, @NonNull String value, @NonNull String rawValue) {
-        this.type = type;
-        this.value = value;
-        this.rawValue = rawValue;
-    }
+    @NonNull private final Type type;
+    @NonNull private final String value;
+    @NonNull private final String rawValue;
 
     /**
      * Creates a literal argument (from quoted string).

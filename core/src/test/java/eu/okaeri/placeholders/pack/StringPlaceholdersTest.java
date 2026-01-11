@@ -172,7 +172,6 @@ class StringPlaceholdersTest {
         @ParameterizedTest
         @CsvSource({
             "hello_world, _, -, hello-world",
-            "snake_case_name, _, ' ', 'snake case name'",
             "a.b.c, ., /, a/b/c"
         })
         void shouldReplaceVariousPatterns(String input, String from, String to, String expected, Placeholders placeholders) {
@@ -181,6 +180,15 @@ class StringPlaceholdersTest {
                 .apply();
 
             assertThat(result).isEqualTo(expected);
+        }
+
+        @Test
+        void shouldReplaceWithSpace(Placeholders placeholders) {
+            var result = placeholders.contextOf(CompiledMessage.of("{s.replace(_, )}"))
+                .with("s", "snake_case_name")
+                .apply();
+
+            assertThat(result).isEqualTo("snake case name");
         }
     }
 

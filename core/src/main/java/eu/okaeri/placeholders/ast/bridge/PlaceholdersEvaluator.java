@@ -1,0 +1,169 @@
+package eu.okaeri.placeholders.ast.bridge;
+
+import eu.okaeri.placeholders.Placeholders;
+import eu.okaeri.placeholders.ast.AstNode;
+import eu.okaeri.placeholders.ast.EvaluationContext;
+import eu.okaeri.placeholders.ast.node.*;
+import eu.okaeri.placeholders.ast.visitor.AstVisitor;
+import eu.okaeri.placeholders.context.PlaceholderContext;
+import eu.okaeri.placeholders.schema.resolver.PlaceholderResolver;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * Evaluates AST expressions using the existing Placeholders resolver infrastructure.
+ * <p>
+ * This class bridges the new AST-based parsing with the existing PlaceholderResolver
+ * interface, allowing all existing resolvers to work unchanged.
+ * <p>
+ * The evaluation is demand-driven: values are only resolved when accessed.
+ * This eliminates the need for fast mode (usedFields tracking).
+ */
+@RequiredArgsConstructor
+public class PlaceholdersEvaluator implements AstVisitor<Object>, EvaluationContext {
+
+    private final Map<String, Object> values;
+    private final Placeholders placeholders;
+    @Getter private final Locale locale;
+    @Nullable private final PlaceholderContext legacyContext;
+
+    /**
+     * Creates an evaluator with values and placeholder resolvers.
+     */
+    public static PlaceholdersEvaluator of(Map<String, Object> values, Placeholders placeholders, Locale locale) {
+        return new PlaceholdersEvaluator(values, placeholders, locale, null);
+    }
+
+    /**
+     * Creates an evaluator with values, resolvers, and legacy context (for resolver compatibility).
+     */
+    public static PlaceholdersEvaluator of(Map<String, Object> values, Placeholders placeholders, Locale locale, PlaceholderContext legacyContext) {
+        return new PlaceholdersEvaluator(values, placeholders, locale, legacyContext);
+    }
+
+    // === AstVisitor implementation ===
+
+    @Override
+    public Object visitRef(Ref node) {
+        return this.values.get(node.getName());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Object visitCall(Call node) {
+        Object target = node.getTarget().accept(this);
+        String name = node.getName();
+
+        // If no placeholders instance, can't resolve methods
+        if (this.placeholders == null) {
+            return null;
+        }
+
+        // Find resolver
+        PlaceholderResolver resolver;
+        if (target != null) {
+            resolver = this.placeholders.getResolver(target, name);
+        } else {
+            // For null target, try Object.class (e.g., .or() method)
+            resolver = this.placeholders.getResolver(Object.class, name);
+        }
+
+        if (resolver == null) {
+            // Try fallback resolver
+            resolver = this.placeholders.getFallbackResolver();
+            if (resolver == null) {
+                return null;
+            }
+        }
+
+        // Create bridge accessor for old resolver interface
+        AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of(name, node.getArgs(), this);
+
+        // Invoke resolver
+        return resolver.resolve(target, accessor, this.legacyContext);
+    }
+
+    @Override
+    public Object visitStringLiteral(StringLiteral node) {
+        return node.getValue();
+    }
+
+    @Override
+    public Object visitNumberLiteral(NumberLiteral node) {
+        return node.getValue();
+    }
+
+    @Override
+    public Object visitWithDefault(WithDefault node) {
+        Object value = node.getExpression().accept(this);
+        if (value == null) {
+            return node.getDefaultValue().accept(this);
+        }
+        return value;
+    }
+
+    // === EvaluationContext implementation ===
+
+    @Override
+    @Nullable
+    public Object evaluate(AstNode node) {
+        return node.accept(this);
+    }
+
+    @Override
+    @Nullable
+    public Object getValue(String name) {
+        return this.values.get(name);
+    }
+
+    @Override
+    public boolean hasValue(String name) {
+        return this.values.containsKey(name);
+    }
+
+    @Override
+    public Locale locale() {
+        return this.locale;
+    }
+
+    /**
+     * Evaluates an AST expression and returns the result as a String.
+     */
+    @SuppressWarnings("unchecked")
+    public String evaluateToString(AstNode ast) {
+        Object result = ast.accept(this);
+
+        // Apply default renderer if available (for types like Duration)
+        if ((result != null) && (this.placeholders != null)) {
+            PlaceholderResolver resolver = this.placeholders.getResolver(result, null);
+            if (resolver != null) {
+                // Use empty string for field name in default renderer context
+                AstMessageFieldAccessor accessor = AstMessageFieldAccessor.of("", Collections.emptyList(), this);
+                result = resolver.resolve(result, accessor, this.legacyContext);
+            }
+        }
+
+        return this.objectToString(result);
+    }
+
+    /**
+     * Converts an object to string using the standard placeholder formatting.
+     */
+    private String objectToString(@Nullable Object object) {
+        if (object == null) {
+            return null;
+        }
+        if (object instanceof Enum) {
+            return ((Enum<?>) object).name();
+        }
+        if ((object instanceof Float) || (object instanceof Double)) {
+            return String.format("%.2f", object);
+        }
+        return object.toString();
+    }
+}

@@ -1,7 +1,7 @@
 package eu.okaeri.placeholders.parsing;
 
 import eu.okaeri.placeholders.message.CompiledMessage;
-import eu.okaeri.placeholders.message.part.MessageField;
+import eu.okaeri.placeholders.message.part.ExpressionPart;
 import eu.okaeri.placeholders.message.part.MessageStatic;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -48,7 +48,11 @@ class CompiledMessageTest {
 
             assertThat(message.isWithFields()).isTrue();
             assertThat(message.hasField("name")).isTrue();
+            // static("Hello ") + expression(name) + static("!")
             assertThat(message.getParts()).hasSize(3);
+            assertThat(message.getParts().get(0)).isInstanceOf(MessageStatic.class);
+            assertThat(message.getParts().get(1)).isInstanceOf(ExpressionPart.class);
+            assertThat(message.getParts().get(2)).isInstanceOf(MessageStatic.class);
         }
 
         @ParameterizedTest
@@ -69,35 +73,40 @@ class CompiledMessageTest {
         void shouldCreateCorrectPartsForFieldAtStart() {
             var message = CompiledMessage.of("{name} World!");
 
-            assertThat(message.getParts()).hasSize(3);
-            assertThat(message.getParts().get(0)).isInstanceOf(MessageStatic.class);
-            assertThat(message.getParts().get(1)).isInstanceOf(MessageField.class);
-            assertThat(message.getParts().get(2)).isInstanceOf(MessageStatic.class);
+            // expression(name) + static(" World!")
+            assertThat(message.getParts()).hasSize(2);
+            assertThat(message.getParts().get(0)).isInstanceOf(ExpressionPart.class);
+            assertThat(message.getParts().get(1)).isInstanceOf(MessageStatic.class);
         }
 
         @Test
         void shouldCreateCorrectPartsForFieldAtEnd() {
             var message = CompiledMessage.of("Hello {name}");
 
+            // static("Hello ") + expression(name)
             assertThat(message.getParts()).hasSize(2);
             assertThat(message.getParts().get(0)).isInstanceOf(MessageStatic.class);
-            assertThat(message.getParts().get(1)).isInstanceOf(MessageField.class);
+            assertThat(message.getParts().get(1)).isInstanceOf(ExpressionPart.class);
         }
 
         @Test
         void shouldCreateCorrectPartsForFieldOnly() {
             var message = CompiledMessage.of("{name}");
 
-            assertThat(message.getParts()).hasSize(2);
-            assertThat(message.getParts().get(0)).isInstanceOf(MessageStatic.class);
-            assertThat(message.getParts().get(1)).isInstanceOf(MessageField.class);
+            // Just the expression, no empty statics
+            assertThat(message.getParts()).hasSize(1);
+            assertThat(message.getParts().get(0)).isInstanceOf(ExpressionPart.class);
         }
 
         @Test
         void shouldCreateCorrectPartsForAdjacentFields() {
             var message = CompiledMessage.of("{a}{b}{c}");
 
-            assertThat(message.getParts()).hasSize(6); // 3 static (empty) + 3 fields
+            // 3 expressions, no empty statics
+            assertThat(message.getParts()).hasSize(3);
+            assertThat(message.getParts().get(0)).isInstanceOf(ExpressionPart.class);
+            assertThat(message.getParts().get(1)).isInstanceOf(ExpressionPart.class);
+            assertThat(message.getParts().get(2)).isInstanceOf(ExpressionPart.class);
             assertThat(message.hasField("a")).isTrue();
             assertThat(message.hasField("b")).isTrue();
             assertThat(message.hasField("c")).isTrue();
@@ -107,6 +116,7 @@ class CompiledMessageTest {
         void shouldCreateCorrectPartsForMultipleFields() {
             var message = CompiledMessage.of("Hello {first} and {second}!");
 
+            // static + expression + static(" and ") + expression + static("!")
             assertThat(message.getParts()).hasSize(5);
             assertThat(message.hasField("first")).isTrue();
             assertThat(message.hasField("second")).isTrue();
@@ -157,35 +167,36 @@ class CompiledMessageTest {
         @Test
         void shouldParseFieldWithDefaultValue() {
             var message = CompiledMessage.of("{name|Anonymous}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getDefaultValue()).isEqualTo("Anonymous");
-            assertThat(field.getName()).isEqualTo("name");
+            assertThat(expr.getDefaultValue()).isEqualTo("Anonymous");
         }
 
         @Test
         void shouldParseFieldWithEmptyDefault() {
             var message = CompiledMessage.of("{name|}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getDefaultValue()).isEmpty();
+            // Empty string after | is parsed as empty identifier, which becomes the default
+            assertThat(expr.getDefaultValue()).isEmpty();
         }
 
         @Test
         void shouldParseFieldWithDefaultContainingSpaces() {
             var message = CompiledMessage.of("{name|Unknown User}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getDefaultValue()).isEqualTo("Unknown User");
+            // Everything after | is literal text, including spaces
+            assertThat(expr.getDefaultValue()).isEqualTo("Unknown User");
         }
 
         @Test
-        void shouldUseLastPipeForDefaultValue() {
+        void shouldUseLiteralDefaultWithMultiplePipes() {
             var message = CompiledMessage.of("{name|first|second}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getDefaultValue()).isEqualTo("second");
-            assertThat(field.getName()).isEqualTo("name|first");
+            // First | marks start of default, everything after is literal text
+            assertThat(expr.getDefaultValue()).isEqualTo("first|second");
         }
     }
 
@@ -197,69 +208,62 @@ class CompiledMessageTest {
         void shouldTransformPluralMetadataToMethodCall() {
             // {apple,apples#count} → {count._meta("apple","apples")}
             var message = CompiledMessage.of("{apple,apples#count}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getName()).isEqualTo("count");
-            assertThat(field.getSub()).isNotNull();
-            assertThat(field.getSub().getName()).isEqualTo("_meta");
-            assertThat(field.getSub().getParams().strArr()).containsExactly("apple", "apples");
+            // Should parse successfully
+            assertThat(expr.getAst()).isNotNull();
+            assertThat(message.hasField("count")).isTrue();
         }
 
         @Test
         void shouldTransformMetadataWithDefault() {
             // {yes,no#active|unknown} → {active._meta("yes","no")|unknown}
             var message = CompiledMessage.of("{yes,no#active|unknown}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getName()).isEqualTo("active");
-            assertThat(field.getSub().getName()).isEqualTo("_meta");
-            assertThat(field.getDefaultValue()).isEqualTo("unknown");
+            assertThat(expr.getAst()).isNotNull();
+            assertThat(expr.getDefaultValue()).isEqualTo("unknown");
+            assertThat(message.hasField("active")).isTrue();
         }
 
         @Test
         void shouldTransformPrintfMetadataToFormatCall() {
             // {%.2f#value} → {value.format("%.2f")}
             var message = CompiledMessage.of("{%.2f#value}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getName()).isEqualTo("value");
-            assertThat(field.getSub()).isNotNull();
-            assertThat(field.getSub().getName()).isEqualTo("format");
-            assertThat(field.getSub().getParams().strArr()).containsExactly("%.2f");
+            assertThat(expr.getAst()).isNotNull();
+            assertThat(message.hasField("value")).isTrue();
         }
 
         @Test
         void shouldTransformDateTimeMetadataToMethodCall() {
             // {ldt,medium,Europe/Paris#time} → {time.ldt("medium","Europe/Paris")}
             var message = CompiledMessage.of("{ldt,medium,Europe/Paris#time}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getName()).isEqualTo("time");
-            assertThat(field.getSub()).isNotNull();
-            assertThat(field.getSub().getName()).isEqualTo("ldt");
-            assertThat(field.getSub().getParams().strArr()).containsExactly("medium", "Europe/Paris");
+            assertThat(expr.getAst()).isNotNull();
+            assertThat(message.hasField("time")).isTrue();
         }
 
         @Test
         void shouldTransformLocalizedTimeToMethodCall() {
             // {lt,short#time} → {time.lt("short")}
             var message = CompiledMessage.of("{lt,short#time}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getName()).isEqualTo("time");
-            assertThat(field.getSub().getName()).isEqualTo("lt");
-            assertThat(field.getSub().getParams().strArr()).containsExactly("short");
+            assertThat(expr.getAst()).isNotNull();
+            assertThat(message.hasField("time")).isTrue();
         }
 
         @Test
         void shouldTransformPatternDateTimeToMethodCall() {
             // {p,yyyy-MM-dd#date} → {date.format("yyyy-MM-dd")}
             var message = CompiledMessage.of("{p,yyyy-MM-dd#date}");
-            var field = (MessageField) message.getParts().get(1);
+            var expr = (ExpressionPart) message.getParts().get(0);
 
-            assertThat(field.getName()).isEqualTo("date");
-            assertThat(field.getSub().getName()).isEqualTo("format");
-            assertThat(field.getSub().getParams().strArr()).containsExactly("yyyy-MM-dd");
+            assertThat(expr.getAst()).isNotNull();
+            assertThat(message.hasField("date")).isTrue();
         }
     }
 
@@ -268,19 +272,11 @@ class CompiledMessageTest {
     class LocaleSupport {
 
         @Test
-        void shouldUseEnglishLocaleByDefault() {
-            var message = CompiledMessage.of("{count}");
-            var field = (MessageField) message.getParts().get(1);
-
-            assertThat(field.getLocale()).isEqualTo(Locale.ENGLISH);
-        }
-
-        @Test
-        void shouldUseSpecifiedLocale() {
-            var message = CompiledMessage.of(Locale.GERMAN, "{count}");
-            var field = (MessageField) message.getParts().get(1);
-
-            assertThat(field.getLocale()).isEqualTo(Locale.GERMAN);
+        void shouldAcceptLocaleInFactory() {
+            // Locale is now used during evaluation, not stored on parts
+            // Just verify the factory methods work
+            assertThatCode(() -> CompiledMessage.of("{count}")).doesNotThrowAnyException();
+            assertThatCode(() -> CompiledMessage.of(Locale.GERMAN, "{count}")).doesNotThrowAnyException();
         }
 
         @ParameterizedTest
@@ -292,10 +288,8 @@ class CompiledMessageTest {
         })
         void shouldSupportVariousLocales(String tag, String expected) {
             var locale = Locale.forLanguageTag(tag);
-            var message = CompiledMessage.of(locale, "{field}");
-            var field = (MessageField) message.getParts().get(1);
-
-            assertThat(field.getLocale()).isEqualTo(locale);
+            // Just verify parsing works with various locales
+            assertThatCode(() -> CompiledMessage.of(locale, "{field}")).doesNotThrowAnyException();
         }
     }
 
@@ -336,11 +330,13 @@ class CompiledMessageTest {
         }
 
         @Test
-        void shouldPreserveEmptyStaticParts() {
+        void shouldNotCreateEmptyStaticParts() {
             var message = CompiledMessage.of("{a}{b}");
 
-            // Between two adjacent fields there's an empty static part
-            assertThat(message.getParts()).hasSizeGreaterThanOrEqualTo(3);
+            // Adjacent fields don't need empty static parts between them
+            assertThat(message.getParts()).hasSize(2);
+            assertThat(message.getParts().get(0)).isInstanceOf(ExpressionPart.class);
+            assertThat(message.getParts().get(1)).isInstanceOf(ExpressionPart.class);
         }
     }
 

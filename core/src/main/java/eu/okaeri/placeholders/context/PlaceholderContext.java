@@ -2,9 +2,11 @@ package eu.okaeri.placeholders.context;
 
 import eu.okaeri.placeholders.GlobalFunctions;
 import eu.okaeri.placeholders.Placeholders;
+import eu.okaeri.placeholders.ast.bridge.PlaceholdersEvaluator;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.MessageRenderer;
 import eu.okaeri.placeholders.message.StringMessageRenderer;
+import eu.okaeri.placeholders.message.part.ExpressionPart;
 import eu.okaeri.placeholders.message.part.MessageElement;
 import eu.okaeri.placeholders.message.part.MessageField;
 import lombok.Data;
@@ -12,10 +14,7 @@ import lombok.NonNull;
 import lombok.Value;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 public class PlaceholderContext {
@@ -89,8 +88,37 @@ public class PlaceholderContext {
         }
 
         String state = message.getRaw();
-        Map<MessageField, ResolvedField> resolved = this.resolveFieldsInternal(message);
         Map<MessageField, String> rendered = new LinkedHashMap<>();
+        PlaceholdersEvaluator evaluator = createEvaluator(message);
+        Locale locale = message.getLocale() != null ? message.getLocale() : Locale.ENGLISH;
+
+        // Handle AST-based ExpressionPart parts
+        for (MessageElement part : message.getParts()) {
+            if (part instanceof ExpressionPart) {
+                ExpressionPart expr = (ExpressionPart) part;
+
+                String result = evaluator.evaluateToString(expr.getAst());
+
+                if (result == null) {
+                    if (expr.getDefaultValue() != null) {
+                        result = expr.getDefaultValue();
+                    } else if (this.failMode == FailMode.FAIL_FAST) {
+                        throw new IllegalArgumentException("resolved null for placeholder '{" + expr.getRaw() + "}' in message '" + state + "'");
+                    } else if (this.failMode == FailMode.FAIL_SAFE) {
+                        result = "<null:" + expr.getRaw() + ">";
+                    } else {
+                        throw new RuntimeException("unknown fail mode: " + this.failMode);
+                    }
+                }
+
+                // Create synthetic MessageField for the key to maintain API compatibility
+                MessageField syntheticField = MessageField.of(locale, expr.getRaw());
+                rendered.put(syntheticField, result);
+            }
+        }
+
+        // Also handle legacy MessageField parts
+        Map<MessageField, ResolvedField> resolved = this.resolveFieldsInternal(message);
 
         for (Map.Entry<MessageField, ResolvedField> entry : resolved.entrySet()) {
             MessageField originalField = entry.getKey();
@@ -151,8 +179,42 @@ public class PlaceholderContext {
         }
 
         String state = message.getRaw();
-        Map<MessageField, ResolvedField> resolved = this.resolveFieldsInternal(message);
         Map<String, Object> rendered = new LinkedHashMap<>();
+        PlaceholdersEvaluator evaluator = createEvaluator(message);
+
+        // Handle AST-based ExpressionPart parts
+        for (MessageElement part : message.getParts()) {
+            if (part instanceof ExpressionPart) {
+                ExpressionPart expr = (ExpressionPart) part;
+
+                Object result = evaluator.evaluate(expr.getAst());
+
+                // Build the full raw key (including default if present)
+                // Use originalRaw for backward compatibility with tests that look up by original expression
+                String baseRaw = expr.getOriginalRaw() != null ? expr.getOriginalRaw() : expr.getRaw();
+                String fullRaw = expr.getDefaultValue() != null
+                    ? baseRaw + "|" + expr.getDefaultValue()
+                    : baseRaw;
+
+                // Handle null result
+                if (result == null) {
+                    if (expr.getDefaultValue() != null) {
+                        rendered.put(fullRaw, expr.getDefaultValue());
+                    } else if (this.failMode == FailMode.FAIL_FAST) {
+                        throw new IllegalArgumentException("resolved null for placeholder '{" + expr.getRaw() + "}' in message '" + state + "'");
+                    } else if (this.failMode == FailMode.FAIL_SAFE) {
+                        rendered.put(fullRaw, "<null:" + expr.getRaw() + ">");
+                    } else {
+                        throw new RuntimeException("unknown fail mode: " + this.failMode);
+                    }
+                } else {
+                    rendered.put(fullRaw, result);
+                }
+            }
+        }
+
+        // Also handle legacy MessageField parts
+        Map<MessageField, ResolvedField> resolved = this.resolveFieldsInternal(message);
 
         for (Map.Entry<MessageField, ResolvedField> entry : resolved.entrySet()) {
             MessageField originalField = entry.getKey();
@@ -265,5 +327,42 @@ public class PlaceholderContext {
 
     public String apply(@NonNull CompiledMessage message) {
         return StringMessageRenderer.INSTANCE.render(message, this);
+    }
+
+    /**
+     * Builds a values map from the context fields for AST evaluation.
+     */
+    private Map<String, Object> buildValuesMap() {
+        Map<String, Object> values = new HashMap<>();
+        for (Map.Entry<String, Placeholder> entry : this.fields.entrySet()) {
+            values.put(entry.getKey(), entry.getValue().getValue());
+        }
+        return values;
+    }
+
+    /**
+     * Creates an evaluator for the given message.
+     * <p>
+     * This is the shared entry point for AST-based expression evaluation.
+     * Used by both internal render methods and external renderers like {@link StringMessageRenderer}.
+     *
+     * @param message The compiled message (used for locale)
+     * @return A configured evaluator ready to evaluate AST nodes
+     */
+    public PlaceholdersEvaluator createEvaluator(@NonNull CompiledMessage message) {
+        Map<String, Object> values = buildValuesMap();
+        Locale locale = message.getLocale() != null ? message.getLocale() : Locale.ENGLISH;
+        return PlaceholdersEvaluator.of(values, this.placeholders, locale, this);
+    }
+
+    /**
+     * Returns a map of field names to their raw values.
+     * <p>
+     * This is useful for checking if a field exists in the context.
+     *
+     * @return Unmodifiable map of field names to values
+     */
+    public Map<String, Object> getValues() {
+        return Collections.unmodifiableMap(buildValuesMap());
     }
 }

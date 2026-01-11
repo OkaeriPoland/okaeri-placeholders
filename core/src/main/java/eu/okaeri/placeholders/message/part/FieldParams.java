@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.util.Locale;
 
 @Data
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class FieldParams {
 
     private final String field;

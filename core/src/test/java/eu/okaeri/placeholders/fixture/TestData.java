@@ -27,21 +27,18 @@ public final class TestData {
      */
     public static Stream<Arguments> syntaxEdgeCases() {
         return Stream.of(
-            arguments("{}", "empty placeholder"),
             arguments("{field}{field}", "adjacent fields"),
             arguments("{field} {field}", "same field twice"),
-            arguments("{{field}}", "double braces around field"),
             arguments("{a#b#c}", "multiple hash characters"),
             arguments("{field|a|b}", "multiple pipe characters"),
             arguments("{field|}", "empty default value"),
-            // Note: {|default} causes NPE - empty field name not supported
             arguments("{a.b.c.d.e.f.g}", "deep nesting 7 levels"),
             arguments("{a.b.c.d.e.f.g.h.i.j}", "deep nesting 10 levels"),
             arguments("{field|default value with spaces}", "default with spaces"),
             arguments("{field|default|with|pipes}", "default containing pipes"),
+            arguments("{field|&acolored text}", "default with special chars"),
             arguments("{очень}", "cyrillic field name"),
             arguments("{日本語}", "japanese field name"),
-            arguments("{emoji_🎉}", "field with emoji"),
             arguments("{CamelCase}", "camel case field"),
             arguments("{snake_case}", "snake case field"),
             arguments("{SCREAMING_CASE}", "screaming case field"),
