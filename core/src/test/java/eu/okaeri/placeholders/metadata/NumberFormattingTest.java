@@ -195,6 +195,26 @@ class NumberFormattingTest {
 
             assertThat(result).isEqualTo("1,234,567.89");
         }
+
+        @Test
+        void shouldGroupThousandsWithFormatFunction(Placeholders placeholders) {
+            var message = CompiledMessage.of(Locale.US, "{value.format(\"%,.0f\")}");
+            var result = placeholders.context(message)
+                .with("value", 1234567)
+                .apply();
+
+            assertThat(result).isEqualTo("1,234,567");
+        }
+
+        @Test
+        void shouldGroupThousandsWithDecimalsUsingFormatFunction(Placeholders placeholders) {
+            var message = CompiledMessage.of(Locale.US, "{value.format(\"%,.2f\")}");
+            var result = placeholders.context(message)
+                .with("value", 1234567.89)
+                .apply();
+
+            assertThat(result).isEqualTo("1,234,567.89");
+        }
     }
 
     @Nested
