@@ -1,6 +1,7 @@
 package eu.okaeri.placeholders.metadata;
 
 import eu.okaeri.placeholders.Placeholders;
+import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.fixture.PlaceholdersExtension;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -282,6 +283,47 @@ class BooleanTranslationTest {
                 .apply();
 
             assertThat(result).isEqualTo("A: yes, B: no");
+        }
+    }
+
+    /**
+     * Regression coverage for the convenience factory path that goes through
+     * {@link PlaceholderContext#of(CompiledMessage)} without a configured
+     * Placeholders registry. This is the path used by {@code Message.of(locale, raw)}
+     * in okaeri-i18n and by TemplateItem in okaeri-platform-bukkit. Before the fix,
+     * the legacy {a,b#flag} syntax compiled to a method call that had no resolver
+     * to dispatch against and rendered the literal string "null".
+     */
+    @Nested
+    @DisplayName("Without explicit Placeholders registry")
+    class WithoutExplicitRegistry {
+
+        @Test
+        void shouldTranslateTrueViaConvenienceFactory() {
+            var result = PlaceholderContext.of(CompiledMessage.of("{yes,no#status}"))
+                .with("status", true)
+                .apply();
+
+            assertThat(result).isEqualTo("yes");
+        }
+
+        @Test
+        void shouldTranslateFalseViaConvenienceFactory() {
+            var result = PlaceholderContext.of(CompiledMessage.of("{yes,no#status}"))
+                .with("status", false)
+                .apply();
+
+            assertThat(result).isEqualTo("no");
+        }
+
+        @Test
+        void shouldNotRenderLiteralNullViaConvenienceFactory() {
+            var result = PlaceholderContext.of(CompiledMessage.of("Active: {Tak,Nie#flag}"))
+                .with("flag", true)
+                .apply();
+
+            assertThat(result).isEqualTo("Active: Tak");
+            assertThat(result).doesNotContain("null");
         }
     }
 }

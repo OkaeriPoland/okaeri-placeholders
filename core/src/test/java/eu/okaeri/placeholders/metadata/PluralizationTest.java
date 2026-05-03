@@ -1,6 +1,7 @@
 package eu.okaeri.placeholders.metadata;
 
 import eu.okaeri.placeholders.Placeholders;
+import eu.okaeri.placeholders.context.PlaceholderContext;
 import eu.okaeri.placeholders.fixture.PlaceholdersExtension;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -380,6 +381,47 @@ class PluralizationTest {
                 .apply();
 
             assertThat(result).isEqualTo("I have 3 apples.");
+        }
+    }
+
+    /**
+     * Regression coverage for the convenience factory path
+     * ({@link PlaceholderContext#of(CompiledMessage)}, no Placeholders argument).
+     * Same path used by {@code Message.of(locale, raw)} in okaeri-i18n. Before the
+     * fix, the legacy {a,b#count} pluralization syntax rendered the literal "null"
+     * because the compiled {@code count._meta(...)} call had no resolver registry
+     * to dispatch against.
+     */
+    @Nested
+    @DisplayName("Without explicit Placeholders registry")
+    class WithoutExplicitRegistry {
+
+        @Test
+        void shouldUseSingularForOneViaConvenienceFactory() {
+            var result = PlaceholderContext.of(CompiledMessage.of(Locale.ENGLISH, "{apple,apples#count}"))
+                .with("count", 1)
+                .apply();
+
+            assertThat(result).isEqualTo("apple");
+        }
+
+        @Test
+        void shouldUsePluralForManyViaConvenienceFactory() {
+            var result = PlaceholderContext.of(CompiledMessage.of(Locale.ENGLISH, "{apple,apples#count}"))
+                .with("count", 5)
+                .apply();
+
+            assertThat(result).isEqualTo("apples");
+        }
+
+        @Test
+        void shouldNotRenderLiteralNullViaConvenienceFactory() {
+            var result = PlaceholderContext.of(CompiledMessage.of(Locale.ENGLISH, "I have {count} {apple,apples#count}."))
+                .with("count", 3)
+                .apply();
+
+            assertThat(result).isEqualTo("I have 3 apples.");
+            assertThat(result).doesNotContain("null");
         }
     }
 }

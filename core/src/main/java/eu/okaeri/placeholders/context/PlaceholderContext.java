@@ -63,6 +63,14 @@ import java.util.Map;
 @Data
 public class PlaceholderContext {
 
+    /**
+     * Default registry used internally when no Placeholders is configured on the context.
+     * Private and never exposed - callers cannot mutate it. Holds the standard packs so
+     * legacy method-call syntax (e.g. {yes,no#flag} compiled to flag._meta("yes","no"))
+     * resolves without forcing every caller to wire up a registry.
+     */
+    private static final Placeholders DEFAULT_PLACEHOLDERS = Placeholders.create();
+
     private final Map<String, FieldValue> fields = new LinkedHashMap<>();
     private final CompiledMessage message;
     private final FailMode failMode;
@@ -356,7 +364,8 @@ public class PlaceholderContext {
     public ExpressionEvaluator createEvaluator(@NonNull CompiledMessage message) {
         Map<String, Object> values = this.buildValuesMap();
         Locale locale = (message.getLocale() != null) ? message.getLocale() : Locale.ENGLISH;
-        return ExpressionEvaluator.of(values, this.placeholders, locale, this);
+        Placeholders effective = (this.placeholders != null) ? this.placeholders : DEFAULT_PLACEHOLDERS;
+        return ExpressionEvaluator.of(values, effective, locale, this);
     }
 
     /**
