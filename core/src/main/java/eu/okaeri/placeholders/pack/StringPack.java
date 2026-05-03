@@ -24,6 +24,7 @@ import java.util.Locale;
  *   <li>{@code padStart(length, fill)} / {@code padEnd(length, fill)} - pad to width</li>
  *   <li>{@code truncate(maxLength, ellipsis)} - shorten with omission marker</li>
  *   <li>{@code reverse} - reverse character order</li>
+ *   <li>{@code removePrefix(prefix)} / {@code removeSuffix(suffix)} - strip if present</li>
  * </ul>
  */
 public class StringPack implements PlaceholderPack {
@@ -93,7 +94,17 @@ public class StringPack implements PlaceholderPack {
             })
 
             // Reverse character order (StringBuilder handles surrogate pairs)
-            .add("reverse", str -> new StringBuilder(str).reverse().toString());
+            .add("reverse", str -> new StringBuilder(str).reverse().toString())
+
+            // Strip a prefix/suffix only when actually present (unlike replace, which is global)
+            .add("removePrefix", (str, p) -> {
+                String prefix = p.arg(0).orElse("");
+                return str.startsWith(prefix) ? str.substring(prefix.length()) : str;
+            })
+            .add("removeSuffix", (str, p) -> {
+                String suffix = p.arg(0).orElse("");
+                return str.endsWith(suffix) ? str.substring(0, str.length() - suffix.length()) : str;
+            });
     }
 
     private static String pad(String str, int targetLength, String padString, boolean atEnd) {

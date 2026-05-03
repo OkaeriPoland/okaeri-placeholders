@@ -614,4 +614,54 @@ class StringPlaceholdersTest {
             assertThat(result).isEqualTo("dc😀ba");
         }
     }
+
+    @Nested
+    @DisplayName("removePrefix / removeSuffix")
+    class RemoveAffix {
+
+        @Test
+        void removePrefixShouldStripWhenPresent(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.removePrefix(\"Mr. \")}"))
+                .with("s", "Mr. Smith")
+                .apply();
+
+            assertThat(result).isEqualTo("Smith");
+        }
+
+        @Test
+        void removePrefixShouldPassThroughWhenAbsent(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.removePrefix(\"Mr. \")}"))
+                .with("s", "Smith")
+                .apply();
+
+            assertThat(result).isEqualTo("Smith");
+        }
+
+        @Test
+        void removeSuffixShouldStripWhenPresent(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.removeSuffix(\".txt\")}"))
+                .with("s", "report.txt")
+                .apply();
+
+            assertThat(result).isEqualTo("report");
+        }
+
+        @Test
+        void removeSuffixShouldPassThroughWhenAbsent(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.removeSuffix(\".txt\")}"))
+                .with("s", "report")
+                .apply();
+
+            assertThat(result).isEqualTo("report");
+        }
+
+        @Test
+        void shouldComposeToStripWrapper(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.removePrefix(\"<\").removeSuffix(\">\")}"))
+                .with("s", "<value>")
+                .apply();
+
+            assertThat(result).isEqualTo("value");
+        }
+    }
 }
