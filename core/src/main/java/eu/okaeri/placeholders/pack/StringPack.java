@@ -22,6 +22,7 @@ import java.util.Locale;
  *   <li>{@code startsWith(prefix)} / {@code endsWith(suffix)} - prefix/suffix check</li>
  *   <li>{@code repeat(count)} - repeat string N times</li>
  *   <li>{@code padStart(length, fill)} / {@code padEnd(length, fill)} - pad to width</li>
+ *   <li>{@code truncate(maxLength, ellipsis)} - shorten with omission marker</li>
  * </ul>
  */
 public class StringPack implements PlaceholderPack {
@@ -78,7 +79,17 @@ public class StringPack implements PlaceholderPack {
 
             // Padding (JS-style padStart / padEnd)
             .add("padStart", (str, p) -> pad(str, p.arg(0).asInt(0), p.arg(1).orElse(" "), false))
-            .add("padEnd", (str, p) -> pad(str, p.arg(0).asInt(0), p.arg(1).orElse(" "), true));
+            .add("padEnd", (str, p) -> pad(str, p.arg(0).asInt(0), p.arg(1).orElse(" "), true))
+
+            // Truncate with ellipsis (output length <= maxLength, including ellipsis)
+            .add("truncate", (str, p) -> {
+                int maxLength = p.arg(0).asInt(0);
+                String ellipsis = p.arg(1).orElse("...");
+                if (maxLength <= 0) return "";
+                if (str.length() <= maxLength) return str;
+                if (ellipsis.length() >= maxLength) return ellipsis.substring(0, maxLength);
+                return str.substring(0, maxLength - ellipsis.length()) + ellipsis;
+            });
     }
 
     private static String pad(String str, int targetLength, String padString, boolean atEnd) {

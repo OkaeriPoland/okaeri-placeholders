@@ -114,6 +114,7 @@ Utility: {name.trim()}, {name.length()}, {name.isEmpty()}, {name.isBlank()}
 Modify: {name.replace("a","b")}, {name.prepend("Hi ")}, {name.append("!")}
 Extract: {name.substring(0,5)}, {name.repeat(3)}
 Pad: {score.padStart(6,"0")}, {label.padEnd(20)}
+Truncate: {description.truncate(40)}, {title.truncate(16,"…")}
 Check: {name.contains("test")}, {name.startsWith("Mr")}, {name.endsWith("Jr")}
 
 # practical example: 3-level health bar with colors

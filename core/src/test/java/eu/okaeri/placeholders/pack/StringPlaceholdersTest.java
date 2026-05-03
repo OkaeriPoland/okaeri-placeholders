@@ -476,4 +476,109 @@ class StringPlaceholdersTest {
             assertThat(result).isEqualTo("0000AB");
         }
     }
+
+    @Nested
+    @DisplayName("truncate")
+    class Truncate {
+
+        @Test
+        void shouldDefaultToTripleDotEllipsis(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.truncate(10)}"))
+                .with("s", "hello world this is long")
+                .apply();
+
+            assertThat(result).isEqualTo("hello w...");
+        }
+
+        @Test
+        void shouldRespectCustomEllipsis(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.truncate(10,\"…\")}"))
+                .with("s", "hello world this is long")
+                .apply();
+
+            assertThat(result).isEqualTo("hello wor…");
+        }
+
+        @Test
+        void shouldKeepOutputAtMostMaxLengthIncludingEllipsis(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.truncate(8)}"))
+                .with("s", "abcdefghijklmnop")
+                .apply();
+
+            assertThat(result).isEqualTo("abcde...");
+            assertThat(result.length()).isEqualTo(8);
+        }
+
+        @Test
+        void shouldReturnAsIsWhenShorterThanMax(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.truncate(20)}"))
+                .with("s", "short")
+                .apply();
+
+            assertThat(result).isEqualTo("short");
+        }
+
+        @Test
+        void shouldReturnAsIsWhenExactlyMaxLength(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.truncate(5)}"))
+                .with("s", "abcde")
+                .apply();
+
+            assertThat(result).isEqualTo("abcde");
+        }
+
+        @Test
+        void shouldReturnEmptyWhenMaxLengthZero(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("[{s.truncate(0)}]"))
+                .with("s", "anything")
+                .apply();
+
+            assertThat(result).isEqualTo("[]");
+        }
+
+        @Test
+        void shouldReturnEmptyWhenMaxLengthNegative(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("[{s.truncate(-3)}]"))
+                .with("s", "anything")
+                .apply();
+
+            assertThat(result).isEqualTo("[]");
+        }
+
+        @Test
+        void shouldTruncateEllipsisItselfWhenLongerThanMax(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.truncate(2,\"...\")}"))
+                .with("s", "anything")
+                .apply();
+
+            assertThat(result).isEqualTo("..");
+        }
+
+        @Test
+        void shouldUseEmptyEllipsisAsHardCut(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.truncate(5,\"\")}"))
+                .with("s", "abcdefghij")
+                .apply();
+
+            assertThat(result).isEqualTo("abcde");
+        }
+
+        @Test
+        void shouldHandleEmptyInput(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("[{s.truncate(10)}]"))
+                .with("s", "")
+                .apply();
+
+            assertThat(result).isEqualTo("[]");
+        }
+
+        @Test
+        void shouldComposeWithOtherStringMethods(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.toUpperCase.truncate(8,\"…\")}"))
+                .with("s", "hello world")
+                .apply();
+
+            assertThat(result).isEqualTo("HELLO W…");
+        }
+    }
 }
