@@ -10,28 +10,30 @@ public class InventoryPack implements PlaceholderPack {
 
     @Override
     public void register(Registry r) {
+        // wrapped in explicit lambdas so removed methods (e.g. Inventory.getName/getTitle)
+        // don't trigger eager LambdaMetafactory resolution at registration time
         r.type(Inventory.class)
-            .add("name", Inventory::getName)
-            .add("size", Inventory::getSize)
-            .add("title", Inventory::getTitle)
-            .add("type", Inventory::getType)
-            .self(Inventory::getName);
+            .add("name", (inv, p, c) -> inv.getName())
+            .add("size", (inv, p, c) -> inv.getSize())
+            .add("title", (inv, p, c) -> inv.getTitle())
+            .add("type", (inv, p, c) -> inv.getType())
+            .self((inv, p, c) -> inv.getName());
 
         r.type(InventoryView.class)
-            .add("bottomInventory", InventoryView::getBottomInventory)
-            .add("cursor", InventoryView::getCursor)
-            .add("player", InventoryView::getPlayer)
-            .add("title", InventoryView::getTitle)
-            .add("topInventory", InventoryView::getTopInventory)
-            .add("type", InventoryView::getType);
+            .add("bottomInventory", (v, p, c) -> v.getBottomInventory())
+            .add("cursor", (v, p, c) -> v.getCursor())
+            .add("player", (v, p, c) -> v.getPlayer())
+            .add("title", (v, p, c) -> v.getTitle())
+            .add("topInventory", (v, p, c) -> v.getTopInventory())
+            .add("type", (v, p, c) -> v.getType());
 
         r.type(PlayerInventory.class)
-            .add("boots", PlayerInventory::getBoots)
-            .add("chestplate", PlayerInventory::getChestplate)
-            .add("heldItemSlot", PlayerInventory::getHeldItemSlot)
-            .add("helmet", PlayerInventory::getHelmet)
-            .add("holder", PlayerInventory::getHolder)
-            .add("itemInHand", PlayerInventory::getItemInHand)
-            .add("leggings", PlayerInventory::getLeggings);
+            .add("boots", (i, p, c) -> i.getBoots())
+            .add("chestplate", (i, p, c) -> i.getChestplate())
+            .add("heldItemSlot", (i, p, c) -> i.getHeldItemSlot())
+            .add("helmet", (i, p, c) -> i.getHelmet())
+            .add("holder", (i, p, c) -> i.getHolder())
+            .add("itemInHand", (i, p, c) -> i.getItemInHand())
+            .add("leggings", (i, p, c) -> i.getLeggings());
     }
 }
