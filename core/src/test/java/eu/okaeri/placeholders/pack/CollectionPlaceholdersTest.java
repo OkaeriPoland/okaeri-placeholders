@@ -279,4 +279,123 @@ class CollectionPlaceholdersTest {
             assertThat(result).isEqualTo("b=c");
         }
     }
+
+    @Nested
+    @DisplayName("join(sep) - full-include string join")
+    class Join {
+
+        @Test
+        void shouldJoinElementsWithSeparator(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.join(\", \")}"))
+                .with("items", List.of("alpha", "beta", "gamma"))
+                .apply();
+
+            assertThat(result).isEqualTo("alpha, beta, gamma");
+        }
+
+        @Test
+        void shouldIncludeEmptyStringElements(Placeholders placeholders) {
+            // unlike global $.join which skips empties
+            var result = placeholders.context(CompiledMessage.of("[{items.join(\"|\")}]"))
+                .with("items", List.of("a", "", "b"))
+                .apply();
+
+            assertThat(result).isEqualTo("[a||b]");
+        }
+
+        @Test
+        void shouldRenderEmptyForEmptyCollection(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("[{items.join(\",\")}]"))
+                .with("items", List.of())
+                .apply();
+
+            assertThat(result).isEqualTo("[]");
+        }
+
+        @Test
+        void shouldStringifyNumericElements(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.join(\"-\")}"))
+                .with("items", List.of(1, 2, 3))
+                .apply();
+
+            assertThat(result).isEqualTo("1-2-3");
+        }
+
+        @Test
+        void shouldComposeAfterTransformation(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.sortDesc.take(3).join(\", \")}"))
+                .with("items", List.of(5, 1, 9, 3, 7, 2))
+                .apply();
+
+            assertThat(result).isEqualTo("9, 7, 5");
+        }
+    }
+
+    @Nested
+    @DisplayName("Numeric aggregations: sum, avg, min, max")
+    class Aggregations {
+
+        @Test
+        void sumShouldAddAllNumericElements(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.sum}"))
+                .with("items", List.of(1, 2, 3, 4, 5))
+                .apply();
+
+            assertThat(result).isEqualTo("15");
+        }
+
+        @Test
+        void avgShouldComputeMean(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.avg}"))
+                .with("items", List.of(10, 20, 30))
+                .apply();
+
+            assertThat(result).isEqualTo("20");
+        }
+
+        @Test
+        void minShouldReturnSmallest(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.min}"))
+                .with("items", List.of(5, 1, 9, 3, 7))
+                .apply();
+
+            assertThat(result).isEqualTo("1");
+        }
+
+        @Test
+        void maxShouldReturnLargest(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.max}"))
+                .with("items", List.of(5, 1, 9, 3, 7))
+                .apply();
+
+            assertThat(result).isEqualTo("9");
+        }
+
+        @Test
+        void aggregationsShouldSkipNonNumericElements(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.sum}"))
+                .with("items", List.of(10, "ignored", 5, "also ignored", 3))
+                .apply();
+
+            assertThat(result).isEqualTo("18");
+        }
+
+        @Test
+        void aggregationsShouldReturnNullForNoNumericElements(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("[{items.avg}]"))
+                .with("items", List.of("a", "b", "c"))
+                .apply();
+
+            assertThat(result).isEqualTo("[null]");
+        }
+
+        @Test
+        void avgShouldHandleFractionalResult(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{items.avg.format(\"%.2f\")}"))
+                .with("items", List.of(1, 2, 4))
+                .apply();
+
+            assertThat(result).isEqualTo("2.33");
+        }
+    }
 }

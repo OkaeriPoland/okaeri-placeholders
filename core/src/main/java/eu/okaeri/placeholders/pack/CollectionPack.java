@@ -18,6 +18,8 @@ import java.util.List;
  *   <li>Basics: {@code size} / {@code length}, {@code isEmpty}, {@code first}, {@code last}, {@code get(index)}, {@code contains(item)}</li>
  *   <li>Ordering: {@code reverse}, {@code sort}, {@code sortDesc}, {@code distinct}</li>
  *   <li>Slicing: {@code take(n)}, {@code drop(n)}</li>
+ *   <li>Joining: {@code join(sep)} - full-include (use {@code $.join(sep, ...)} global for skip-empty)</li>
+ *   <li>Numeric aggregations: {@code sum}, {@code avg}, {@code min}, {@code max} - skip non-numeric elements</li>
  * </ul>
  * <p>
  * {@code sort} / {@code sortDesc} require elements to be {@link Comparable}; mixed-type
@@ -91,7 +93,71 @@ public class CollectionPack implements PlaceholderPack {
                 for (int i = 0; i < n; i++) it.next();
                 while (it.hasNext()) out.add(it.next());
                 return out;
+            })
+
+            .add("join", (c, p) -> {
+                String sep = p.arg(0).orElse("");
+                StringBuilder sb = new StringBuilder();
+                boolean first = true;
+                for (Object item : c) {
+                    if (!first) sb.append(sep);
+                    sb.append(item);
+                    first = false;
+                }
+                return sb.toString();
+            })
+
+            .add("sum", c -> {
+                Double sum = null;
+                for (Object item : c) {
+                    if (item instanceof Number) {
+                        double d = ((Number) item).doubleValue();
+                        sum = (sum == null) ? d : (sum + d);
+                    }
+                }
+                return (sum != null) ? asIntIfWhole(sum) : null;
+            })
+
+            .add("avg", c -> {
+                double sum = 0;
+                int count = 0;
+                for (Object item : c) {
+                    if (item instanceof Number) {
+                        sum += ((Number) item).doubleValue();
+                        count++;
+                    }
+                }
+                return (count > 0) ? asIntIfWhole(sum / count) : null;
+            })
+
+            .add("min", c -> {
+                Double min = null;
+                for (Object item : c) {
+                    if (item instanceof Number) {
+                        double d = ((Number) item).doubleValue();
+                        if ((min == null) || (d < min)) min = d;
+                    }
+                }
+                return (min != null) ? asIntIfWhole(min) : null;
+            })
+
+            .add("max", c -> {
+                Double max = null;
+                for (Object item : c) {
+                    if (item instanceof Number) {
+                        double d = ((Number) item).doubleValue();
+                        if ((max == null) || (d > max)) max = d;
+                    }
+                }
+                return (max != null) ? asIntIfWhole(max) : null;
             });
+    }
+
+    private static Number asIntIfWhole(double value) {
+        if ((value == Math.floor(value)) && !Double.isInfinite(value)) {
+            return (long) value;
+        }
+        return value;
     }
 
     private static Object lastOf(Collection<?> c) {
