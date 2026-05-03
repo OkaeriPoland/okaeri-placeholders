@@ -26,6 +26,7 @@ import java.util.Locale;
  *   <li>{@code reverse} - reverse character order</li>
  *   <li>{@code removePrefix(prefix)} / {@code removeSuffix(suffix)} - strip if present</li>
  *   <li>{@code count(sub)} - non-overlapping occurrence count</li>
+ *   <li>{@code indexOf(sub)} / {@code lastIndexOf(sub)} - position of substring (-1 if absent)</li>
  * </ul>
  */
 public class StringPack implements PlaceholderPack {
@@ -118,7 +119,11 @@ public class StringPack implements PlaceholderPack {
                     idx += search.length();
                 }
                 return count;
-            });
+            })
+
+            // Substring position (-1 when absent), JDK indexOf semantics
+            .add("indexOf", (str, p) -> str.indexOf(p.arg(0).orElse("")))
+            .add("lastIndexOf", (str, p) -> str.lastIndexOf(p.arg(0).orElse("")));
     }
 
     private static String pad(String str, int targetLength, String padString, boolean atEnd) {

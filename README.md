@@ -122,6 +122,7 @@ Truncate: {description.truncate(40)}, {title.truncate(16,"…")}
 Reverse: {name.reverse}
 Strip: {name.removePrefix("Mr. ")}, {file.removeSuffix(".txt")}
 Count: {text.count(",")}
+Position: {path.indexOf("/")}, {path.lastIndexOf(".")}
 Check: {name.contains("test")}, {name.startsWith("Mr")}, {name.endsWith("Jr")}
 
 # practical example: 3-level health bar with colors

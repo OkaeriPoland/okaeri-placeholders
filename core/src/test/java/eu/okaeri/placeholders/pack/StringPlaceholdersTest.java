@@ -706,4 +706,54 @@ class StringPlaceholdersTest {
             assertThat(result).isEqualTo("0");
         }
     }
+
+    @Nested
+    @DisplayName("indexOf / lastIndexOf")
+    class IndexOf {
+
+        @Test
+        void indexOfShouldReturnFirstPosition(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.indexOf(\"l\")}"))
+                .with("s", "hello world")
+                .apply();
+
+            assertThat(result).isEqualTo("2");
+        }
+
+        @Test
+        void indexOfShouldReturnMinusOneWhenNotFound(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.indexOf(\"z\")}"))
+                .with("s", "hello world")
+                .apply();
+
+            assertThat(result).isEqualTo("-1");
+        }
+
+        @Test
+        void lastIndexOfShouldReturnLastPosition(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.lastIndexOf(\"l\")}"))
+                .with("s", "hello world")
+                .apply();
+
+            assertThat(result).isEqualTo("9");
+        }
+
+        @Test
+        void lastIndexOfShouldReturnMinusOneWhenNotFound(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.lastIndexOf(\"z\")}"))
+                .with("s", "hello world")
+                .apply();
+
+            assertThat(result).isEqualTo("-1");
+        }
+
+        @Test
+        void shouldComposeWithSubstringToSplitAtSeparator(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.substring(0,s.indexOf(\":\"))}"))
+                .with("s", "key:value")
+                .apply();
+
+            assertThat(result).isEqualTo("key");
+        }
+    }
 }
