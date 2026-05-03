@@ -97,6 +97,8 @@ Random number: {random(1,100)}
 Concatenation: {concat("Hello ",name,"!")}
 Join non-empty: {join(", ",first,middle,last)}
 Numeric min/max: {min(a,b,c)}, {max(a,b,c)}
+Sum/avg: {sum(a,b,c)}, {avg(a,b,c)}
+Median/percentile: {median(a,b,c,d,e)}, {percentile(95,a,b,c,d,e)}
 Clamp to range: {clamp(health,0,100)}
 Length/size: {len(items)}, {len(name)}
 Default value: {default(name,"Anonymous")}

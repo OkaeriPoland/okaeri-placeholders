@@ -477,6 +477,259 @@ class GlobalFunctionsTest {
     }
 
     @Nested
+    @DisplayName("$.sum() / $.avg() - aggregations over numeric args")
+    class SumAvgFunctions {
+
+        @Test
+        void sumShouldAddIntegers(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.sum(a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 1)
+                .with("b", 2)
+                .with("c", 3)
+                .apply();
+
+            assertThat(result).isEqualTo("6");
+        }
+
+        @Test
+        void sumShouldAddMixedIntAndDouble(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.sum(a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 1)
+                .with("b", 2.5)
+                .with("c", 0.5)
+                .apply();
+
+            assertThat(result).isEqualTo("4");
+        }
+
+        @Test
+        void sumShouldSkipNonNumericArgs(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.sum(a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 10)
+                .with("b", "not a number")
+                .with("c", 5)
+                .apply();
+
+            assertThat(result).isEqualTo("15");
+        }
+
+        @Test
+        void sumShouldReturnNullWhenNoNumericArgs(Placeholders placeholders) {
+            var message = CompiledMessage.of("[{$.sum(a,b)}]");
+            var result = placeholders.context(message)
+                .with("a", "x")
+                .with("b", "y")
+                .apply();
+
+            assertThat(result).isEqualTo("[null]");
+        }
+
+        @Test
+        void avgShouldComputeMean(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.avg(a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 10)
+                .with("b", 20)
+                .with("c", 30)
+                .apply();
+
+            assertThat(result).isEqualTo("20");
+        }
+
+        @Test
+        void avgShouldReturnFractionalWhenNotEvenlyDivisible(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.avg(a,b,c).format(\"%.2f\")}");
+            var result = placeholders.context(message)
+                .with("a", 1)
+                .with("b", 2)
+                .with("c", 4)
+                .apply();
+
+            assertThat(result).isEqualTo("2.33");
+        }
+
+        @Test
+        void avgShouldSkipNonNumericArgs(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.avg(a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 10)
+                .with("b", null)
+                .with("c", 30)
+                .apply();
+
+            assertThat(result).isEqualTo("20");
+        }
+
+        @Test
+        void avgShouldReturnNullWhenNoNumericArgs(Placeholders placeholders) {
+            var message = CompiledMessage.of("[{$.avg(a)}]");
+            var result = placeholders.context(message)
+                .with("a", "not numeric")
+                .apply();
+
+            assertThat(result).isEqualTo("[null]");
+        }
+    }
+
+    @Nested
+    @DisplayName("$.median() / $.percentile() - order statistics")
+    class MedianPercentileFunctions {
+
+        @Test
+        void medianShouldPickMiddleValueForOddCount(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.median(a,b,c,d,e)}");
+            var result = placeholders.context(message)
+                .with("a", 5)
+                .with("b", 1)
+                .with("c", 9)
+                .with("d", 3)
+                .with("e", 7)
+                .apply();
+
+            assertThat(result).isEqualTo("5");
+        }
+
+        @Test
+        void medianShouldAverageTwoMiddleForEvenCount(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.median(a,b,c,d).format(\"%.1f\")}");
+            var result = placeholders.context(message)
+                .with("a", 1)
+                .with("b", 2)
+                .with("c", 3)
+                .with("d", 4)
+                .apply();
+
+            assertThat(result).isEqualTo("2.5");
+        }
+
+        @Test
+        void medianShouldHandleSingleValue(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.median(a)}");
+            var result = placeholders.context(message)
+                .with("a", 42)
+                .apply();
+
+            assertThat(result).isEqualTo("42");
+        }
+
+        @Test
+        void medianShouldReturnNullWhenNoNumericArgs(Placeholders placeholders) {
+            var message = CompiledMessage.of("[{$.median(a)}]");
+            var result = placeholders.context(message)
+                .with("a", "x")
+                .apply();
+
+            assertThat(result).isEqualTo("[null]");
+        }
+
+        @Test
+        void medianShouldIgnoreInputOrder(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.median(a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 100)
+                .with("b", 1)
+                .with("c", 50)
+                .apply();
+
+            assertThat(result).isEqualTo("50");
+        }
+
+        @Test
+        void percentileAt0ShouldReturnMin(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.percentile(0,a,b,c,d,e)}");
+            var result = placeholders.context(message)
+                .with("a", 5).with("b", 1).with("c", 9).with("d", 3).with("e", 7)
+                .apply();
+
+            assertThat(result).isEqualTo("1");
+        }
+
+        @Test
+        void percentileAt100ShouldReturnMax(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.percentile(100,a,b,c,d,e)}");
+            var result = placeholders.context(message)
+                .with("a", 5).with("b", 1).with("c", 9).with("d", 3).with("e", 7)
+                .apply();
+
+            assertThat(result).isEqualTo("9");
+        }
+
+        @Test
+        void percentileAt50ShouldEqualMedian(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.percentile(50,a,b,c,d,e)}=={$.median(a,b,c,d,e)}");
+            var result = placeholders.context(message)
+                .with("a", 5).with("b", 1).with("c", 9).with("d", 3).with("e", 7)
+                .apply();
+
+            assertThat(result).isEqualTo("5==5");
+        }
+
+        @Test
+        void percentileShouldInterpolateBetweenValues(Placeholders placeholders) {
+            // For [1,2,3,4,5], p=25 -> rank = 0.25 * 4 = 1 -> exact value 2
+            var message = CompiledMessage.of("{$.percentile(25,a,b,c,d,e)}");
+            var result = placeholders.context(message)
+                .with("a", 1).with("b", 2).with("c", 3).with("d", 4).with("e", 5)
+                .apply();
+
+            assertThat(result).isEqualTo("2");
+        }
+
+        @Test
+        void percentileShouldInterpolateAtFractionalRank(Placeholders placeholders) {
+            // For [1,2,3,4,5], p=10 -> rank = 0.1 * 4 = 0.4 -> 1*(0.6) + 2*(0.4) = 1.4
+            var message = CompiledMessage.of("{$.percentile(10,a,b,c,d,e).format(\"%.1f\")}");
+            var result = placeholders.context(message)
+                .with("a", 1).with("b", 2).with("c", 3).with("d", 4).with("e", 5)
+                .apply();
+
+            assertThat(result).isEqualTo("1.4");
+        }
+
+        @Test
+        void percentileShouldClampBelowZeroToMin(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.percentile(-10,a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 5).with("b", 1).with("c", 9)
+                .apply();
+
+            assertThat(result).isEqualTo("1");
+        }
+
+        @Test
+        void percentileShouldClampAboveHundredToMax(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.percentile(150,a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 5).with("b", 1).with("c", 9)
+                .apply();
+
+            assertThat(result).isEqualTo("9");
+        }
+
+        @Test
+        void percentileShouldReturnNullWhenPercentArgIsNotNumeric(Placeholders placeholders) {
+            var message = CompiledMessage.of("[{$.percentile(p,a,b,c)}]");
+            var result = placeholders.context(message)
+                .with("p", "garbage")
+                .with("a", 1).with("b", 2).with("c", 3)
+                .apply();
+
+            assertThat(result).isEqualTo("[null]");
+        }
+
+        @Test
+        void percentileShouldReturnNullWhenNoValueArgs(Placeholders placeholders) {
+            var message = CompiledMessage.of("[{$.percentile(50)}]");
+            var result = placeholders.context(message).apply();
+
+            assertThat(result).isEqualTo("[null]");
+        }
+    }
+
+    @Nested
     @DisplayName("$.default() - Default value")
     class DefaultFunction {
 

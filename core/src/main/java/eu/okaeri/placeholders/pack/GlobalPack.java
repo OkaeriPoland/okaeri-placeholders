@@ -7,7 +7,10 @@ import eu.okaeri.placeholders.registry.Registry;
 
 import java.lang.reflect.Array;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,6 +26,9 @@ import java.util.Map;
  *   <li>{@code concat(a, b, ...)} - concatenation</li>
  *   <li>{@code join(sep, a, b, ...)} - join non-empty values with separator</li>
  *   <li>{@code min(a, b, ...)} / {@code max(a, b, ...)} - numeric min/max</li>
+ *   <li>{@code sum(a, b, ...)} / {@code avg(a, b, ...)} - numeric sum/average</li>
+ *   <li>{@code median(a, b, ...)} - numeric median (linear interpolation for even count)</li>
+ *   <li>{@code percentile(p, a, b, ...)} - p-th percentile of values (0-100)</li>
  *   <li>{@code clamp(value, min, max)} - clamp number to range</li>
  *   <li>{@code len(value)} - length/size of string, array, or collection</li>
  *   <li>{@code default(value, fallback)} - default value</li>
@@ -123,6 +129,43 @@ public class GlobalPack implements PlaceholderPack {
                 return (max != null) ? asIntIfWhole(max) : null;
             })
 
+            // Numeric sum
+            .add("sum", (p, ctx) -> {
+                Double sum = null;
+                for (int i = 0; i < p.length(); i++) {
+                    Object val = p.arg(i).resolve(ctx);
+                    if (val instanceof Number) {
+                        sum = (sum == null) ? ((Number) val).doubleValue() : (sum + ((Number) val).doubleValue());
+                    }
+                }
+                return (sum != null) ? asIntIfWhole(sum) : null;
+            })
+
+            // Numeric average
+            .add("avg", (p, ctx) -> {
+                double sum = 0;
+                int count = 0;
+                for (int i = 0; i < p.length(); i++) {
+                    Object val = p.arg(i).resolve(ctx);
+                    if (val instanceof Number) {
+                        sum += ((Number) val).doubleValue();
+                        count++;
+                    }
+                }
+                return (count > 0) ? asIntIfWhole(sum / count) : null;
+            })
+
+            // Median (linear interpolation between middle values for even counts)
+            .add("median", (p, ctx) -> percentileOf(collectNumbers(0, p, ctx), 50.0))
+
+            // p-th percentile via linear interpolation between bracketing values
+            .add("percentile", (p, ctx) -> {
+                if (p.length() < 2) return null;
+                double percent = p.arg(0).asDouble(Double.NaN);
+                if (Double.isNaN(percent)) return null;
+                return percentileOf(collectNumbers(1, p, ctx), percent);
+            })
+
             // Clamp value to range
             .add("clamp", (p, ctx) -> {
                 Object val = p.arg(0).resolve(ctx);
@@ -211,6 +254,31 @@ public class GlobalPack implements PlaceholderPack {
             return !s.isEmpty() && !"false".equalsIgnoreCase(s) && !"0".equals(s);
         }
         return true;
+    }
+
+    private static List<Double> collectNumbers(int from, Params p, PlaceholderContext ctx) {
+        List<Double> values = new ArrayList<>();
+        for (int i = from; i < p.length(); i++) {
+            double d = p.arg(i).asDouble(Double.NaN);
+            if (!Double.isNaN(d)) values.add(d);
+        }
+        Collections.sort(values);
+        return values;
+    }
+
+    private static Number percentileOf(List<Double> sorted, double percent) {
+        int n = sorted.size();
+        if (n == 0) return null;
+        if (n == 1) return asIntIfWhole(sorted.get(0));
+        if (percent <= 0) return asIntIfWhole(sorted.get(0));
+        if (percent >= 100) return asIntIfWhole(sorted.get(n - 1));
+
+        double rank = (percent / 100.0) * (n - 1);
+        int lower = (int) Math.floor(rank);
+        int upper = (int) Math.ceil(rank);
+        if (lower == upper) return asIntIfWhole(sorted.get(lower));
+        double weight = rank - lower;
+        return asIntIfWhole((sorted.get(lower) * (1 - weight)) + (sorted.get(upper) * weight));
     }
 
     private static Number asIntIfWhole(double value) {
