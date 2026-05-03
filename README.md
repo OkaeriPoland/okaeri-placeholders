@@ -125,6 +125,11 @@ Count: {text.count(",")}
 Position: {path.indexOf("/")}, {path.lastIndexOf(".")}
 Check: {name.contains("test")}, {name.startsWith("Mr")}, {name.endsWith("Jr")}
 
+# collection methods
+Basics: {items.size}, {items.isEmpty}, {items.first}, {items.last}, {items.get(0)}, {items.contains("foo")}
+Ordering: {items.reverse}, {items.sort}, {items.sortDesc}, {items.distinct}
+Slicing: {items.take(5)}, {items.drop(2)}
+
 # practical example: 3-level health bar with colors
 # health=75 → green (>66), health=50 → yellow (>33), health=20 → red
 Health: {cond(health.gt(66),"&a",health.gt(33),"&e","&c")}{health}% &7HP

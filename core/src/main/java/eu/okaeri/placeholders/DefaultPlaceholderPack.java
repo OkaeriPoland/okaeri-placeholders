@@ -16,6 +16,7 @@ import eu.okaeri.placeholders.registry.Registry;
  *   <li>{@link InstantPack} - Datetime formatting</li>
  *   <li>{@link DurationPack} - Duration formatting</li>
  *   <li>{@link MapPack} - Map operations</li>
+ *   <li>{@link CollectionPack} - Collection operations</li>
  *   <li>{@link GlobalPack} - Global functions (if, coalesce, etc.)</li>
  * </ul>
  * <p>
@@ -40,6 +41,7 @@ public class DefaultPlaceholderPack implements PlaceholderPack {
             new InstantPack(),
             new DurationPack(),
             new MapPack(),
+            new CollectionPack(),
             new GlobalPack()
         );
     }
