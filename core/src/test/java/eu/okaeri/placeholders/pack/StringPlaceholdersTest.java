@@ -372,4 +372,108 @@ class StringPlaceholdersTest {
             assertThat(result).isEqualTo("Cześć świecie");
         }
     }
+
+    @Nested
+    @DisplayName("padStart / padEnd")
+    class Padding {
+
+        @Test
+        void padStartShouldDefaultToSpace(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("[{s.padStart(8)}]"))
+                .with("s", "abc")
+                .apply();
+
+            assertThat(result).isEqualTo("[     abc]");
+        }
+
+        @Test
+        void padEndShouldDefaultToSpace(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("[{s.padEnd(8)}]"))
+                .with("s", "abc")
+                .apply();
+
+            assertThat(result).isEqualTo("[abc     ]");
+        }
+
+        @Test
+        void padStartShouldUseExplicitFillChar(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.padStart(6,\"0\")}"))
+                .with("s", "42")
+                .apply();
+
+            assertThat(result).isEqualTo("000042");
+        }
+
+        @Test
+        void padEndShouldUseExplicitFillChar(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.padEnd(6,\".\")}"))
+                .with("s", "abc")
+                .apply();
+
+            assertThat(result).isEqualTo("abc...");
+        }
+
+        @Test
+        void padStartShouldRepeatMultiCharFill(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.padStart(10,\"ab\")}"))
+                .with("s", "x")
+                .apply();
+
+            assertThat(result).isEqualTo("ababababax");
+        }
+
+        @Test
+        void padEndShouldTruncateMultiCharFillToFit(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.padEnd(7,\"abc\")}"))
+                .with("s", "x")
+                .apply();
+
+            assertThat(result).isEqualTo("xabcabc");
+        }
+
+        @Test
+        void padStartShouldReturnAsIsWhenAlreadyLongEnough(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.padStart(3,\"-\")}"))
+                .with("s", "longer")
+                .apply();
+
+            assertThat(result).isEqualTo("longer");
+        }
+
+        @Test
+        void padEndShouldReturnAsIsWhenExactLength(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.padEnd(3,\"-\")}"))
+                .with("s", "abc")
+                .apply();
+
+            assertThat(result).isEqualTo("abc");
+        }
+
+        @Test
+        void padStartShouldReturnAsIsWhenFillStringEmpty(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.padStart(10,\"\")}"))
+                .with("s", "abc")
+                .apply();
+
+            assertThat(result).isEqualTo("abc");
+        }
+
+        @Test
+        void padStartShouldHandleEmptyInput(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("[{s.padStart(4,\"-\")}]"))
+                .with("s", "")
+                .apply();
+
+            assertThat(result).isEqualTo("[----]");
+        }
+
+        @Test
+        void padStartShouldComposeWithOtherStringMethods(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.toUpperCase.padStart(6,\"0\")}"))
+                .with("s", "ab")
+                .apply();
+
+            assertThat(result).isEqualTo("0000AB");
+        }
+    }
 }

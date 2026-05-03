@@ -21,6 +21,7 @@ import java.util.Locale;
  *   <li>{@code contains(search)} - check if contains substring</li>
  *   <li>{@code startsWith(prefix)} / {@code endsWith(suffix)} - prefix/suffix check</li>
  *   <li>{@code repeat(count)} - repeat string N times</li>
+ *   <li>{@code padStart(length, fill)} / {@code padEnd(length, fill)} - pad to width</li>
  * </ul>
  */
 public class StringPack implements PlaceholderPack {
@@ -73,7 +74,24 @@ public class StringPack implements PlaceholderPack {
                 StringBuilder sb = new StringBuilder(str.length() * count);
                 for (int i = 0; i < count; i++) sb.append(str);
                 return sb.toString();
-            });
+            })
+
+            // Padding (JS-style padStart / padEnd)
+            .add("padStart", (str, p) -> pad(str, p.arg(0).asInt(0), p.arg(1).orElse(" "), false))
+            .add("padEnd", (str, p) -> pad(str, p.arg(0).asInt(0), p.arg(1).orElse(" "), true));
+    }
+
+    private static String pad(String str, int targetLength, String padString, boolean atEnd) {
+        if (padString.isEmpty() || (str.length() >= targetLength)) {
+            return str;
+        }
+        int padNeeded = targetLength - str.length();
+        StringBuilder pad = new StringBuilder(padNeeded);
+        while (pad.length() < padNeeded) {
+            pad.append(padString);
+        }
+        pad.setLength(padNeeded);
+        return atEnd ? (str + pad) : (pad + str);
     }
 
     private static String capitalize(String text) {
