@@ -26,10 +26,10 @@ public class MiscPack implements PlaceholderPack {
     @Override
     public void register(Registry r) {
         r.type(ChatColor.class)
-            .self(ChatColor::toString);
+            .self(c -> c.toString());
 
         r.type(ServerOperator.class)
-            .add("op", ServerOperator::isOp);
+            .add("op", o -> o.isOp());
 
         r.globals()
             .add("color", (p, ctx) -> evalColor(p, ctx));

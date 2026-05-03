@@ -13,24 +13,24 @@ public class ItemPack implements PlaceholderPack {
     @Override
     public void register(Registry r) {
         r.type(ItemStack.class)
-            .add("amount", ItemStack::getAmount)
-            .add("durability", ItemStack::getDurability)
-            .add("itemMeta", ItemStack::getItemMeta)
-            .add("maxStackSize", ItemStack::getMaxStackSize)
-            .add("type", ItemStack::getType)
-            .add("hasItemMeta", ItemStack::hasItemMeta)
-            .self(item -> (item.getAmount() == 1)
-                ? item.getType().name()
-                : (item.getType().name() + " x " + item.getAmount()));
+            .add("amount", i -> i.getAmount())
+            .add("durability", i -> i.getDurability())
+            .add("itemMeta", i -> i.getItemMeta())
+            .add("maxStackSize", i -> i.getMaxStackSize())
+            .add("type", i -> i.getType())
+            .add("hasItemMeta", i -> i.hasItemMeta())
+            .self(i -> (i.getAmount() == 1)
+                ? i.getType().name()
+                : (i.getType().name() + " x " + i.getAmount()));
 
         r.type(ItemMeta.class)
-            .add("displayName", ItemMeta::getDisplayName)
-            .add("itemFlags", meta -> enumList(meta.getItemFlags()))
-            .add("lore", meta -> String.join("\n", meta.getLore()))
-            .add("hasDisplayName", ItemMeta::hasDisplayName)
-            .add("hasEnchants", ItemMeta::hasEnchants)
-            .add("hasLore", ItemMeta::hasLore)
-            .self(meta -> "(name=" + meta.getDisplayName() + ", lore=" + String.join(", ", meta.getLore()) + ")");
+            .add("displayName", m -> m.getDisplayName())
+            .add("itemFlags", m -> enumList(m.getItemFlags()))
+            .add("lore", m -> String.join("\n", m.getLore()))
+            .add("hasDisplayName", m -> m.hasDisplayName())
+            .add("hasEnchants", m -> m.hasEnchants())
+            .add("hasLore", m -> m.hasLore())
+            .self(m -> "(name=" + m.getDisplayName() + ", lore=" + String.join(", ", m.getLore()) + ")");
     }
 
     private static String enumList(Collection<? extends Enum<?>> enums) {

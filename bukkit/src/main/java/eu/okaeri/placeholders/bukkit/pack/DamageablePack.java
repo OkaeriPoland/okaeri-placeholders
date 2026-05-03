@@ -10,14 +10,14 @@ public class DamageablePack implements PlaceholderPack {
     @Override
     public void register(Registry r) {
         r.type(Damageable.class)
-            .add("health", Damageable::getHealth)
+            .add("health", d -> d.getHealth())
             .add("healthHearts", d -> (int) (d.getHealth() / 2))
             .add("healthHeartsWithMax", d -> {
                 int current = (int) (d.getHealth() / 2);
                 int max = (int) (d.getMaxHealth() / 2);
                 return current + "/" + max;
             })
-            .add("maxHealth", Damageable::getMaxHealth)
+            .add("maxHealth", d -> d.getMaxHealth())
             .add("maxHealthHearts", d -> (int) (d.getMaxHealth() / 2))
             .add("healthBarHearts", (d, p) -> {
                 int maxHearts = (int) (d.getMaxHealth() / 2);
