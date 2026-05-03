@@ -594,4 +594,90 @@ class NumberPlaceholdersTest {
             assertThat(result).isEqualTo("5");
         }
     }
+
+    @Nested
+    @DisplayName("signed - explicit-sign formatting")
+    class Signed {
+
+        @Test
+        void shouldPrefixPositiveIntWithPlus(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.signed}"))
+                .with("n", 5)
+                .apply();
+
+            assertThat(result).isEqualTo("+5");
+        }
+
+        @Test
+        void shouldPreserveNegativeIntSign(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.signed}"))
+                .with("n", -3)
+                .apply();
+
+            assertThat(result).isEqualTo("-3");
+        }
+
+        @Test
+        void shouldRenderZeroWithoutSign(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.signed}"))
+                .with("n", 0)
+                .apply();
+
+            assertThat(result).isEqualTo("0");
+        }
+
+        @Test
+        void shouldHandlePositiveDouble(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.signed}"))
+                .with("n", 3.14)
+                .apply();
+
+            assertThat(result).isEqualTo("+3.14");
+        }
+
+        @Test
+        void shouldHandleNegativeDouble(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.signed}"))
+                .with("n", -2.5)
+                .apply();
+
+            assertThat(result).isEqualTo("-2.5");
+        }
+
+        @Test
+        void shouldNormalizeWholeDoubleToInt(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.signed}"))
+                .with("n", 5.0)
+                .apply();
+
+            assertThat(result).isEqualTo("+5");
+        }
+
+        @Test
+        void shouldRenderNegativeZeroAsZero(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.signed}"))
+                .with("n", -0.0)
+                .apply();
+
+            assertThat(result).isEqualTo("0");
+        }
+
+        @Test
+        void shouldComposeWithArithmetic(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.minus(3).signed}"))
+                .with("n", 10)
+                .apply();
+
+            assertThat(result).isEqualTo("+7");
+        }
+
+        @Test
+        void shouldComposeWithNegativeArithmeticResult(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{n.minus(15).signed}"))
+                .with("n", 10)
+                .apply();
+
+            assertThat(result).isEqualTo("-5");
+        }
+    }
 }

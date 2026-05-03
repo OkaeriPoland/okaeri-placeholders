@@ -17,7 +17,7 @@ import java.math.BigDecimal;
  *   <li>Arithmetic: {@code plus/add}, {@code minus/subtract}, {@code multiply}, {@code divide}, {@code mod}</li>
  *   <li>Math: {@code abs}, {@code round}, {@code floor}, {@code ceil}, {@code clamp}</li>
  *   <li>Comparisons: {@code gt}, {@code gte}, {@code lt}, {@code lte}, {@code between}</li>
- *   <li>Formatting: {@code plural}, {@code format}</li>
+ *   <li>Formatting: {@code plural}, {@code format}, {@code signed}</li>
  * </ul>
  */
 public class NumberPack implements PlaceholderPack {
@@ -121,6 +121,17 @@ public class NumberPack implements PlaceholderPack {
                 String pattern = p.arg(0).orElse("%.2f");
                 double doubleValue = new BigDecimal(String.valueOf(num)).doubleValue();
                 return String.format(ctx.getLocale(), pattern, doubleValue);
+            })
+
+            // Explicit-sign formatting: positive -> "+5", negative -> "-3", zero -> "0"
+            .add("signed", num -> {
+                double d = num.doubleValue();
+                if (d == 0) {
+                    Number normalized = asIntIfWhole(d);
+                    return normalized.toString();
+                }
+                Number normalized = asIntIfWhole(d);
+                return (d > 0) ? ("+" + normalized) : normalized.toString();
             });
     }
 

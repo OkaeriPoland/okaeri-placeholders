@@ -108,6 +108,7 @@ Arithmetic: {n.plus(5)}, {n.minus(3)}, {n.multiply(2)}, {n.divide(4)}
 Math: {n.abs()}, {n.round()}, {n.floor()}, {n.ceil()}
 Clamp/mod: {health.clamp(0,100)}, {index.mod(2)}
 Comparisons: {n.gt(5)}, {n.gte(5)}, {n.lt(10)}, {n.lte(10)}, {n.between(1,10)}
+Signed: {delta.signed}
 
 # string methods
 Case: {name.toLowerCase()}, {name.toUpperCase()}, {name.capitalize()}
