@@ -25,6 +25,7 @@ import java.util.Locale;
  *   <li>{@code truncate(maxLength, ellipsis)} - shorten with omission marker</li>
  *   <li>{@code reverse} - reverse character order</li>
  *   <li>{@code removePrefix(prefix)} / {@code removeSuffix(suffix)} - strip if present</li>
+ *   <li>{@code count(sub)} - non-overlapping occurrence count</li>
  * </ul>
  */
 public class StringPack implements PlaceholderPack {
@@ -104,6 +105,19 @@ public class StringPack implements PlaceholderPack {
             .add("removeSuffix", (str, p) -> {
                 String suffix = p.arg(0).orElse("");
                 return str.endsWith(suffix) ? str.substring(0, str.length() - suffix.length()) : str;
+            })
+
+            // Non-overlapping occurrence count (matches Python str.count semantics)
+            .add("count", (str, p) -> {
+                String search = p.arg(0).orElse("");
+                if (search.isEmpty()) return 0;
+                int count = 0;
+                int idx = 0;
+                while ((idx = str.indexOf(search, idx)) != -1) {
+                    count++;
+                    idx += search.length();
+                }
+                return count;
             });
     }
 

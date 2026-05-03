@@ -664,4 +664,46 @@ class StringPlaceholdersTest {
             assertThat(result).isEqualTo("value");
         }
     }
+
+    @Nested
+    @DisplayName("count")
+    class Count {
+
+        @Test
+        void shouldCountMultipleOccurrences(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.count(\"l\")}"))
+                .with("s", "hello world")
+                .apply();
+
+            assertThat(result).isEqualTo("3");
+        }
+
+        @Test
+        void shouldReturnZeroWhenNotPresent(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.count(\"z\")}"))
+                .with("s", "hello world")
+                .apply();
+
+            assertThat(result).isEqualTo("0");
+        }
+
+        @Test
+        void shouldNotCountOverlappingMatches(Placeholders placeholders) {
+            // "aaaa" contains "aa" non-overlapping -> 2 matches at positions 0 and 2
+            var result = placeholders.context(CompiledMessage.of("{s.count(\"aa\")}"))
+                .with("s", "aaaa")
+                .apply();
+
+            assertThat(result).isEqualTo("2");
+        }
+
+        @Test
+        void shouldReturnZeroForEmptySearch(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.count(\"\")}"))
+                .with("s", "hello")
+                .apply();
+
+            assertThat(result).isEqualTo("0");
+        }
+    }
 }
