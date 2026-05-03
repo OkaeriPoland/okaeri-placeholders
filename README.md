@@ -94,6 +94,7 @@ First non-null: {or(nickname,name,"Anonymous")}
 Conditional: {if(active,"online","offline")}
 Random number: {random(1,100)}
 Concatenation: {concat("Hello ",name,"!")}
+Join non-empty: {join(", ",first,middle,last)}
 Numeric min/max: {min(a,b,c)}, {max(a,b,c)}
 Clamp to range: {clamp(health,0,100)}
 Length/size: {len(items)}, {len(name)}

@@ -297,6 +297,129 @@ class GlobalFunctionsTest {
     }
 
     @Nested
+    @DisplayName("$.join() - join non-empty values with a separator")
+    class JoinFunction {
+
+        @Test
+        void shouldJoinPresentLiteralsWithSeparator(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.join(\"|\",\"a\",\"b\",\"c\")}");
+            var result = placeholders.context(message).apply();
+
+            assertThat(result).isEqualTo("a|b|c");
+        }
+
+        @Test
+        void shouldSkipEmptyStringValues(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.join(\"|\",a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", "alpha")
+                .with("b", "")
+                .with("c", "gamma")
+                .apply();
+
+            assertThat(result).isEqualTo("alpha|gamma");
+        }
+
+        @Test
+        void shouldSkipNullValues(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.join(\",\",a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", "x")
+                .with("b", null)
+                .with("c", "y")
+                .apply();
+
+            assertThat(result).isEqualTo("x,y");
+        }
+
+        @Test
+        void shouldKeepSeparatorOnlyBetweenPresentItems(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.join(\"-\",a,b,c,d)}");
+            var result = placeholders.context(message)
+                .with("a", "")
+                .with("b", "beta")
+                .with("c", "")
+                .with("d", "delta")
+                .apply();
+
+            assertThat(result).isEqualTo("beta-delta");
+        }
+
+        @Test
+        void shouldReturnEmptyWhenAllValuesEmpty(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.join(\",\",a,b)}");
+            var result = placeholders.context(message)
+                .with("a", "")
+                .with("b", "")
+                .apply();
+
+            assertThat(result).isEqualTo("");
+        }
+
+        @Test
+        void shouldStringifyNonStringValues(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.join(\" \",a,b,c)}");
+            var result = placeholders.context(message)
+                .with("a", 1)
+                .with("b", true)
+                .with("c", 3.14)
+                .apply();
+
+            assertThat(result).isEqualTo("1 true 3.14");
+        }
+
+        @Test
+        void shouldAcceptDynamicSeparator(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.join(sep,a,b)}");
+            var result = placeholders.context(message)
+                .with("sep", " :: ")
+                .with("a", "x")
+                .with("b", "y")
+                .apply();
+
+            assertThat(result).isEqualTo("x :: y");
+        }
+
+        @Test
+        void shouldResolveNestedConcatArgument(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.join(\" \",a,$.concat(prefix,b),c)}");
+            var result = placeholders.context(message)
+                .with("a", "first")
+                .with("prefix", "+")
+                .with("b", "boost")
+                .with("c", "last")
+                .apply();
+
+            assertThat(result).isEqualTo("first +boost last");
+        }
+
+        @Test
+        void shouldSkipEmptyResultFromNestedCall(Placeholders placeholders) {
+            // $.if returns "" when first arg is falsy - join should treat that as empty
+            var message = CompiledMessage.of("{$.join(\"-\",a,$.if(flag,\"shown\",\"\"),b)}");
+            var result = placeholders.context(message)
+                .with("a", "alpha")
+                .with("flag", false)
+                .with("b", "gamma")
+                .apply();
+
+            assertThat(result).isEqualTo("alpha-gamma");
+        }
+
+        @Test
+        void shouldNestJoinInsideConcat(Placeholders placeholders) {
+            var message = CompiledMessage.of("{$.concat(\"[\",$.join(\",\",a,b,c),\"]\")}");
+            var result = placeholders.context(message)
+                .with("a", "x")
+                .with("b", "")
+                .with("c", "y")
+                .apply();
+
+            assertThat(result).isEqualTo("[x,y]");
+        }
+    }
+
+    @Nested
     @DisplayName("$.min() and $.max() - Numeric comparison")
     class MinMaxFunctions {
 

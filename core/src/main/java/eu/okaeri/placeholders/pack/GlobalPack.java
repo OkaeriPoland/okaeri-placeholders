@@ -21,6 +21,7 @@ import java.util.Map;
  *   <li>{@code if(cond, then, else)} - conditional</li>
  *   <li>{@code random(min, max)} - random integer</li>
  *   <li>{@code concat(a, b, ...)} - concatenation</li>
+ *   <li>{@code join(sep, a, b, ...)} - join non-empty values with separator</li>
  *   <li>{@code min(a, b, ...)} / {@code max(a, b, ...)} - numeric min/max</li>
  *   <li>{@code clamp(value, min, max)} - clamp number to range</li>
  *   <li>{@code len(value)} - length/size of string, array, or collection</li>
@@ -75,6 +76,23 @@ public class GlobalPack implements PlaceholderPack {
                 for (int i = 0; i < p.length(); i++) {
                     Object val = p.arg(i).resolve(ctx);
                     if (val != null) sb.append(val);
+                }
+                return sb.toString();
+            })
+
+            // Join non-empty values with a separator (separator only between present items)
+            .add("join", (p, ctx) -> {
+                String separator = String.valueOf(p.arg(0).resolve(ctx));
+                StringBuilder sb = new StringBuilder();
+                boolean first = true;
+                for (int i = 1; i < p.length(); i++) {
+                    Object val = p.arg(i).resolve(ctx);
+                    if (val == null) continue;
+                    String s = val.toString();
+                    if (s.isEmpty()) continue;
+                    if (!first) sb.append(separator);
+                    sb.append(s);
+                    first = false;
                 }
                 return sb.toString();
             })
