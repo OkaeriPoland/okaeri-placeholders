@@ -132,6 +132,10 @@ Slicing: {items.take(5)}, {items.drop(2)}
 Joining: {items.join(", ")}
 Aggregations: {scores.sum}, {scores.avg}, {scores.min}, {scores.max}
 
+# map methods
+Basics: {m.size}, {m.isEmpty}, {m.keys}, {m.values}, {m.get("key")}
+Localized lookup (Map<Locale, ?>): {kit.display.localized}
+
 # practical example: 3-level health bar with colors
 # health=75 → green (>66), health=50 → yellow (>33), health=20 → red
 Health: {cond(health.gt(66),"&a",health.gt(33),"&e","&c")}{health}% &7HP
