@@ -23,6 +23,7 @@ import java.util.Locale;
  *   <li>{@code repeat(count)} - repeat string N times</li>
  *   <li>{@code padStart(length, fill)} / {@code padEnd(length, fill)} - pad to width</li>
  *   <li>{@code truncate(maxLength, ellipsis)} - shorten with omission marker</li>
+ *   <li>{@code reverse} - reverse character order</li>
  * </ul>
  */
 public class StringPack implements PlaceholderPack {
@@ -89,7 +90,10 @@ public class StringPack implements PlaceholderPack {
                 if (str.length() <= maxLength) return str;
                 if (ellipsis.length() >= maxLength) return ellipsis.substring(0, maxLength);
                 return str.substring(0, maxLength - ellipsis.length()) + ellipsis;
-            });
+            })
+
+            // Reverse character order (StringBuilder handles surrogate pairs)
+            .add("reverse", str -> new StringBuilder(str).reverse().toString());
     }
 
     private static String pad(String str, int targetLength, String padString, boolean atEnd) {

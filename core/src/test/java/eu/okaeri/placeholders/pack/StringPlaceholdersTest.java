@@ -581,4 +581,37 @@ class StringPlaceholdersTest {
             assertThat(result).isEqualTo("HELLO W…");
         }
     }
+
+    @Nested
+    @DisplayName("reverse")
+    class Reverse {
+
+        @Test
+        void shouldReverseCharacterOrder(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.reverse}"))
+                .with("s", "hello")
+                .apply();
+
+            assertThat(result).isEqualTo("olleh");
+        }
+
+        @Test
+        void shouldRoundtripViaDoubleReverse(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.reverse.reverse}"))
+                .with("s", "anything goes here 123 ąść")
+                .apply();
+
+            assertThat(result).isEqualTo("anything goes here 123 ąść");
+        }
+
+        @Test
+        void shouldHandleUnicodeWithoutSplittingSurrogatePairs(Placeholders placeholders) {
+            // emoji uses a surrogate pair; reverse must keep the pair together
+            var result = placeholders.context(CompiledMessage.of("{s.reverse}"))
+                .with("s", "ab😀cd")
+                .apply();
+
+            assertThat(result).isEqualTo("dc😀ba");
+        }
+    }
 }
