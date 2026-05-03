@@ -372,4 +372,84 @@ class InstantPlaceholdersTest {
             assertThat(result).isEqualTo("1970-01-01 01:00");
         }
     }
+
+    @Nested
+    @DisplayName("relative(reference) - signed Duration between two instants")
+    class Relative {
+
+        @Test
+        void shouldReturnPositiveHoursWhenInstantIsAfterReference(Placeholders placeholders) {
+            var future = EPOCH.plusSeconds(3600);
+            var result = placeholders.context(CompiledMessage.of("{later.relative(earlier).hours}"))
+                .with("later", future)
+                .with("earlier", EPOCH)
+                .apply();
+
+            assertThat(result).isEqualTo("1");
+        }
+
+        @Test
+        void shouldRenderNegativeWhenInstantIsBeforeReference(Placeholders placeholders) {
+            var future = EPOCH.plusSeconds(3600);
+            var result = placeholders.context(CompiledMessage.of("{earlier.relative(later)}"))
+                .with("earlier", EPOCH)
+                .with("later", future)
+                .apply();
+
+            assertThat(result).isEqualTo("-1h");
+        }
+
+        @Test
+        void shouldRenderZeroForSameInstant(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{a.relative(b)}"))
+                .with("a", EPOCH)
+                .with("b", EPOCH)
+                .apply();
+
+            assertThat(result).isEqualTo("0s");
+        }
+
+        @Test
+        void shouldComposeWithDurationFormat(Placeholders placeholders) {
+            var future = EPOCH.plusSeconds((2 * 86400) + (5 * 3600) + (30 * 60));
+            var result = placeholders.context(CompiledMessage.of("{later.relative(earlier).format(\"[d]d [h]h [m]m\")}"))
+                .with("later", future)
+                .with("earlier", EPOCH)
+                .apply();
+
+            assertThat(result).isEqualTo("2d 5h 30m");
+        }
+
+        @Test
+        void shouldComposeWithDurationDays(Placeholders placeholders) {
+            var future = EPOCH.plusSeconds(10 * 86400);
+            var result = placeholders.context(CompiledMessage.of("{later.relative(earlier).days}"))
+                .with("later", future)
+                .with("earlier", EPOCH)
+                .apply();
+
+            assertThat(result).isEqualTo("10");
+        }
+
+        @Test
+        void shouldRenderNegativePrefixViaFormat(Placeholders placeholders) {
+            var future = EPOCH.plusSeconds(86400);
+            var result = placeholders.context(CompiledMessage.of("{earlier.relative(later).format(\"(d)d\")}"))
+                .with("earlier", EPOCH)
+                .with("later", future)
+                .apply();
+
+            assertThat(result).isEqualTo("-1d");
+        }
+
+        @Test
+        void shouldRenderNullWhenReferenceIsNotAnInstant(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{later.relative(earlier)}"))
+                .with("later", EPOCH)
+                .with("earlier", "not an instant")
+                .apply();
+
+            assertThat(result).contains("null");
+        }
+    }
 }

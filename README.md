@@ -80,6 +80,7 @@ Time: {time.datetime("medium","Europe/Paris")}
 Date: {time.date("medium","UTC")}
 Time only: {time.time("short","UTC")}
 Custom pattern: {time.format("yyyy-MM-dd HH:mm","UTC")}
+Relative (Duration): {expiry.relative(now()).format("[d]d [h]h")}
 
 # default values with .or() - supports field references and chaining
 Hello {name.or("Anonymous")}!

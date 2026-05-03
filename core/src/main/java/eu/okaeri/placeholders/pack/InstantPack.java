@@ -3,6 +3,7 @@ package eu.okaeri.placeholders.pack;
 import eu.okaeri.placeholders.PlaceholderPack;
 import eu.okaeri.placeholders.registry.Registry;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -18,9 +19,17 @@ import java.util.Locale;
  *   <li>{@code date(style, zone)} / {@code ld} - localized date format</li>
  *   <li>{@code datetime(style, zone)} / {@code ldt} - localized datetime format</li>
  *   <li>{@code format(pattern, zone)} - custom pattern format</li>
+ *   <li>{@code relative(reference)} - signed Duration from reference to this instant</li>
  * </ul>
  * <p>
  * Style can be: short, medium, long, full
+ * <p>
+ * {@code relative} returns a {@link Duration} so the existing DurationPack
+ * formatting methods compose naturally:
+ * <pre>
+ * {expiry.relative(now()).format("[d]d [h]h")}     // "3d 5h" (or "-2d -3h" if past)
+ * {birthday.relative(now()).days}                  // -10957
+ * </pre>
  */
 public class InstantPack implements PlaceholderPack {
 
@@ -58,7 +67,14 @@ public class InstantPack implements PlaceholderPack {
             .add("format", (inst, p, ctx) -> DateTimeFormatter.ofPattern(p.arg(0).orElse("yyyy-MM-dd'T'HH:mm:ss"))
                 .withLocale(ctx.getLocale())
                 .withZone(parseZone(p.arg(1).orElse("UTC")))
-                .format(inst));
+                .format(inst))
+
+            // Signed Duration from reference to this instant (positive if this > reference)
+            .add("relative", (inst, p, ctx) -> {
+                Object ref = p.arg(0).resolve(ctx);
+                if (!(ref instanceof Instant)) return null;
+                return Duration.between((Instant) ref, inst);
+            });
     }
 
     @FunctionalInterface
