@@ -215,6 +215,25 @@ public class ExpressionParser {
             return StringLiteral.of("|", token.getSpan());
         }
 
+        // Multi-word bare identifiers up to , or ) become a single string literal.
+        // Common in i18n templates like {r:player.f(została zbanowana,został zbanowany,...)}.
+        if ((this.source != null) && this.check(TokenType.IDENTIFIER)) {
+            int saved = this.current;
+            int identCount = 0;
+            while (this.check(TokenType.IDENTIFIER)) {
+                identCount++;
+                this.advance();
+            }
+            if ((identCount > 1) && (this.check(TokenType.COMMA) || this.check(TokenType.RPAREN))) {
+                Token first = this.tokens.get(saved);
+                Token last = this.tokens.get(this.current - 1);
+                int start = first.getSpan().getStart();
+                int end = last.getSpan().getEnd();
+                return StringLiteral.of(this.source.substring(start, end), SourceSpan.of(start, end));
+            }
+            this.current = saved;
+        }
+
         return this.parseExpression();
     }
 

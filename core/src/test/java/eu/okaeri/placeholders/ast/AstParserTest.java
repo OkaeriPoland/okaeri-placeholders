@@ -156,6 +156,73 @@ class AstParserTest {
             assertThat(replaceCall.getName()).isEqualTo("replace");
             assertThat(replaceCall.getArgs()).hasSize(2);
         }
+
+        @Test
+        void shouldParseSingleWordArgsAsRefs() {
+            AstNode ast = new ExpressionParser("player.f(she,he,they)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getName()).isEqualTo("f");
+            assertThat(call.getArgs()).hasSize(3);
+            assertThat(call.getArgs().get(0)).isInstanceOf(Ref.class);
+            assertThat(((Ref) call.getArgs().get(0)).getName()).isEqualTo("she");
+            assertThat(((Ref) call.getArgs().get(1)).getName()).isEqualTo("he");
+            assertThat(((Ref) call.getArgs().get(2)).getName()).isEqualTo("they");
+        }
+
+        @Test
+        void shouldParseTwoWordArgsAsLiterals() {
+            AstNode ast = new ExpressionParser("player.f(została zbanowana,został zbanowany,zostało zbanowane)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(3);
+            assertThat(call.getArgs().get(0)).isInstanceOf(StringLiteral.class);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("została zbanowana");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("został zbanowany");
+            assertThat(((StringLiteral) call.getArgs().get(2)).getValue()).isEqualTo("zostało zbanowane");
+        }
+
+        @Test
+        void shouldParseFiveWordArgsWithConjunction() {
+            AstNode ast = new ExpressionParser("player.f(została zablokowana i wyrzucona,został zablokowany i wyrzucony,zostało zablokowane i wyrzucone)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(3);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("została zablokowana i wyrzucona");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("został zablokowany i wyrzucony");
+            assertThat(((StringLiteral) call.getArgs().get(2)).getValue()).isEqualTo("zostało zablokowane i wyrzucone");
+        }
+
+        @Test
+        void shouldParseMixedSingleAndMultiWordArgs() {
+            AstNode ast = new ExpressionParser("player.f(she,zostałaś wyrzucona,foo)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(3);
+            assertThat(((Ref) call.getArgs().get(0)).getName()).isEqualTo("she");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("zostałaś wyrzucona");
+            assertThat(((Ref) call.getArgs().get(2)).getName()).isEqualTo("foo");
+        }
+
+        @Test
+        void shouldPreserveLeadingSpaceInMultiWordArg() {
+            // first arg starts with a space — surfaces in {r:player.f( a b,c d,e f)} edge cases
+            AstNode ast = new ExpressionParser("player.f( hello world,foo bar)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(2);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("hello world");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("foo bar");
+        }
+
+        @Test
+        void shouldNotCollapseMethodCallChain() {
+            // dotted access must remain a Call, not a multi-word literal
+            AstNode ast = new ExpressionParser("player.name").parse();
+
+            assertThat(ast).isInstanceOf(Call.class);
+            assertThat(((Call) ast).getName()).isEqualTo("name");
+        }
     }
 
     @Nested
