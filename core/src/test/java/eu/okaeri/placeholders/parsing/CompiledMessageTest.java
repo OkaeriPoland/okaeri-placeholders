@@ -1,5 +1,7 @@
 package eu.okaeri.placeholders.parsing;
 
+import eu.okaeri.placeholders.Placeholders;
+import eu.okaeri.placeholders.exception.ParseException;
 import eu.okaeri.placeholders.message.CompiledMessage;
 import eu.okaeri.placeholders.message.ExpressionPart;
 import eu.okaeri.placeholders.message.StaticPart;
@@ -198,6 +200,24 @@ class CompiledMessageTest {
             // First | marks start of default, everything after is literal text
             assertThat(expr.getDefaultValue()).isEqualTo("first|second");
         }
+
+        @Test
+        void shouldFindPipeAfterBareApostropheInArgs() {
+            // bare `'` in `'s)` must not open a quote scan that swallows the `|`
+            var message = CompiledMessage.of("{x.append('s)|fallback}");
+            var expr = (ExpressionPart) message.getParts().get(0);
+
+            assertThat(expr.getDefaultValue()).isEqualTo("fallback");
+        }
+
+        @Test
+        void shouldKeepPipeInsidePairedQuotesOutOfDefault() {
+            // a `|` inside a properly paired string is part of the expression, not the default
+            var message = CompiledMessage.of("{x.append(\"a|b\")|fallback}");
+            var expr = (ExpressionPart) message.getParts().get(0);
+
+            assertThat(expr.getDefaultValue()).isEqualTo("fallback");
+        }
     }
 
     @Nested
@@ -264,6 +284,50 @@ class CompiledMessageTest {
 
             assertThat(expr.getAst()).isNotNull();
             assertThat(message.hasField("date")).isTrue();
+        }
+
+        @Test
+        void shouldSplitOptionsContainingApostrophes() {
+            // `don't,won't` previously collapsed because `'` paired across the comma; the closer-before-comma
+            // bound now keeps them as two distinct options
+            var placeholders = Placeholders.create();
+            var trueResult = placeholders.context(CompiledMessage.of("{don't,won't#active}")).with("active", true).apply();
+            var falseResult = placeholders.context(CompiledMessage.of("{don't,won't#active}")).with("active", false).apply();
+
+            assertThat(trueResult).isEqualTo("don't");
+            assertThat(falseResult).isEqualTo("won't");
+        }
+
+        @Test
+        void shouldKeepLeadingApostropheInOptions() {
+            var placeholders = Placeholders.create();
+            var trueResult = placeholders.context(CompiledMessage.of("{a's,b's#active}")).with("active", true).apply();
+            var falseResult = placeholders.context(CompiledMessage.of("{a's,b's#active}")).with("active", false).apply();
+
+            assertThat(trueResult).isEqualTo("a's");
+            assertThat(falseResult).isEqualTo("b's");
+        }
+
+        @Test
+        void shouldStillStripPairedQuotesInOptions() {
+            // regression guard: paired `'on'`/`'off'` style still strips the quote chars
+            var placeholders = Placeholders.create();
+            var trueResult = placeholders.context(CompiledMessage.of("{'on','off'#active}")).with("active", true).apply();
+            var falseResult = placeholders.context(CompiledMessage.of("{'on','off'#active}")).with("active", false).apply();
+
+            assertThat(trueResult).isEqualTo("on");
+            assertThat(falseResult).isEqualTo("off");
+        }
+
+        @Test
+        void shouldStillEscapeCommaInOptions() {
+            // regression guard: `\,` keeps the literal comma inside an option
+            var placeholders = Placeholders.create();
+            var trueResult = placeholders.context(CompiledMessage.of("{a\\,b,c#active}")).with("active", true).apply();
+            var falseResult = placeholders.context(CompiledMessage.of("{a\\,b,c#active}")).with("active", false).apply();
+
+            assertThat(trueResult).isEqualTo("a,b");
+            assertThat(falseResult).isEqualTo("c");
         }
     }
 
@@ -375,6 +439,94 @@ class CompiledMessageTest {
 
             assertThat(message.isWithFields()).isTrue();
             assertThat(message.hasField("日本語")).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("Quote and brace handling")
+    class QuoteAndBraceHandling {
+
+        @Test
+        void shouldHandleTwoAdjacentBareApostrophePlaceholders() {
+            var message = CompiledMessage.of("{a.append('s)} and {b.append('s)}");
+
+            assertThat(message.getParts()).hasSize(3);
+            assertThat(message.getParts().get(0)).isInstanceOf(ExpressionPart.class);
+            assertThat(((StaticPart) message.getParts().get(1)).getValue()).isEqualTo(" and ");
+            assertThat(message.getParts().get(2)).isInstanceOf(ExpressionPart.class);
+        }
+
+        @Test
+        void shouldPreserveApostrophesInStaticText() {
+            var message = CompiledMessage.of("It's {player}'s turn");
+
+            assertThat(message.getParts()).hasSize(3);
+            assertThat(((StaticPart) message.getParts().get(0)).getValue()).isEqualTo("It's ");
+            assertThat(message.getParts().get(1)).isInstanceOf(ExpressionPart.class);
+            assertThat(((StaticPart) message.getParts().get(2)).getValue()).isEqualTo("'s turn");
+        }
+
+        @Test
+        void shouldNotPairBareApostropheWithLaterStaticQuotes() {
+            // unbounded quote-skip would pair `'s)} 'other` and eat the `}` between them
+            var message = CompiledMessage.of("{x.append('s)} 'other text'");
+
+            assertThat(message.getParts()).hasSize(2);
+            assertThat(((ExpressionPart) message.getParts().get(0)).getOriginalRaw())
+                .isEqualTo("x.append('s)");
+            assertThat(((StaticPart) message.getParts().get(1)).getValue()).isEqualTo(" 'other text'");
+        }
+
+        @Test
+        void shouldKeepCommaInsideQuotedArg() {
+            var message = CompiledMessage.of("{x.append(\"a,b\")}");
+
+            assertThat(message.getParts()).hasSize(1);
+            assertThat(message.getParts().get(0)).isInstanceOf(ExpressionPart.class);
+        }
+
+        @Test
+        void shouldAllowLeftBraceInsideQuotedArg() {
+            var message = CompiledMessage.of("{x.append(\"a{b\")}");
+
+            assertThat(message.getParts()).hasSize(1);
+            assertThat(((ExpressionPart) message.getParts().get(0)).getOriginalRaw())
+                .isEqualTo("x.append(\"a{b\")");
+        }
+
+        @Test
+        void shouldAllowBothBracesInsideDoubleQuotedArg() {
+            // greedy `"` scan must jump over both `{` and `}` so depth stays balanced
+            var message = CompiledMessage.of("{x.append(\"a{b}c\")}");
+
+            assertThat(message.getParts()).hasSize(1);
+            assertThat(((ExpressionPart) message.getParts().get(0)).getOriginalRaw())
+                .isEqualTo("x.append(\"a{b}c\")");
+        }
+
+        @Test
+        void shouldAllowRightBraceInsideDoubleQuotedArg() {
+            // `"` is scanned greedily — embedded `}` is consumed as string content
+            var message = CompiledMessage.of("{x.append(\"a}b\")}");
+
+            assertThat(message.getParts()).hasSize(1);
+            assertThat(((ExpressionPart) message.getParts().get(0)).getOriginalRaw())
+                .isEqualTo("x.append(\"a}b\")");
+        }
+
+        @Test
+        void shouldFailOnRightBraceInsideSingleQuotedArg() {
+            // `'` is bounded by `}` (so bare apostrophes like `'s` work) — closing brace
+            // inside `'...'` therefore short-circuits. workaround: use `"a}b"` instead
+            assertThatThrownBy(() -> CompiledMessage.of("{x.append('a}b')}"))
+                .isInstanceOf(ParseException.class);
+        }
+
+        @Test
+        void shouldErrorLoudlyOnAdjacentBareApostropheArgs() {
+            // `'a,'` pairs into STRING("a,"), then `b` is unexpected — loud error beats silent corruption
+            assertThatThrownBy(() -> CompiledMessage.of("{x.f('a,'b,c)}"))
+                .isInstanceOf(ParseException.class);
         }
     }
 

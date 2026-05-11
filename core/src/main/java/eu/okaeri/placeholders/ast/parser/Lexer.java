@@ -63,9 +63,16 @@ public class Lexer {
                 return Token.of(TokenType.PIPE, start);
         }
 
-        // String literals (quoted)
+        // String literals (quoted) - only when a closing quote exists ahead.
+        // If not, the quote is treated as a regular identifier character so that
+        // English-possessive idioms like `append('s)` parse as Ref("'s") and stray
+        // apostrophes in bare args don't silently corrupt the token stream.
+        // Paired quotes still win even across commas: `'has,comma'` stays one string.
         if ((c == '"') || (c == '\'')) {
-            return this.scanString(c, start);
+            if (this.hasClosingQuoteAhead(c)) {
+                return this.scanString(c, start);
+            }
+            // Fall through to scanIdentifier - the quote becomes the first char of an identifier.
         }
 
         // Everything else is an identifier - consume until structural or whitespace
@@ -149,6 +156,41 @@ public class Lexer {
 
     private boolean isDigit(char c) {
         return (c >= '0') && (c <= '9');
+    }
+
+    private boolean hasClosingQuoteAhead(char quote) {
+        return findClosingQuote(this.source, this.pos, quote, '\0') != -1;
+    }
+
+    /**
+     * Scans {@code source} from {@code from} for the nearest unescaped occurrence of
+     * {@code quote}, respecting backslash escapes ({@code \'} / {@code \"}).
+     * <p>
+     * If {@code stopChar != '\0'}, the scan stops (returns -1) when it encounters that
+     * char before finding the closing quote. Used by the message scanner to bound the
+     * search at the next {@code }} so a stray apostrophe doesn't pull in quotes from
+     * later placeholders.
+     *
+     * @return index of the closing quote, or -1 if none before EOF / stopChar.
+     */
+    public static int findClosingQuote(String source, int from, char quote, char stopChar) {
+        int i = from;
+        int length = source.length();
+        while (i < length) {
+            char c = source.charAt(i);
+            if ((c == '\\') && ((i + 1) < length)) {
+                i += 2;
+                continue;
+            }
+            if ((stopChar != '\0') && (c == stopChar)) {
+                return -1;
+            }
+            if (c == quote) {
+                return i;
+            }
+            i++;
+        }
+        return -1;
     }
 
     // Helper methods

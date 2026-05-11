@@ -6,6 +6,7 @@ import eu.okaeri.placeholders.ast.node.Call;
 import eu.okaeri.placeholders.ast.node.Ref;
 import eu.okaeri.placeholders.ast.node.WithDefault;
 import eu.okaeri.placeholders.ast.parser.ExpressionParser;
+import eu.okaeri.placeholders.ast.parser.Lexer;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
@@ -87,41 +88,53 @@ public class CompiledMessage {
 
     /**
      * Parses comma-separated metadata options, respecting quotes and backslash escapes.
-     * Backslash can escape commas: \, becomes a literal comma in the option value.
+     * <p>
+     * Rules:
+     * <ul>
+     *   <li>{@code \,} escapes a literal comma; other {@code \X} sequences keep the backslash literal.</li>
+     *   <li>A {@code '} or {@code "} only opens a quoted region if a closing quote exists before the
+     *       next {@code ,} (delegated to {@link Lexer#findClosingQuote}). Otherwise the quote is a
+     *       regular character — so {@code don't,won't} cleanly splits into two options.</li>
+     *   <li>When a paired-quote region is consumed, the quote characters themselves are stripped
+     *       from the option value.</li>
+     * </ul>
      */
     private static String[] parseMetadataOptions(@NonNull String metadata) {
         List<String> options = new ArrayList<>();
         StringBuilder current = new StringBuilder();
-        boolean inQuotes = false;
-        char quoteChar = 0;
-        boolean escaped = false;
+        int i = 0;
+        int length = metadata.length();
 
-        for (int i = 0; i < metadata.length(); i++) {
+        while (i < length) {
             char c = metadata.charAt(i);
 
-            if (escaped) {
-                // Previous char was backslash - treat this char literally
-                current.append(c);
-                escaped = false;
-            } else if ((c == '\\') && ((i + 1) < metadata.length())) {
-                // Backslash - check if escaping comma, otherwise keep it
+            if ((c == '\\') && ((i + 1) < length)) {
                 char next = metadata.charAt(i + 1);
                 if (next == ',') {
-                    escaped = true;  // Will append the comma literally
-                } else {
-                    current.append(c);  // Keep the backslash for other escapes
+                    current.append(',');
+                    i += 2;
+                    continue;
                 }
-            } else if (!inQuotes && ((c == '"') || (c == '\''))) {
-                inQuotes = true;
-                quoteChar = c;
-            } else if (inQuotes && (c == quoteChar)) {
-                inQuotes = false;
-            } else if (!inQuotes && (c == ',')) {
+                // other `\X` sequences: keep the backslash literally
+            }
+
+            if ((c == '"') || (c == '\'')) {
+                int closer = Lexer.findClosingQuote(metadata, i + 1, c, ',');
+                if (closer != -1) {
+                    current.append(metadata, i + 1, closer);
+                    i = closer + 1;
+                    continue;
+                }
+                // unterminated within the option — fall through and treat `c` as literal
+            }
+
+            if (c == ',') {
                 options.add(current.toString().trim());
                 current = new StringBuilder();
             } else {
                 current.append(c);
             }
+            i++;
         }
 
         if (current.length() > 0) {
@@ -211,14 +224,14 @@ public class CompiledMessage {
                     } else if (ch == '}') {
                         depth--;
                     } else if ((ch == '"') || (ch == '\'')) {
-                        // Skip quoted strings
-                        char quote = ch;
-                        i++;
-                        while ((i < length) && (source.charAt(i) != quote)) {
-                            if ((source.charAt(i) == '\\') && ((i + 1) < length)) {
-                                i++; // Skip escaped char
-                            }
-                            i++;
+                        // Asymmetric scan: `"` is greedy (scan to EOF) because it almost never
+                        // appears bare in real text, so embedded `}` inside `"..."` works fine.
+                        // `'` is bounded at the next `}` because it must coexist with English
+                        // possessives like `{player.append('s)}` and contractions in static text.
+                        char stop = (ch == '\'') ? '}' : '\0';
+                        int closer = Lexer.findClosingQuote(source, i + 1, ch, stop);
+                        if (closer != -1) {
+                            i = closer; // jump straight to the closing quote; outer i++ advances past it
                         }
                     }
                     i++;
@@ -360,28 +373,31 @@ public class CompiledMessage {
      */
     private static int findDefaultPipe(String content) {
         int depth = 0;
-        boolean inQuote = false;
-        char quoteChar = 0;
+        int i = 0;
+        int length = content.length();
 
-        for (int i = 0; i < content.length(); i++) {
+        while (i < length) {
             char c = content.charAt(i);
 
-            if (inQuote) {
-                if ((c == '\\') && ((i + 1) < content.length())) {
-                    i++; // skip escaped char
-                } else if (c == quoteChar) {
-                    inQuote = false;
+            if ((c == '"') || (c == '\'')) {
+                // A quote only opens a string region if a closer exists somewhere ahead.
+                // Otherwise a bare apostrophe (e.g. `{x.append('s)|fallback}`) would eat the `|`.
+                int closer = Lexer.findClosingQuote(content, i + 1, c, '\0');
+                if (closer != -1) {
+                    i = closer + 1;
+                    continue;
                 }
-            } else if ((c == '"') || (c == '\'')) {
-                inQuote = true;
-                quoteChar = c;
-            } else if (c == '(') {
+                // unterminated quote → fall through, treat as literal char
+            }
+
+            if (c == '(') {
                 depth++;
             } else if (c == ')') {
                 depth--;
             } else if ((c == '|') && (depth == 0)) {
-                return i; // Return FIRST pipe outside parens/quotes
+                return i;
             }
+            i++;
         }
 
         return -1;

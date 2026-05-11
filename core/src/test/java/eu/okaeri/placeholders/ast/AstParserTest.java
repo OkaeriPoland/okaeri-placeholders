@@ -223,6 +223,72 @@ class AstParserTest {
             assertThat(ast).isInstanceOf(Call.class);
             assertThat(((Call) ast).getName()).isEqualTo("name");
         }
+
+        @Test
+        void shouldParseBareApostropheSAsRef() {
+            // English possessive — `'s)` has no closing `'` so lexer rewinds and treats `'` as identifier char
+            AstNode ast = new ExpressionParser("player.append('s)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getName()).isEqualTo("append");
+            assertThat(call.getArgs()).hasSize(1);
+            assertThat(call.getArgs().get(0)).isInstanceOf(Ref.class);
+            assertThat(((Ref) call.getArgs().get(0)).getName()).isEqualTo("'s");
+        }
+
+        @Test
+        void shouldParseLeadingApostropheInBareFirstArg() {
+            AstNode ast = new ExpressionParser("player.f('a,bbb bbb,ccc)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(3);
+            assertThat(((Ref) call.getArgs().get(0)).getName()).isEqualTo("'a");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("bbb bbb");
+            assertThat(((Ref) call.getArgs().get(2)).getName()).isEqualTo("ccc");
+        }
+
+        @Test
+        void shouldParseSingleQuotedStringWithEmbeddedComma() {
+            // paired `'...'` wins even across commas — closer exists, so it's one string arg
+            AstNode ast = new ExpressionParser("player.f('has,comma')").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(1);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("has,comma");
+        }
+
+        @Test
+        void shouldUseDoubleQuotesToSplitArgsContainingApostrophes() {
+            // to keep bare apostrophes on each side of a comma, use the other quote style
+            AstNode ast = new ExpressionParser("player.f(\"'has\", \"comma'\")").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(2);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("'has");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("comma'");
+        }
+
+        @Test
+        void shouldStillParsePairedSingleQuotedStrings() {
+            // regression guard: the common `'literal'` arg form must keep working
+            AstNode ast = new ExpressionParser("active.bool('on','off')").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(2);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("on");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("off");
+        }
+
+        @Test
+        void shouldParseSingleArgPairedSingleQuotedString() {
+            // the single-arg form `('s')` — the natural "I escaped my apostrophe properly" case
+            AstNode ast = new ExpressionParser("player.append('s')").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(1);
+            assertThat(call.getArgs().get(0)).isInstanceOf(StringLiteral.class);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("s");
+        }
     }
 
     @Nested

@@ -232,6 +232,34 @@ class StringPlaceholdersTest {
 
             assertThat(result).isEqualTo("value");
         }
+
+        @Test
+        void shouldAppendBareApostropheS(Placeholders placeholders) {
+            // English possessive — `'s)` doesn't open a string scan because there's no closer ahead
+            var result = placeholders.context(CompiledMessage.of("{player.append('s)}"))
+                .with("player", "Sandra")
+                .apply();
+
+            assertThat(result).isEqualTo("Sandra's");
+        }
+
+        @Test
+        void shouldAppendDoubleQuotedApostropheS(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{player.append(\"'s\")}"))
+                .with("player", "Sandra")
+                .apply();
+
+            assertThat(result).isEqualTo("Sandra's");
+        }
+
+        @Test
+        void shouldAppendEscapedApostropheInSingleQuotes(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{player.append('\\'s')}"))
+                .with("player", "Sandra")
+                .apply();
+
+            assertThat(result).isEqualTo("Sandra's");
+        }
     }
 
     @Nested
