@@ -1059,4 +1059,59 @@ class GlobalFunctionsTest {
             assertThat(result).isEqualTo("fallback");
         }
     }
+
+    @Nested
+    @DisplayName("Bare `name(args)` — field vs global function precedence")
+    class BareCallPrecedence {
+
+        // The pre-AST regex parser routed `{name(arg)}` to field-with-self-args (the
+        // arg flowed to the field's self resolver). The AST migration re-routed it
+        // unconditionally to bare-global-function-call, silently regressing templates
+        // like `{untilReset(s)}`. Field-when-bound wins; global function is the fallback.
+
+        @Test
+        void shouldUseGlobalFunctionWhenNameIsNotAField(Placeholders placeholders) {
+            // `min` is not in values → falls through to $.min(a,b,c)
+            var result = placeholders.context(CompiledMessage.of("{min(a,b,c)}"))
+                .with("a", 5).with("b", 3).with("c", 7).apply();
+
+            assertThat(result).isEqualTo("3");
+        }
+
+        @Test
+        void shouldUseFieldWhenNameIsBoundAndHasSelfResolver(Placeholders placeholders) {
+            // `min` IS in values as a Duration (which has a self resolver accepting a
+            // precision arg) → field-with-self-args wins over the $.min global function
+            var result = placeholders.context(CompiledMessage.of("{min(ms)}"))
+                .with("min", java.time.Duration.ofMillis(90_250))
+                .apply();
+
+            assertThat(result).isEqualTo("1m30s250ms");
+        }
+
+        @Test
+        void shouldFallBackToGlobalWhenFieldHasNoSelfResolver(Placeholders placeholders) {
+            // `min` is in values as a String — String has no self resolver, so we fall
+            // through to the $.min global function (which still sees a,b unrelated to `min`)
+            var result = placeholders.context(CompiledMessage.of("{min(a,b)}"))
+                .with("min", "shadow")
+                .with("a", 5)
+                .with("b", 3)
+                .apply();
+
+            assertThat(result).isEqualTo("3");
+        }
+
+        @Test
+        void shouldFallBackToGlobalWhenFieldValueIsNull(Placeholders placeholders) {
+            // `min` is in values but null → not treated as field, fall back to $.min
+            var result = placeholders.context(CompiledMessage.of("{min(a,b)}"))
+                .with("min", null)
+                .with("a", 5)
+                .with("b", 3)
+                .apply();
+
+            assertThat(result).isEqualTo("3");
+        }
+    }
 }

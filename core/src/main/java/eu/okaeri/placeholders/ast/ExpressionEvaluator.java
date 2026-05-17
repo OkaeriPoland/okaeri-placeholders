@@ -52,12 +52,31 @@ public class ExpressionEvaluator implements AstVisitor<Object>, EvaluationContex
     @Override
     @SuppressWarnings("unchecked")
     public Object visitCall(Call node) {
-        Object target = node.getTarget().accept(this);
-        String name = node.getName();
-
         if (this.placeholders == null) {
             return null;
         }
+
+        String name = node.getName();
+
+        // Bare `name(args)` is parsed as `$.name(args)` for global-function ergonomics
+        // (`min(a,b)`, `default(x,"y")`). But the same shape pre-AST also covered
+        // field-with-self-args like `{duration(precision)}` — so if `name` is a value
+        // in the current context, resolve as field-self with these args first and only
+        // fall back to the global-function path when it isn't.
+        if ((node.getTarget() instanceof Ref)
+            && Placeholders.GLOBAL_FUNCTIONS_KEY.equals(((Ref) node.getTarget()).getName())
+            && this.values.containsKey(name)) {
+            Object fieldValue = this.values.get(name);
+            if (fieldValue != null) {
+                PlaceholderResolver fieldResolver = this.placeholders.getResolver(fieldValue, null);
+                if ((fieldResolver != null) && (fieldResolver != this.placeholders.getFallbackResolver())) {
+                    FieldParams fieldParams = FieldParams.of(name, node.getArgs(), node.isHasParens(), this);
+                    return fieldResolver.resolve(fieldValue, fieldParams, this.legacyContext);
+                }
+            }
+        }
+
+        Object target = node.getTarget().accept(this);
 
         PlaceholderResolver resolver;
         if (target != null) {

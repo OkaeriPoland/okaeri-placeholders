@@ -161,6 +161,52 @@ class DurationPlaceholdersTest {
     }
 
     @Nested
+    @DisplayName("Precision argument via field-with-self-args")
+    class PrecisionArgument {
+
+        // `{d(precision)}` applies the field's self resolver with `precision` as the
+        // first argument. Regression guard for the pre-AST behavior of `{name(arg)}`
+        // (e.g. {untilReset(s)} in user templates) that the AST migration silently
+        // re-routed to bare-global-function-call.
+
+        @Test
+        void shouldDefaultToSecondsPrecisionWithNoArg(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{d}"))
+                .with("d", Duration.ofMillis(90_250))
+                .apply();
+
+            assertThat(result).isEqualTo("1m30s");
+        }
+
+        @Test
+        void shouldRespectExplicitSecondsPrecision(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{d(s)}"))
+                .with("d", Duration.ofMillis(90_250))
+                .apply();
+
+            assertThat(result).isEqualTo("1m30s");
+        }
+
+        @Test
+        void shouldRespectMillisecondsPrecision(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{d(ms)}"))
+                .with("d", Duration.ofMillis(90_250))
+                .apply();
+
+            assertThat(result).isEqualTo("1m30s250ms");
+        }
+
+        @Test
+        void shouldRespectMinutesPrecision(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{d(m)}"))
+                .with("d", Duration.ofMillis(90_250))
+                .apply();
+
+            assertThat(result).isEqualTo("1m");
+        }
+    }
+
+    @Nested
     @DisplayName("Parameterized tests")
     class ParameterizedTests {
 
