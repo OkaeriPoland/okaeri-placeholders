@@ -215,23 +215,107 @@ public class ExpressionParser {
             return StringLiteral.of("|", token.getSpan());
         }
 
-        // Multi-word bare identifiers up to , or ) become a single string literal.
-        // Common in i18n templates like {r:player.f(została zbanowana,został zbanowany,...)}.
-        if ((this.source != null) && this.check(TokenType.IDENTIFIER)) {
+        // Bare-literal arg detection. An arg is captured verbatim as a string literal
+        // (preserving ALL whitespace between the surrounding `(`/`,` and `,`/`)`) when:
+        //   - it contains whitespace between tokens at depth 0 — multi-word phrases like
+        //     `f(została zbanowana,...)` or `prepend(/cub extend <x> )` (with trailing
+        //     space deliberate), OR
+        //   - it contains a DOT at depth 0 not followed by IDENTIFIER, which can't parse
+        //     as a method chain — e.g. `localize(Wł./Wył.)`.
+        // STRING / PIPE inside an arg fall through to the normal expression parser
+        // (string literals are explicit, `|` participates in default-value grammar).
+        if ((this.source != null) && (this.check(TokenType.IDENTIFIER) || this.check(TokenType.DOT))) {
             int saved = this.current;
-            int identCount = 0;
-            while (this.check(TokenType.IDENTIFIER)) {
-                identCount++;
-                this.advance();
+            int depth = 0;
+            boolean hasWhitespaceGap = false;
+            boolean hasTrailingDot = false;
+            boolean disqualified = false;
+            int prevTokenEnd = -1;
+            int depth0IdentCount = 0;
+            int depth0NonIdentCount = 0;
+            int loneIdentTokenIdx = -1;
+            int pos = saved;
+
+            while (pos < this.tokens.size()) {
+                Token tk = this.tokens.get(pos);
+                TokenType tt = tk.getType();
+                if (tt == TokenType.EOF) break;
+                if ((depth == 0) && ((tt == TokenType.COMMA) || (tt == TokenType.RPAREN))) break;
+
+                if (tt == TokenType.LPAREN) {
+                    depth++;
+                    // entering a nested call — the inner span is "consumed" as a unit,
+                    // not whitespace, so reset the adjacency cursor
+                    prevTokenEnd = -1;
+                    depth0NonIdentCount++;
+                    pos++;
+                    continue;
+                }
+                if (tt == TokenType.RPAREN) {
+                    depth--;
+                    // returning from a nested call — treat the closer as the new adjacent
+                    // boundary; whatever follows compares against this, not the pre-paren token
+                    prevTokenEnd = tk.getSpan().getEnd();
+                    pos++;
+                    continue;
+                }
+
+                if (depth > 0) {
+                    pos++;
+                    continue;
+                }
+
+                if ((tt == TokenType.STRING) || (tt == TokenType.PIPE)) {
+                    disqualified = true;
+                    break;
+                }
+                int curStart = tk.getSpan().getStart();
+                if ((prevTokenEnd >= 0) && (curStart > prevTokenEnd)) {
+                    hasWhitespaceGap = true;
+                }
+                if (tt == TokenType.DOT) {
+                    TokenType next = ((pos + 1) < this.tokens.size())
+                        ? this.tokens.get(pos + 1).getType()
+                        : TokenType.EOF;
+                    if (next != TokenType.IDENTIFIER) {
+                        hasTrailingDot = true;
+                    }
+                    depth0NonIdentCount++;
+                } else if (tt == TokenType.IDENTIFIER) {
+                    depth0IdentCount++;
+                    if (loneIdentTokenIdx < 0) loneIdentTokenIdx = pos;
+                } else {
+                    depth0NonIdentCount++;
+                }
+                prevTokenEnd = tk.getSpan().getEnd();
+                pos++;
             }
-            if ((identCount > 1) && (this.check(TokenType.COMMA) || this.check(TokenType.RPAREN))) {
-                Token first = this.tokens.get(saved);
-                Token last = this.tokens.get(this.current - 1);
-                int start = first.getSpan().getStart();
-                int end = last.getSpan().getEnd();
-                return StringLiteral.of(this.source.substring(start, end), SourceSpan.of(start, end));
+
+            if (!disqualified && (hasWhitespaceGap || hasTrailingDot)) {
+                this.current = pos;
+                int spanStart = this.tokens.get(saved - 1).getSpan().getEnd();
+                int spanEnd = this.peek().getSpan().getStart();
+                return StringLiteral.of(this.source.substring(spanStart, spanEnd), SourceSpan.of(spanStart, spanEnd));
             }
-            this.current = saved;
+
+            // Single bare IDENT with edge whitespace — emit a Ref carrying the padded
+            // source as the literal. At eval time the trimmed name is looked up first;
+            // if no value is bound, the padded literal is used. Lets templates like
+            // `default( name , "Guest" )` keep resolving `name` to its value while
+            // `prepend( wrap )` (no `wrap` field) preserves " wrap " as the literal.
+            if (!disqualified
+                && (depth0IdentCount == 1)
+                && (depth0NonIdentCount == 0)
+                && (loneIdentTokenIdx >= 0)) {
+                int spanStart = this.tokens.get(saved - 1).getSpan().getEnd();
+                int spanEnd = this.tokens.get(pos).getSpan().getStart();
+                Token identTok = this.tokens.get(loneIdentTokenIdx);
+                if ((identTok.getSpan().getStart() > spanStart) || (identTok.getSpan().getEnd() < spanEnd)) {
+                    this.current = pos;
+                    String literal = this.source.substring(spanStart, spanEnd);
+                    return Ref.of(identTok.getValue(), SourceSpan.of(spanStart, spanEnd), literal);
+                }
+            }
         }
 
         return this.parseExpression();

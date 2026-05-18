@@ -260,6 +260,96 @@ class StringPlaceholdersTest {
 
             assertThat(result).isEqualTo("Sandra's");
         }
+
+        @Test
+        void shouldPreserveTrailingSpaceInBareLiteralArg(Placeholders placeholders) {
+            // user case: command template needs the trailing space so the cuboid name doesn't fuse
+            var result = placeholders.context(CompiledMessage.of("{cuboid.prepend(/cub extend <days> )}"))
+                .with("cuboid", "player#1")
+                .apply();
+
+            assertThat(result).isEqualTo("/cub extend <days> player#1");
+        }
+
+        @Test
+        void shouldPreserveEdgeWhitespaceAroundSingleIdentArg(Placeholders placeholders) {
+            // single-ident bare args still parse as Refs (so they look up values) but
+            // carry the padded source as a literalFallback — when no value is bound to
+            // the trimmed name, the padded literal is returned, so `( wrap )` preserves
+            // its spaces. `default( name , "Guest" )` still resolves `name` (value lookup
+            // wins over fallback) so existing formatted templates are unaffected.
+            var result = placeholders.context(CompiledMessage.of("{s.prepend( wrap )}"))
+                .with("s", "x")
+                .apply();
+
+            assertThat(result).isEqualTo(" wrap x");
+        }
+
+        @Test
+        void shouldStillResolveValueForPaddedRefWhenBound(Placeholders placeholders) {
+            // value lookup wins over the literalFallback — `default( name , "Guest" )`
+            // and similar formatted templates keep working with explicit `name` binding
+            var result = placeholders.context(CompiledMessage.of("{s.prepend( wrap )}"))
+                .with("s", "x")
+                .with("wrap", "X")
+                .apply();
+
+            assertThat(result).isEqualTo("Xx");
+        }
+
+        @Test
+        void shouldAppendBareLiteralEndingInDot(Placeholders placeholders) {
+            // Polish abbreviation `Wł.` (włączone — "on") trailing a placeholder
+            var result = placeholders.context(CompiledMessage.of("{s.append(Wł.)}"))
+                .with("s", "status: ")
+                .apply();
+
+            assertThat(result).isEqualTo("status: Wł.");
+        }
+
+        @Test
+        void shouldAppendBareLiteralWithDotSeparatedSections(Placeholders placeholders) {
+            // multiple dot-suffixed sections in one arg
+            var result = placeholders.context(CompiledMessage.of("{s.append(Wł./Wył.)}"))
+                .with("s", "tryb: ")
+                .apply();
+
+            assertThat(result).isEqualTo("tryb: Wł./Wył.");
+        }
+
+        @Test
+        void shouldRenderMessageDefaultWhenTargetMissingForMultiWordLiteralArg(Placeholders placeholders) {
+            // message-level pipe `|fallback` kicks in when `s` is missing, even with the
+            // unusual arg shape — the bare-arg parser doesn't swallow the pipe
+            var result = placeholders.context(CompiledMessage.of("{s.append(hello world)|fallback}")).apply();
+
+            assertThat(result).isEqualTo("fallback");
+        }
+
+        @Test
+        void shouldRenderMessageDefaultWhenTargetMissingForTrailingWhitespaceArg(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.prepend(/cub extend <day> )|fallback}")).apply();
+
+            assertThat(result).isEqualTo("fallback");
+        }
+
+        @Test
+        void shouldRenderMessageDefaultWhenTargetMissingForTrailingDotArg(Placeholders placeholders) {
+            var result = placeholders.context(CompiledMessage.of("{s.append(Wł./Wył.)|fallback}")).apply();
+
+            assertThat(result).isEqualTo("fallback");
+        }
+
+        @Test
+        void shouldApplyFunctionWhenTargetIsBoundForFormattedArgs(Placeholders placeholders) {
+            // pipe fallback NOT used when target is bound — the bare literal arg still
+            // applies through the resolver
+            var result = placeholders.context(CompiledMessage.of("{s.append(hello world)|fallback}"))
+                .with("s", "x ")
+                .apply();
+
+            assertThat(result).isEqualTo("x hello world");
+        }
     }
 
     @Nested

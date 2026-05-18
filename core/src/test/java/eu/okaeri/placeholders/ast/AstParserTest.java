@@ -206,12 +206,13 @@ class AstParserTest {
 
         @Test
         void shouldPreserveLeadingSpaceInMultiWordArg() {
-            // first arg starts with a space — surfaces in {r:player.f( a b,c d,e f)} edge cases
+            // bare-literal arg captures the full source span between `(`/`,` and `,`/`)`,
+            // including any leading/trailing whitespace (matches pre-AST regex behavior)
             AstNode ast = new ExpressionParser("player.f( hello world,foo bar)").parse();
 
             Call call = (Call) ast;
             assertThat(call.getArgs()).hasSize(2);
-            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("hello world");
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo(" hello world");
             assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("foo bar");
         }
 
@@ -288,6 +289,163 @@ class AstParserTest {
             assertThat(call.getArgs()).hasSize(1);
             assertThat(call.getArgs().get(0)).isInstanceOf(StringLiteral.class);
             assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("s");
+        }
+
+        // === Bare-literal arg coverage ===
+        // The "no quotes" mode: any arg with whitespace between tokens OR a stray DOT
+        // not followed by IDENT is captured verbatim from `(`/`,` to `,`/`)`. Mirrors
+        // the pre-AST regex behavior so i18n templates can write literal phrases without
+        // quoting. Single-ident args with no edge whitespace remain Refs for value lookup.
+
+        @Test
+        void shouldPreserveTrailingSpaceInMultiWordArg() {
+            // user's case: `prepend(/cub extend <days> )` — the trailing space is
+            // deliberate (downstream concatenation expects it)
+            AstNode ast = new ExpressionParser("cuboid.prepend(/cub extend <days> )").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(1);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("/cub extend <days> ");
+        }
+
+        @Test
+        void shouldPreserveEdgeWhitespaceOnBothSides() {
+            AstNode ast = new ExpressionParser("f(  hello world  )").parse();
+
+            Call call = (Call) ast;
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("  hello world  ");
+        }
+
+        @Test
+        void shouldHandleI18nStyleArgWithMarkup() {
+            // mix of slashes (non-structural), angle brackets, underscores — common in
+            // command-template literals
+            AstNode ast = new ExpressionParser("c.f(/cmd <arg1> _extra_ <arg2>)").parse();
+
+            Call call = (Call) ast;
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue())
+                .isEqualTo("/cmd <arg1> _extra_ <arg2>");
+        }
+
+        @Test
+        void shouldParseTrailingDotAsLiteral() {
+            // `Wł.` alone — trailing DOT not followed by IDENT can't be a method chain
+            AstNode ast = new ExpressionParser("p.localize(Wł.)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(1);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("Wł.");
+        }
+
+        @Test
+        void shouldParseDotSeparatedSectionsWithTrailingDots() {
+            // user's case: `localize(Wł./Wył.)` — two sections, each ending with a dot
+            AstNode ast = new ExpressionParser("p.localize(Wł./Wył.)").parse();
+
+            Call call = (Call) ast;
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("Wł./Wył.");
+        }
+
+        @Test
+        void shouldHandleMixedSlashSectionAndDotSection() {
+            // first arg is single-IDENT `On/Off` (slashes non-structural), second is
+            // dot-trailing literal
+            AstNode ast = new ExpressionParser("p.localize(On/Off,Wł./Wył.)").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(2);
+            assertThat(call.getArgs().get(0)).isInstanceOf(Ref.class);
+            assertThat(((Ref) call.getArgs().get(0)).getName()).isEqualTo("On/Off");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("Wł./Wył.");
+        }
+
+        @Test
+        void shouldParseMethodChainWithArgsAsCall() {
+            // `name.replace(_,-)` — the inner `(...)` returns to depth 0 around RPAREN;
+            // regression guard: must not be misclassified as bare-literal phrase
+            AstNode ast = new ExpressionParser("c.f(name.replace(_,-))").parse();
+
+            Call outer = (Call) ast;
+            assertThat(outer.getArgs()).hasSize(1);
+            assertThat(outer.getArgs().get(0)).isInstanceOf(Call.class);
+            Call replaceCall = (Call) outer.getArgs().get(0);
+            assertThat(replaceCall.getName()).isEqualTo("replace");
+        }
+
+        @Test
+        void shouldParseMethodChainWithLeadingSpace() {
+            // leading whitespace before a method-call arg must NOT promote it to a literal —
+            // the inner `(...)` is the "consumed unit", no inter-token gap at the outer level
+            AstNode ast = new ExpressionParser("c.f(active, name.replace(_,-), fallback)").parse();
+
+            Call outer = (Call) ast;
+            assertThat(outer.getArgs()).hasSize(3);
+            assertThat(outer.getArgs().get(0)).isInstanceOf(Ref.class);
+            assertThat(outer.getArgs().get(1)).isInstanceOf(Call.class);
+            assertThat(outer.getArgs().get(2)).isInstanceOf(Ref.class);
+        }
+
+        @Test
+        void shouldKeepStringLiteralArgsAsStringLiterals() {
+            // regression guard: a quoted arg must remain a StringLiteral even when
+            // surrounded by whitespace from neighboring args — the literal-arg detector
+            // bails out when it sees a STRING token
+            AstNode ast = new ExpressionParser("f(\"hello world\", \"foo\")").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(2);
+            assertThat(call.getArgs().get(0)).isInstanceOf(StringLiteral.class);
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("hello world");
+            assertThat(((StringLiteral) call.getArgs().get(1)).getValue()).isEqualTo("foo");
+        }
+
+        @Test
+        void shouldKeepDottedRefArgAsCall() {
+            // `f(player.name)` — single dotted access, no whitespace, no trailing dot;
+            // must parse as method chain not literal "player.name"
+            AstNode ast = new ExpressionParser("f(player.name)").parse();
+
+            Call outer = (Call) ast;
+            assertThat(outer.getArgs()).hasSize(1);
+            assertThat(outer.getArgs().get(0)).isInstanceOf(Call.class);
+        }
+
+        @Test
+        void shouldHandleMultiWordWithEmbeddedMethodCall() {
+            // `f(hello world.upper())` — has whitespace gap, so the WHOLE arg becomes a
+            // literal source span including the inner `(...)` text; this matches the
+            // pre-AST regex behavior where multi-word args were always treated as text
+            AstNode ast = new ExpressionParser("f(hello world.upper())").parse();
+
+            Call call = (Call) ast;
+            assertThat(((StringLiteral) call.getArgs().get(0)).getValue()).isEqualTo("hello world.upper()");
+        }
+
+        @Test
+        void shouldHandleNestedParensWithoutFalsePositive() {
+            // multi-step regression guard: inner method call with arg `(score.gte(90))`,
+            // surrounded by other args. The RPAREN back-to-depth-0 must not be counted
+            // as a "whitespace gap"
+            AstNode ast = new ExpressionParser("cond(score.gte(90),\"A\",\"F\")").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(3);
+            assertThat(call.getArgs().get(0)).isInstanceOf(Call.class);
+            assertThat(call.getArgs().get(1)).isInstanceOf(StringLiteral.class);
+            assertThat(call.getArgs().get(2)).isInstanceOf(StringLiteral.class);
+        }
+
+        @Test
+        void shouldKeepSingleIdentEdgeWhitespaceAsRef() {
+            // single IDENT with no internal whitespace gap stays a Ref (for value lookup);
+            // edge whitespace alone doesn't promote to literal — would break templates
+            // like `f( a , b )` that expect a and b to be looked up
+            AstNode ast = new ExpressionParser("f( a )").parse();
+
+            Call call = (Call) ast;
+            assertThat(call.getArgs()).hasSize(1);
+            assertThat(call.getArgs().get(0)).isInstanceOf(Ref.class);
+            assertThat(((Ref) call.getArgs().get(0)).getName()).isEqualTo("a");
         }
     }
 

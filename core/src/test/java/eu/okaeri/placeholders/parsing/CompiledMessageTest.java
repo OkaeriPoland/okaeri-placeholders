@@ -218,6 +218,51 @@ class CompiledMessageTest {
 
             assertThat(expr.getDefaultValue()).isEqualTo("fallback");
         }
+
+        @Test
+        void shouldFindPipeAfterMultiWordLiteralArg() {
+            // `(hello world)` is a bare multi-word literal arg
+            var message = CompiledMessage.of("{x.append(hello world)|fallback}");
+            var expr = (ExpressionPart) message.getParts().get(0);
+
+            assertThat(expr.getDefaultValue()).isEqualTo("fallback");
+        }
+
+        @Test
+        void shouldFindPipeAfterTrailingDotArg() {
+            // `(Wł.)` is a literal-with-trailing-dot, can't be a method chain
+            var message = CompiledMessage.of("{x.append(Wł.)|fallback}");
+            var expr = (ExpressionPart) message.getParts().get(0);
+
+            assertThat(expr.getDefaultValue()).isEqualTo("fallback");
+        }
+
+        @Test
+        void shouldFindPipeAfterArgWithTrailingWhitespace() {
+            // user's case: `(/cub extend <days> )` — trailing space preserved as literal
+            var message = CompiledMessage.of("{cuboid.prepend(/cub extend <days> )|fallback}");
+            var expr = (ExpressionPart) message.getParts().get(0);
+
+            assertThat(expr.getDefaultValue()).isEqualTo("fallback");
+        }
+
+        @Test
+        void shouldFindPipeAfterPaddedSingleIdentArg() {
+            // single-ident with edge whitespace — `getLiteral()` carries the padded source
+            var message = CompiledMessage.of("{s.prepend( wrap )|fallback}");
+            var expr = (ExpressionPart) message.getParts().get(0);
+
+            assertThat(expr.getDefaultValue()).isEqualTo("fallback");
+        }
+
+        @Test
+        void shouldFindPipeAfterDotSeparatedTrailingDotArg() {
+            // `(Wł./Wył.)` — multi-section literal arg with trailing dots
+            var message = CompiledMessage.of("{p.localize(Wł./Wył.)|fallback}");
+            var expr = (ExpressionPart) message.getParts().get(0);
+
+            assertThat(expr.getDefaultValue()).isEqualTo("fallback");
+        }
     }
 
     @Nested

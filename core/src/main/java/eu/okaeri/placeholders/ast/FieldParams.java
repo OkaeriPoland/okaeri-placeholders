@@ -117,10 +117,11 @@ public class FieldParams {
             return result.toString();
         }
 
-        // Fallback for unresolved refs: use the identifier name as the string value
-        // This enables backward compat: {s.replace(_,-)} where - is not a field but a literal
+        // Fallback for unresolved refs: use the source literal (which falls back to the
+        // trimmed name) so edge-whitespace cases like {prepend( wrap )} preserve spaces
+        // and unquoted literal-style args like {replace(_,-)} still work
         if (arg instanceof Ref) {
-            return ((Ref) arg).getName();
+            return ((Ref) arg).getLiteral();
         }
 
         return def;
