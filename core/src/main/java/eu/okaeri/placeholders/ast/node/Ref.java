@@ -20,8 +20,8 @@ import java.util.List;
  * <p>
  * The raw {@code literal} field, when set, is the source text of this reference
  * including any surrounding whitespace (e.g. {@code " name "} for {@code f( name )}).
- * Use {@link #getLiteral()} to always get a non-null source representation: it falls
- * back to {@link #getName()} when no explicit literal was captured. Arg-evaluation
+ * Use {@code getLiteral()} to always get a non-null source representation: it falls
+ * back to the trimmed identifier name when no explicit literal was captured. Arg-evaluation
  * uses this for fallback when value lookup misses — so {@code prepend( wrap )}
  * preserves spaces when no {@code wrap} is bound while {@code default( name , "Guest" )}
  * still resolves {@code name} to its value.
@@ -35,7 +35,7 @@ public class Ref implements AstNode {
 
     /**
      * Source representation of this reference — the raw literal if captured at parse
-     * time (with any surrounding whitespace), otherwise the trimmed {@link #getName() name}.
+     * time (with any surrounding whitespace), otherwise the trimmed identifier name.
      * Always non-null; suitable for fallback rendering or programmatic introspection.
      */
     public String getLiteral() {
